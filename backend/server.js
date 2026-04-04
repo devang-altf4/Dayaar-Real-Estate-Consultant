@@ -6,7 +6,21 @@ const connectDB = require('./config/db');
 const app = express();
 
 // Middleware
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://dayaar-real-estate-consultant.vercel.app',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+app.use(cors({ 
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
 app.use(express.json({ limit: '10kb' }));
 
 // Routes
