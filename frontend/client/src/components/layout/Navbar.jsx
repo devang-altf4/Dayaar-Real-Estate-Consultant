@@ -61,7 +61,7 @@ export default function Navbar() {
             }}
           />
           <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 18, color: '#f5f0e8' }}>
-           Dayaarrealestate
+           Dayaar Real Estate Consultant
           </span>
         </a>
 

@@ -10,7 +10,7 @@ import { HiOutlineArrowRight } from 'react-icons/hi2';
 import { TbBuildingSkyscraper } from 'react-icons/tb';
 import { IoTrendingUpOutline } from 'react-icons/io5';
 
-const STATION_POSITIONS = [0.08, 0.24, 0.40, 0.56, 0.72, 0.90];
+const STATION_POSITIONS = [0.10, 0.26, 0.42, 0.58, 0.74, 0.90];
 
 const ZONE_PRICES = {
   'mira-road':       '₹10.5K–₹14K',
@@ -23,11 +23,11 @@ const ZONE_PRICES = {
 
 const ZONE_STATIONS = {
   'mira-road':       ['Bhayandar', 'Mira Road', 'Dahisar'],
-  'makabo':          ['Borivali', 'Kandivali', 'Malad'],
-  'andheri':         ['Goregaon', 'Andheri', 'Vile Parle'],
+  'makabo':          ['Malad', 'Kandivali', 'Borivali'],
+  'andheri':         ['Goregaon', 'to', 'Vile Parle'],
   'western-suburbs': ['Santa Cruz', 'Khar', 'Bandra'],
-  'south-central':   ['Mahim', 'Dadar', 'Parel'],
-  'sobo':            ['Mumbai Central', 'Marine Lines', 'Colaba'],
+  'south-central':   ['Dadar', 'Parel', 'Mumbai Central'],
+  'sobo':            ['Mumbai Central', 'Marine Drive', 'Colaba'],
 };
 
 const ZONE_HIGHLIGHTS = {
@@ -40,13 +40,12 @@ const ZONE_HIGHLIGHTS = {
 };
 
 const RAILWAY_PATH = `
-  M 340,130
-  C 360,175  410,230  470,305
-  C 410,335 370,355  385,390
-  C 415,423 470,438  495,473
-  C 520,508 495,538  440,561
-  C 375,588 330,611  345,646
-  C 360,673 345,685  330,700
+  M 342,195
+  C 343,242 344,282 342,335
+  C 340,388 335,426 332,478
+  C 329,530 324,566 321,616
+  C 319,658 330,682 333,702
+  C 335,714 322,720 316,726
 `;
 
 // Hook for responsive
@@ -226,9 +225,9 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
           const zoneName = ZONE_INFO[zoneId].name.toUpperCase();
           const price = ZONE_PRICES[zoneId];
           const stations = ZONE_STATIONS[zoneId];
-          const isRight = i === 0 ? false : i % 2 !== 0;
-          const lx = isRight ? coord.x + 20 : coord.x - 20;
-          const anchor = isRight ? 'start' : 'end';
+          const isRight = true;
+          const lx = coord.x + 20;
+          const anchor = 'start';
 
           return (
             <g key={zoneId}>
@@ -251,23 +250,23 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
               />
               <line x1={coord.x + (isRight ? 9 : -9)} y1={coord.y}
                 x2={lx - (isRight ? 2 : -2)} y2={coord.y}
-                stroke={isActive ? '#c9a96e' : 'rgba(255,255,255,0.06)'} strokeWidth="0.6" style={{ transition: 'all 0.4s' }} />
+                stroke={isActive ? '#1E5EFF' : 'rgba(255,255,255,0.06)'} strokeWidth="0.6" style={{ transition: 'all 0.4s' }} />
               <text x={lx} y={coord.y - 12} textAnchor={anchor}
-                fill={isActive ? '#ffffff' : isPast ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)'}
+                fill={isActive ? '#1E5EFF' : isPast ? 'rgba(169,201,255,0.45)' : 'rgba(169,201,255,0.15)'}
                 fontSize={isActive ? '14' : '9'} fontFamily="Outfit, sans-serif"
                 fontWeight={isActive ? '800' : '600'} letterSpacing="1.5"
-                style={{ transition: 'all 0.5s', filter: isActive ? 'drop-shadow(0 1px 4px rgba(0,0,0,0.9))' : 'none' }}>
-                {zoneName}
+                style={{ transition: 'all 0.5s', filter: isActive ? 'drop-shadow(0 0 8px rgba(30,94,255,0.5))' : 'none' }}>
+                {ZONE_INFO[zoneId].name.toUpperCase()}
               </text>
               <motion.text x={lx} y={coord.y + 6} textAnchor={anchor}
-                fill={isActive ? '#c9a96e' : isPast ? 'rgba(201,169,110,0.25)' : 'rgba(201,169,110,0.08)'}
+                fill={isActive ? '#A9C9FF' : isPast ? 'rgba(169,201,255,0.2)' : 'rgba(169,201,255,0.06)'}
                 fontSize={isActive ? '10' : '7.5'} fontFamily="Inter, sans-serif" fontWeight="700"
                 style={{ transition: 'all 0.4s' }}>
                 {price}/sqft
               </motion.text>
               {stations.map((s, si) => (
                 <motion.text key={s} x={lx} y={coord.y + 22 + si * 13} textAnchor={anchor}
-                  fill={isActive ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.07)'}
+                  fill={isActive ? 'rgba(169,201,255,0.6)' : 'rgba(255,255,255,0.07)'}
                   fontSize="7.5" fontFamily="Inter, sans-serif" fontWeight="500" letterSpacing="0.8"
                   initial={false}
                   animate={{ opacity: isActive ? 1 : isPast ? 0.2 : 0.05, x: isActive ? 0 : (isRight ? -4 : 4) }}

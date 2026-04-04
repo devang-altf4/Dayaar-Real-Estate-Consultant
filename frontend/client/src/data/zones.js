@@ -47,8 +47,8 @@ export const ZONE_ORDER = [
 // Static fallback data (used if API is unavailable)
 export const ZONE_INFO = {
   'mira-road': {
-    name: 'Mira Road',
-    subtitle: 'Mira Road · Bhayandar · Dahisar',
+    name: 'Northern Suburbs',
+    subtitle: 'Bhayandar · Mira Road · Dahisar',
     description: "Mumbai's fastest-growing northern corridor",
     gradient: 'from-cyan-500 to-teal-600',
   },
@@ -59,19 +59,19 @@ export const ZONE_INFO = {
     gradient: 'from-amber-500 to-orange-600',
   },
   'andheri': {
-    name: 'Andheri Belt',
-    subtitle: 'Goregaon · Andheri · Vile Parle',
+    name: 'Central Suburbs',
+    subtitle: 'Goregaon to Vile Parle',
     description: "Mumbai's commercial powerhouse",
     gradient: 'from-purple-500 to-fuchsia-600',
   },
   'western-suburbs': {
-    name: 'Western Suburbs Core',
+    name: 'Southern Suburbs',
     subtitle: 'Santa Cruz · Khar · Bandra',
     description: "Mumbai's most aspirational address",
     gradient: 'from-emerald-500 to-green-600',
   },
   'south-central': {
-    name: 'South-Central Mumbai',
+    name: 'Central Mumbai',
     subtitle: 'Dadar · Parel · Mumbai Central',
     description: 'The renaissance corridor',
     gradient: 'from-blue-500 to-indigo-600',
