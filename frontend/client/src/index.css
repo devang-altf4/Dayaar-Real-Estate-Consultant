@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+/* ========== LUXURY COLOR PALETTE ========== */
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #111118;
+  --bg-card: #16161f;
+  --gold: #c9a96e;
+  --gold-light: #dfc089;
+  --gold-dark: #a88a4e;
+  --cream: #f5f0e8;
+  --cream-dim: #b5b0a8;
+  --text-primary: #f5f0e8;
+  --text-secondary: #8a8690;
+  --text-muted: #5a5660;
+  --border: rgba(201, 169, 110, 0.12);
+  --border-hover: rgba(201, 169, 110, 0.25);
+  --glass-bg: rgba(10, 10, 15, 0.75);
+  --glass-border: rgba(201, 169, 110, 0.15);
+}
+
+/* ========== GLOBAL RESETS ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold-dark);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+/* ========== SELECTION ========== */
+::selection {
+  background: rgba(201, 169, 110, 0.3);
+  color: var(--cream);
+}
+
+/* ========== TYPOGRAPHY ========== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* ========== GLASS MORPHISM ========== */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+/* ========== GOLD GRADIENT TEXT ========== */
+.text-gold-gradient {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ========== SMOOTH LINK UNDERLINES ========== */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ========== SECTION TRANSITIONS ========== */
+section {
+  position: relative;
+}
+
+/* ========== RESPONSIVE CONTAINER ========== */
+.container-luxury {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (min-width: 640px) {
+  .container-luxury {
+    padding: 0 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-luxury {
+    padding: 0 60px;
+  }
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4); }
+  50% { box-shadow: 0 0 20px 5px rgba(201, 169, 110, 0.1); }
+}
+
+/* ========== BUTTON BASE ========== */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: var(--bg-primary);
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(201, 169, 110, 0.3);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: transparent;
+  color: var(--cream);
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-hover);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-outline:hover {
+  background: rgba(201, 169, 110, 0.08);
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+/* ========== INPUT STYLING ========== */
+input, select, textarea {
+  font-family: 'Inter', sans-serif;
+}
+
+/* ========== ZONE CARD ASPECT RATIO ========== */
+.zone-card-image {
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+/* ========== INPUT FOCUS STATES ========== */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(100, 107, 120, 0.6) !important;
+  box-shadow: 0 0 0 2px rgba(100, 107, 120, 0.15);
+  outline: none;
+}
+
+/* ========== LINE CLAMP ========== */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ========== LEAD FORM CONTROLS ========== */
+.lead-form-control:focus {
+  border-color: #646b78 !important;
+  box-shadow: 0 0 0 2px rgba(100, 107, 120, 0.28);
+}

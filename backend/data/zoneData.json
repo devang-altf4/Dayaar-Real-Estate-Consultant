@@ -1,0 +1,374 @@
+[
+  {
+    "zoneId": "mira-road",
+    "name": "Mira Road",
+    "subtitle": "Mira Road · Bhayandar · Dahisar",
+    "description": "Mumbai's fastest-growing northern corridor — affordable luxury meets modern infrastructure.",
+    "color": "#06b6d4",
+    "gradient": "from-cyan-500 to-teal-600",
+    "pricePerSqFt": "₹10,500 – ₹14,000",
+    "rentalYield": "2.5% – 3.2%",
+    "priceRange": {
+      "bhk1": { "price": "₹45L – ₹80L", "rent": "₹10K – ₹18K" },
+      "bhk2": { "price": "₹75L – ₹1.30Cr", "rent": "₹18K – ₹30K" },
+      "bhk3": { "price": "₹1.20Cr – ₹1.90Cr", "rent": "₹30K – ₹45K" }
+    },
+    "demographics": {
+      "character": "Emerging growth corridor with modern high-rises and new infrastructure",
+      "buildingStyle": "New-age glass towers, gated communities, smart homes",
+      "connectivity": ["Western Express Highway", "Dahisar Metro (upcoming)", "Mira-Bhayandar Railway"]
+    },
+    "projects": [
+      {
+        "codename": "Codename Horizon Sky",
+        "tagline": "Rise above the ordinary",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Mar 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹48L", "carpet": "385 sq.ft." },
+          "bhk2": { "startingPrice": "₹78L", "carpet": "565 sq.ft." }
+        },
+        "amenities": ["Rooftop Infinity Pool", "EV Charging", "Co-working Lounge", "Jogging Track"]
+      },
+      {
+        "codename": "Codename Forest Edge",
+        "tagline": "Where nature meets modern living",
+        "type": "Residential",
+        "status": "Pre-Launch",
+        "possession": "Jun 2029",
+        "configs": {
+          "bhk1": { "startingPrice": "₹52L", "carpet": "370 sq.ft." },
+          "bhk2": { "startingPrice": "₹82L", "carpet": "540 sq.ft." }
+        },
+        "amenities": ["Zen Garden", "Cricket Net", "Smart Home Ready", "Clubhouse"]
+      },
+      {
+        "codename": "Codename Parkwood Rise",
+        "tagline": "Elevated living, grounded values",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Dec 2027",
+        "configs": {
+          "bhk1": { "startingPrice": "₹45L", "carpet": "365 sq.ft." },
+          "bhk2": { "startingPrice": "₹76L", "carpet": "530 sq.ft." }
+        },
+        "amenities": ["Kids Play Zone", "24/7 Security", "Landscaped Garden", "Gymnasium"]
+      }
+    ]
+  },
+  {
+    "zoneId": "makabo",
+    "name": "MaKaBo",
+    "subtitle": "Malad · Kandivali · Borivali",
+    "description": "The established western suburban heartland — excellent connectivity, thriving communities.",
+    "color": "#f59e0b",
+    "gradient": "from-amber-500 to-orange-600",
+    "pricePerSqFt": "₹20,000 – ₹38,000",
+    "rentalYield": "2.8% – 3.5%",
+    "priceRange": {
+      "bhk1": { "price": "₹90L – ₹1.40Cr", "rent": "₹25K – ₹40K" },
+      "bhk2": { "price": "₹1.40Cr – ₹2.60Cr", "rent": "₹40K – ₹70K" },
+      "bhk3": { "price": "₹2.60Cr – ₹4.20Cr", "rent": "₹70K – ₹1.2L" }
+    },
+    "demographics": {
+      "character": "Established suburbs with a mix of mid-rise and high-rise developments",
+      "buildingStyle": "Mix of older complexes and modern towers, gated societies",
+      "connectivity": ["Metro Line 2A & 7", "Western Railway", "Western Express Highway", "Goregaon-Mulund Link Road"]
+    },
+    "projects": [
+      {
+        "codename": "Codename Metro Heights",
+        "tagline": "Next to the future of transit",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Sep 2027",
+        "configs": {
+          "bhk1": { "startingPrice": "₹95L", "carpet": "410 sq.ft." },
+          "bhk2": { "startingPrice": "₹1.55Cr", "carpet": "620 sq.ft." }
+        },
+        "amenities": ["Metro Connectivity", "Clubhouse", "Infinity Edge Pool", "Kids Zone"]
+      },
+      {
+        "codename": "Codename Garden Reserve",
+        "tagline": "Your private green sanctuary",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Mar 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹92L", "carpet": "395 sq.ft." },
+          "bhk2": { "startingPrice": "₹1.48Cr", "carpet": "590 sq.ft." }
+        },
+        "amenities": ["2-Acre Landscaped Garden", "Yoga Deck", "Senior Citizen Park", "Banquet Hall"]
+      },
+      {
+        "codename": "Codename Urban Vista",
+        "tagline": "The view that changes everything",
+        "type": "Mixed-Use",
+        "status": "Pre-Launch",
+        "possession": "Jun 2029",
+        "configs": {
+          "bhk1": { "startingPrice": "₹1.02Cr", "carpet": "430 sq.ft." },
+          "bhk2": { "startingPrice": "₹1.62Cr", "carpet": "640 sq.ft." }
+        },
+        "amenities": ["Sky Lounge", "Retail Podium", "Smart Parking", "Concierge"]
+      },
+      {
+        "codename": "Codename Blue Sapphire",
+        "tagline": "Crafted for connoisseurs",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Dec 2027",
+        "configs": {
+          "bhk1": { "startingPrice": "₹98L", "carpet": "405 sq.ft." },
+          "bhk2": { "startingPrice": "₹1.52Cr", "carpet": "610 sq.ft." }
+        },
+        "amenities": ["Temperature-Controlled Pool", "Squash Court", "Business Center", "Amphitheatre"]
+      }
+    ]
+  },
+  {
+    "zoneId": "andheri",
+    "name": "Andheri Belt",
+    "subtitle": "Goregaon · Andheri · Vile Parle",
+    "description": "Mumbai's commercial powerhouse — where corporate energy meets premium residential living.",
+    "color": "#a855f7",
+    "gradient": "from-purple-500 to-fuchsia-600",
+    "pricePerSqFt": "₹25,000 – ₹45,000",
+    "rentalYield": "3% – 4%",
+    "priceRange": {
+      "bhk1": { "price": "₹1.20Cr – ₹2Cr", "rent": "₹35K – ₹60K" },
+      "bhk2": { "price": "₹2Cr – ₹4Cr", "rent": "₹60K – ₹1.2L" },
+      "bhk3": { "price": "₹4Cr – ₹7Cr", "rent": "₹1.2L – ₹2L" }
+    },
+    "demographics": {
+      "character": "Dense urban hub with IT parks, studios, and premium residences",
+      "buildingStyle": "Modern high-rises, commercial-residential mixed-use towers",
+      "connectivity": ["Metro Line 1 (Versova-Andheri-Ghatkopar)", "Western Railway", "JVLR", "Andheri-Kurla Road"]
+    },
+    "projects": [
+      {
+        "codename": "Codename Skyshore",
+        "tagline": "Where sky meets shore",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Jun 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹1.25Cr", "carpet": "450 sq.ft." },
+          "bhk2": { "startingPrice": "₹2.15Cr", "carpet": "680 sq.ft." }
+        },
+        "amenities": ["Rooftop Observatory", "Business Center", "Lap Pool", "Private Theater"]
+      },
+      {
+        "codename": "Codename Altavia",
+        "tagline": "The altitude of luxury",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Mar 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹1.30Cr", "carpet": "435 sq.ft." },
+          "bhk2": { "startingPrice": "₹2.25Cr", "carpet": "650 sq.ft." }
+        },
+        "amenities": ["Amphitheater", "Pet Park", "Sky Jogging Track", "Library"]
+      },
+      {
+        "codename": "Codename Emerald Bay",
+        "tagline": "Live in the heart of the action",
+        "type": "Mixed-Use",
+        "status": "Pre-Launch",
+        "possession": "Dec 2029",
+        "configs": {
+          "bhk1": { "startingPrice": "₹1.45Cr", "carpet": "470 sq.ft." },
+          "bhk2": { "startingPrice": "₹2.50Cr", "carpet": "710 sq.ft." }
+        },
+        "amenities": ["Retail Boulevard", "Concierge Service", "Golf Simulator", "Wine Cellar"]
+      }
+    ]
+  },
+  {
+    "zoneId": "western-suburbs",
+    "name": "Western Suburbs Core",
+    "subtitle": "Santa Cruz · Khar · Bandra",
+    "description": "Mumbai's most aspirational address — where Bollywood meets BKC, and sea breeze meets luxury.",
+    "color": "#10b981",
+    "gradient": "from-emerald-500 to-green-600",
+    "pricePerSqFt": "₹40,000 – ₹80,000+",
+    "rentalYield": "2.5% – 3.5%",
+    "priceRange": {
+      "bhk1": { "price": "₹2Cr – ₹4Cr", "rent": "₹70K – ₹1.2L" },
+      "bhk2": { "price": "₹4Cr – ₹8Cr", "rent": "₹1.2L – ₹3L" },
+      "bhk3": { "price": "₹8Cr – ₹18Cr", "rent": "₹3L – ₹6L" }
+    },
+    "demographics": {
+      "character": "Premium, boutique low-to-mid-rise developments with heritage charm",
+      "buildingStyle": "Boutique luxury towers, heritage redevelopment, sea-facing apartments",
+      "connectivity": ["Bandra-Worli Sea Link", "BKC Business District", "Western Railway", "Mumbai Coastal Road"]
+    },
+    "projects": [
+      {
+        "codename": "Codename Pali Heights",
+        "tagline": "The address that speaks for itself",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Sep 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹2.10Cr", "carpet": "520 sq.ft." },
+          "bhk2": { "startingPrice": "₹4.20Cr", "carpet": "780 sq.ft." }
+        },
+        "amenities": ["Private Lift Lobby", "Wine Cellar", "Art Gallery Lounge", "Rooftop Garden"]
+      },
+      {
+        "codename": "Codename Carter Road Living",
+        "tagline": "Sea breeze, your daily companion",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Jun 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹2.45Cr", "carpet": "550 sq.ft." },
+          "bhk2": { "startingPrice": "₹4.80Cr", "carpet": "820 sq.ft." }
+        },
+        "amenities": ["Sea-Facing Lounge", "Cigar Room", "Valet Parking", "Spa & Salon"]
+      },
+      {
+        "codename": "Codename Highland Row",
+        "tagline": "Heritage charm, modern comfort",
+        "type": "Residential",
+        "status": "Pre-Launch",
+        "possession": "Mar 2029",
+        "configs": {
+          "bhk1": { "startingPrice": "₹2.20Cr", "carpet": "500 sq.ft." },
+          "bhk2": { "startingPrice": "₹4.40Cr", "carpet": "760 sq.ft." }
+        },
+        "amenities": ["Landscaped Courtyard", "Library", "Guest Suites", "Chef's Kitchen"]
+      }
+    ]
+  },
+  {
+    "zoneId": "south-central",
+    "name": "South-Central Mumbai",
+    "subtitle": "Dadar · Parel · Mumbai Central",
+    "description": "The renaissance corridor — historic mill lands transformed into Mumbai's new luxury epicenter.",
+    "color": "#3b82f6",
+    "gradient": "from-blue-500 to-indigo-600",
+    "pricePerSqFt": "₹35,000 – ₹65,000",
+    "rentalYield": "3% – 4%",
+    "priceRange": {
+      "bhk1": { "price": "₹1.8Cr – ₹3Cr", "rent": "₹60K – ₹1L" },
+      "bhk2": { "price": "₹3Cr – ₹6Cr", "rent": "₹1L – ₹2.5L" },
+      "bhk3": { "price": "₹6Cr – ₹12Cr", "rent": "₹2.5L – ₹5L" }
+    },
+    "demographics": {
+      "character": "Heritage meets modern — mill land redevelopment creating a luxury corridor",
+      "buildingStyle": "Ultra-modern skyscrapers on former mill lands, heritage facades",
+      "connectivity": ["Mumbai Coastal Road", "Bandra-Worli Sea Link", "Central & Western Railway", "Eastern Freeway"]
+    },
+    "projects": [
+      {
+        "codename": "Codename Mill One",
+        "tagline": "From legacy to landmark",
+        "type": "Mixed-Use",
+        "status": "Under Construction",
+        "possession": "Dec 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹1.85Cr", "carpet": "480 sq.ft." },
+          "bhk2": { "startingPrice": "₹3.20Cr", "carpet": "720 sq.ft." }
+        },
+        "amenities": ["Heritage Mill Facade", "Artisan Market", "Olympic Pool", "Business Hub"]
+      },
+      {
+        "codename": "Codename Gateway Arc",
+        "tagline": "The new center of gravity",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Sep 2027",
+        "configs": {
+          "bhk1": { "startingPrice": "₹1.90Cr", "carpet": "460 sq.ft." },
+          "bhk2": { "startingPrice": "₹3.40Cr", "carpet": "700 sq.ft." }
+        },
+        "amenities": ["Sky Walk", "Meditation Center", "Indoor Sports Complex", "Grand Lobby"]
+      },
+      {
+        "codename": "Codename Central Park",
+        "tagline": "Green lungs, urban pulse",
+        "type": "Residential",
+        "status": "Pre-Launch",
+        "possession": "Jun 2029",
+        "configs": {
+          "bhk1": { "startingPrice": "₹2.00Cr", "carpet": "490 sq.ft." },
+          "bhk2": { "startingPrice": "₹3.60Cr", "carpet": "740 sq.ft." }
+        },
+        "amenities": ["3-Acre Central Park", "Organic Farm", "Cricket Pitch", "Cycling Track"]
+      }
+    ]
+  },
+  {
+    "zoneId": "sobo",
+    "name": "SoBo",
+    "subtitle": "Mumbai Central · Marine Drive · Colaba",
+    "description": "The crown jewel of Indian real estate — art deco heritage, sea-facing luxury, and unmatched prestige.",
+    "color": "#eab308",
+    "gradient": "from-yellow-500 to-amber-600",
+    "pricePerSqFt": "₹50,000 – ₹1,50,000+",
+    "rentalYield": "2% – 3%",
+    "priceRange": {
+      "bhk1": { "price": "₹3Cr – ₹6Cr", "rent": "₹1L – ₹2.5L" },
+      "bhk2": { "price": "₹6Cr – ₹15Cr", "rent": "₹2.5L – ₹6L" },
+      "bhk3": { "price": "₹15Cr – ₹45Cr", "rent": "₹6L – ₹15L+" }
+    },
+    "demographics": {
+      "character": "Ultra-luxury, art deco heritage, the pinnacle of Mumbai's prestige",
+      "buildingStyle": "Art Deco heritage buildings, ultra-luxury sea-facing towers, penthouse developments",
+      "connectivity": ["Mumbai Coastal Road", "Marine Drive", "CST-Churchgate Railway", "BEST Premium Bus Network"]
+    },
+    "projects": [
+      {
+        "codename": "Codename Marine Gold",
+        "tagline": "The Queen's Necklace at your feet",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Dec 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹3.50Cr", "carpet": "600 sq.ft." },
+          "bhk2": { "startingPrice": "₹7.20Cr", "carpet": "950 sq.ft." }
+        },
+        "amenities": ["Sea-Facing Every Unit", "Butler Service", "Private Beach Club", "Helipad"]
+      },
+      {
+        "codename": "Codename Heritage One",
+        "tagline": "Art Deco reborn",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Mar 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹3.20Cr", "carpet": "580 sq.ft." },
+          "bhk2": { "startingPrice": "₹6.80Cr", "carpet": "890 sq.ft." }
+        },
+        "amenities": ["Restored Art Deco Lobby", "Rooftop Terrace", "Vintage Library", "Private Cinema"]
+      },
+      {
+        "codename": "Codename Colaba Grande",
+        "tagline": "Where history lives in luxury",
+        "type": "Residential",
+        "status": "Pre-Launch",
+        "possession": "Jun 2029",
+        "configs": {
+          "bhk1": { "startingPrice": "₹4.10Cr", "carpet": "650 sq.ft." },
+          "bhk2": { "startingPrice": "₹8.50Cr", "carpet": "1050 sq.ft." }
+        },
+        "amenities": ["Gateway of India View", "Chef's Kitchen", "Wine Tasting Room", "Concierge 24/7"]
+      },
+      {
+        "codename": "Codename Imperial Crest",
+        "tagline": "The pinnacle of SoBo living",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Sep 2028",
+        "configs": {
+          "bhk1": { "startingPrice": "₹3.80Cr", "carpet": "620 sq.ft." },
+          "bhk2": { "startingPrice": "₹7.80Cr", "carpet": "980 sq.ft." }
+        },
+        "amenities": ["Infinity Edge Pool", "Private Spa", "Valet Service", "Sky Lounge"]
+      }
+    ]
+  }
+]
