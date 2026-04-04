@@ -247,13 +247,13 @@ export default function Footer() {
   ];
 
   const contactItems = [
-    { icon: HiOutlinePhone, val: '+91 77189 61457', href: 'tel:+917718961457' },
+    { icon: HiOutlinePhone, val: '08452 852324', href: 'tel:08452852324' },
     { icon: HiOutlineEnvelope, val: 'info@idayaar.in', href: 'mailto:info@idayaar.in' },
     { icon: HiOutlineMapPin, val: 'Mumbai, Maharashtra', href: '#' },
   ];
 
   const socialItems = [
-    { icon: FaWhatsapp, href: 'https://wa.me/917718961457', label: 'WhatsApp' },
+    { icon: FaWhatsapp, href: 'https://wa.me/918452852324', label: 'WhatsApp' },
     { icon: FaInstagram, href: 'https://www.instagram.com/dayaarrealestate/', label: 'Instagram' },
     { icon: FaYoutube, href: '#', label: 'YouTube' },
   ];
@@ -289,9 +289,11 @@ export default function Footer() {
             transition={{ type: 'spring', damping: 22, stiffness: 160 }}
           >
             <div style={styles.logoContainer}>
-              <div style={styles.logoBox}>
-                <span style={styles.logoLetter}>D</span>
-              </div>
+              <img
+                src="/images/1000002758.jpg.jpeg"
+                alt="Dayaar Real Estate Logo"
+                style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+              />
               <div style={styles.brandTextContainer}>
                 <h3 style={styles.brandName}>Dayaar</h3>
                 <p style={styles.brandTagline}>Real Estate Consultant</p>
@@ -303,7 +305,7 @@ export default function Footer() {
             </p>
 
             <motion.a
-              href="https://wa.me/917718961457?text=Hi%2C%20I'm%20interested%20in%20Mumbai%20properties"
+              href="https://wa.me/918452852324?text=Hi%2C%20I'm%20interested%20in%20Mumbai%20properties"
               target="_blank"
               rel="noopener noreferrer"
               style={styles.whatsappButton}

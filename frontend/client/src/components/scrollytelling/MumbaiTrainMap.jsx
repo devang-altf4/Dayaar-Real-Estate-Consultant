@@ -40,8 +40,8 @@ const ZONE_HIGHLIGHTS = {
 };
 
 const RAILWAY_PATH = `
-  M 630,240
-  C 600,260  540,280  470,305
+  M 340,130
+  C 360,175  410,230  470,305
   C 410,335 370,355  385,390
   C 415,423 470,438  495,473
   C 520,508 495,538  440,561
@@ -68,7 +68,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
   const containerRef = useRef(null);
   const [pathLength, setPathLength] = useState(0);
   const [stationCoords, setStationCoords] = useState([]);
-  const [trainPos, setTrainPos] = useState({ x: 630, y: 240 });
+  const [trainPos, setTrainPos] = useState({ x: 340, y: 130 });
   const [containerSize, setContainerSize] = useState({ w: 1200, h: 800 });
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
@@ -146,8 +146,9 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
   } else if (activeCoord) {
     const sp = svgToScreen(activeCoord.x, activeCoord.y);
     const cardW = 290;
-    const isRight = activeIndex % 2 === 0;
-    if (isRight) {
+    // index 0 (Mira Road) force LEFT; rest: even=left, odd=right
+    const isRight = activeIndex === 0 ? false : activeIndex % 2 !== 0;
+    if (!isRight) {
       cardScreenPos = {
         x: Math.max(16, sp.x - cardW - 50),
         y: Math.max(80, Math.min(sp.y - 60, containerSize.h - 340)),
@@ -159,6 +160,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
       };
     }
   }
+
 
   // BHK data
   const bhkData = [
@@ -224,7 +226,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
           const zoneName = ZONE_INFO[zoneId].name.toUpperCase();
           const price = ZONE_PRICES[zoneId];
           const stations = ZONE_STATIONS[zoneId];
-          const isRight = i % 2 === 0;
+          const isRight = i === 0 ? false : i % 2 !== 0;
           const lx = isRight ? coord.x + 20 : coord.x - 20;
           const anchor = isRight ? 'start' : 'end';
 

@@ -152,18 +152,17 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
               }}>
                 {/* Logo */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
-                  <div style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: 'linear-gradient(135deg, var(--gold), var(--gold-dark))',
-                    flexShrink: 0,
-                  }}>
-                    <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 900, fontSize: '14px', color: '#0f1115' }}>D</span>
-                  </div>
+                  <img
+                    src="/images/1000002758.jpg.jpeg"
+                    alt="Dayaar Logo"
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '8px',
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                    }}
+                  />
                   <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--cream)' }}>Dayaar</span>
                 </div>
 

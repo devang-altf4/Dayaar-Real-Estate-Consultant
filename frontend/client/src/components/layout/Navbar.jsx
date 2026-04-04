@@ -50,19 +50,16 @@ export default function Navbar() {
       >
         {/* Logo */}
         <a href="#hero" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
-          <div
+          <img
+            src="/images/1000002758.jpg.jpeg"
+            alt="Dayaar Real Estate Logo"
             style={{
               width: 36,
               height: 36,
               borderRadius: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'linear-gradient(135deg, #c9a96e, #a88a4e)',
+              objectFit: 'cover',
             }}
-          >
-            <span style={{ fontSize: 14, fontFamily: "'Outfit', sans-serif", fontWeight: 900, color: '#0a0a0f' }}>D</span>
-          </div>
+          />
           <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 18, color: '#f5f0e8' }}>
            Dayaarrealestate
           </span>
@@ -96,7 +93,7 @@ export default function Navbar() {
             </a>
           ))}
           <a
-            href="tel:+917718961457"
+            href="tel:08452852324"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -174,7 +171,7 @@ export default function Navbar() {
               </a>
             ))}
             <a
-              href="tel:+917718961457"
+              href="tel:08452852324"
               style={{
                 display: 'flex',
                 alignItems: 'center',
