@@ -1,18 +1,5 @@
-/**
- * ZoneDetailPanel — EXACT pixel match to Stitch reference:
- *
- * Key design elements from Stitch:
- *  1. Two-panel layout: Left info panel + Right scrollable data
- *  2. Section cards have visible borders (rgba(255,255,255,0.1))  
- *  3. BHK tabs with selected state having gold border top
- *  4. Per Sq.Ft + Yield side by side with distinct styling
- *  5. Buy/Rent text is LARGE and bold
- *  6. Connectivity tags in horizontal flex wrap
- *  7. Project cards with status badges (UNDER CONSTRUCTION, PRE-LAUNCH)
- */
-
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   HiOutlineXMark,
   HiOutlineBuildingOffice,
@@ -29,60 +16,61 @@ import ProjectCard from './ProjectCard';
 
 const fadeIn = {
   hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring', damping: 24, stiffness: 180 },
-  },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', damping: 24, stiffness: 180 } },
 };
 
-/* ═══ Bordered Section Card — Stitch style with collapsible header ═══ */
+/* ── Section Card with visible border box ── */
 function SectionCard({ title, icon: Icon, children, badge, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div
-      style={{
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        borderRadius: '12px',
-        overflow: 'hidden',
-      }}
-    >
+    <div style={{
+      background: 'rgba(255,255,255,0.02)',
+      border: '1px solid rgba(255,255,255,0.12)',
+      borderRadius: '12px',
+      overflow: 'hidden',
+      marginBottom: '12px',
+    }}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-4 cursor-pointer"
-        style={{ borderBottom: open ? '1px solid rgba(255,255,255,0.08)' : 'none' }}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 20px',
+          cursor: 'pointer',
+          background: 'transparent',
+          border: 'none',
+          borderBottom: open ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        }}
       >
-        <div className="flex items-center gap-2.5">
-          {Icon && (
-            <Icon className="w-4 h-4" style={{ color: 'var(--gold)' }} />
-          )}
-          <span
-            className="text-[12px] font-bold uppercase tracking-[0.08em]"
-            style={{ color: 'var(--cream)' }}
-          >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {Icon && <Icon style={{ width: '16px', height: '16px', color: 'var(--gold)', flexShrink: 0 }} />}
+          <span style={{
+            fontSize: '12px',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'var(--cream)',
+          }}>
             {title}
           </span>
-          {badge && (
-            <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-md ml-1"
-              style={{
-                background: 'rgba(201,169,110,0.15)',
-                color: 'var(--gold)',
-              }}
-            >
+          {badge !== undefined && badge !== null && (
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: '6px',
+              marginLeft: '4px',
+              background: 'rgba(201,169,110,0.15)',
+              color: 'var(--gold)',
+            }}>
               {badge}
             </span>
           )}
         </div>
-        <motion.div
-          animate={{ rotate: open ? 0 : 180 }}
-          transition={{ duration: 0.2 }}
-        >
-          <HiOutlineChevronUp
-            className="w-4 h-4"
-            style={{ color: 'var(--text-muted)' }}
-          />
+        <motion.div animate={{ rotate: open ? 0 : 180 }} transition={{ duration: 0.2 }}>
+          <HiOutlineChevronUp style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }} />
         </motion.div>
       </button>
       <AnimatePresence>
@@ -92,9 +80,9 @@ function SectionCard({ title, icon: Icon, children, badge, defaultOpen = true })
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="overflow-hidden"
+            style={{ overflow: 'hidden' }}
           >
-            <div className="px-5 py-4">{children}</div>
+            <div style={{ padding: '16px 20px' }}>{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -105,6 +93,13 @@ function SectionCard({ title, icon: Icon, children, badge, defaultOpen = true })
 export default function ZoneDetailPanel({ selectedZone, onClose }) {
   const { data, loading, error } = useZoneData(selectedZone);
   const [activeBHK, setActiveBHK] = useState('bhk2');
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <AnimatePresence mode="wait">
@@ -112,8 +107,10 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 z-40"
             style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 40,
               background: 'rgba(0,0,0,0.7)',
               backdropFilter: 'blur(8px)',
             }}
@@ -123,11 +120,16 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
             onClick={onClose}
           />
 
-          {/* Panel */}
+          {/* Sliding Panel */}
           <motion.div
             key={selectedZone}
-            className="fixed top-0 right-0 h-full z-50 flex"
             style={{
+              position: 'fixed',
+              top: 0,
+              right: 0,
+              height: '100%',
+              zIndex: 50,
+              display: 'flex',
               width: 'min(96vw, 920px)',
               boxShadow: '-20px 0 60px rgba(0,0,0,0.6)',
             }}
@@ -136,155 +138,175 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 200 }}
           >
-            {/* ═══════════ LEFT PANEL — Stitch Style ═══════════ */}
-            <div
-              className="hidden md:flex flex-col w-[280px] shrink-0 p-7"
-              style={{
+
+            {/* ══════════ LEFT PANEL ══════════ */}
+            {isDesktop && (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                width: '280px',
+                flexShrink: 0,
+                padding: '28px',
                 background: '#0f1115',
                 borderRight: '1px solid rgba(255,255,255,0.08)',
-              }}
-            >
-              {/* Dayaar Logo */}
-              <div className="flex items-center gap-2.5 mb-10">
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, var(--gold), var(--gold-dark))',
-                  }}
-                >
-                  <span
-                    className="font-[Outfit] font-black text-sm"
-                    style={{ color: '#0f1115' }}
-                  >
-                    D
-                  </span>
+              }}>
+                {/* Logo */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'linear-gradient(135deg, var(--gold), var(--gold-dark))',
+                    flexShrink: 0,
+                  }}>
+                    <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 900, fontSize: '14px', color: '#0f1115' }}>D</span>
+                  </div>
+                  <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--cream)' }}>Dayaar</span>
                 </div>
-                <span
-                  className="font-[Outfit] font-bold text-[16px]"
-                  style={{ color: 'var(--cream)' }}
-                >
-                  Dayaar
-                </span>
-              </div>
 
-              <h2
-                className="text-[24px] font-black leading-tight mb-4"
-                style={{ color: 'var(--cream)', fontFamily: 'Outfit, sans-serif' }}
-              >
-                Full Market Data
-              </h2>
+                {/* Title */}
+                <h2 style={{
+                  fontSize: '24px',
+                  fontWeight: 900,
+                  lineHeight: 1.2,
+                  marginBottom: '16px',
+                  color: 'var(--cream)',
+                  fontFamily: 'Outfit, sans-serif',
+                }}>
+                  Full Market Data
+                </h2>
 
-              {data && (
-                <>
-                  <div className="flex items-center gap-2 mb-4">
-                    <span
-                      className="text-[9px] uppercase tracking-[0.1em] font-bold px-2.5 py-1.5 rounded-md"
-                      style={{
+                {data && (
+                  <>
+                    {/* Badge row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                      <span style={{
+                        fontSize: '9px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        fontWeight: 700,
+                        padding: '5px 10px',
+                        borderRadius: '6px',
                         background: 'rgba(201,169,110,0.12)',
                         color: 'var(--gold)',
                         border: '1px solid rgba(201,169,110,0.15)',
+                      }}>
+                        Premium Zone
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>· Inter</span>
+                    </div>
+
+                    <p style={{ fontSize: '13px', lineHeight: 1.7, marginBottom: '32px', color: 'var(--text-secondary)' }}>
+                      {data.description}
+                    </p>
+
+                    <button
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        color: 'var(--gold)',
+                        background: 'transparent',
+                        border: 'none',
+                        padding: 0,
                       }}
                     >
-                      Premium Zone
-                    </span>
-                    <span
-                      className="text-[11px]"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
-                      · Inter
-                    </span>
-                  </div>
+                      <HiOutlinePlusCircle style={{ width: '16px', height: '16px' }} />
+                      Add s information
+                    </button>
+                  </>
+                )}
 
-                  <p
-                    className="text-[13px] leading-[1.7] mb-8"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {data.description}
-                  </p>
+                <div style={{ flex: 1 }} />
+              </div>
+            )}
 
-                  <button
-                    className="flex items-center gap-2 text-[13px] font-medium cursor-pointer hover:opacity-80 transition-opacity"
-                    style={{ color: 'var(--gold)' }}
-                  >
-                    <HiOutlinePlusCircle className="w-4 h-4" />
-                    Add s information
-                  </button>
-                </>
-              )}
-
-              <div className="flex-1" />
-            </div>
-
-            {/* ═══════════ RIGHT PANEL — Stitch Style ═══════════ */}
-            <div
-              className="flex-1 flex flex-col overflow-hidden"
-              style={{ background: '#0a0c10' }}
-            >
-              {/* Header bar with gold dot */}
-              <div
-                className="shrink-0 px-6 py-4 flex items-center justify-between"
-                style={{
-                  borderBottom: '1px solid rgba(255,255,255,0.08)',
-                  background: 'rgba(10,12,16,0.98)',
-                }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{
-                      background: 'var(--gold)',
-                      boxShadow: '0 0 10px rgba(201,169,110,0.6)',
-                    }}
-                  />
-                  <span
-                    className="text-[11px] uppercase tracking-[0.15em] font-bold"
-                    style={{ color: 'var(--cream)' }}
-                  >
+            {/* ══════════ RIGHT PANEL ══════════ */}
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              background: '#0a0c10',
+            }}>
+              {/* Header bar */}
+              <div style={{
+                flexShrink: 0,
+                padding: '16px 24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(10,12,16,0.98)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: 'var(--gold)',
+                    boxShadow: '0 0 10px rgba(201,169,110,0.6)',
+                    display: 'inline-block',
+                  }} />
+                  <span style={{
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.15em',
+                    fontWeight: 700,
+                    color: 'var(--cream)',
+                  }}>
                     Full Market Data
                   </span>
                 </div>
                 <motion.button
-                  className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer"
                   style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
                     background: 'transparent',
                     border: '1px solid rgba(255,255,255,0.1)',
                     color: 'var(--text-muted)',
                   }}
                   onClick={onClose}
-                  whileHover={{
-                    borderColor: 'rgba(255,255,255,0.2)',
-                    color: 'var(--cream)',
-                  }}
+                  whileHover={{ borderColor: 'rgba(255,255,255,0.25)', color: 'var(--cream)' }}
                   whileTap={{ scale: 0.92 }}
                 >
-                  <HiOutlineXMark className="w-4 h-4" />
+                  <HiOutlineXMark style={{ width: '16px', height: '16px' }} />
                 </motion.button>
               </div>
 
               {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+              <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+
                 {loading && (
-                  <div className="flex items-center justify-center h-full">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                     <motion.div
-                      className="w-10 h-10 rounded-full"
                       style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
                         border: '2px solid var(--border)',
                         borderTopColor: 'var(--gold)',
                       }}
                       animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: 'linear',
-                      }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                     />
                   </div>
                 )}
 
                 {error && (
-                  <div className="flex items-center justify-center h-full px-8">
-                    <p className="text-red-400 text-sm">{error}</p>
+                  <div style={{ padding: '32px', color: '#f87171', textAlign: 'center', fontSize: '14px' }}>
+                    {error}
                   </div>
                 )}
 
@@ -292,118 +314,101 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                   <motion.div
                     initial="hidden"
                     animate="visible"
-                    variants={{
-                      visible: { transition: { staggerChildren: 0.05 } },
-                    }}
+                    variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
                   >
-                    {/* ── Zone Header — Stitch Style ── */}
-                    <motion.div variants={fadeIn} className="px-6 pt-6 pb-4">
-                      <span
-                        className="text-[9px] uppercase tracking-[0.1em] font-bold px-2.5 py-1.5 rounded-md inline-block mb-3"
-                        style={{
-                          background: 'rgba(201,169,110,0.12)',
-                          color: 'var(--gold)',
-                          border: '1px solid rgba(201,169,110,0.15)',
-                        }}
-                      >
+                    {/* ── Zone Header ── */}
+                    <motion.div variants={fadeIn} style={{ padding: '24px 24px 16px' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        fontSize: '9px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        fontWeight: 700,
+                        padding: '5px 10px',
+                        borderRadius: '6px',
+                        marginBottom: '12px',
+                        background: 'rgba(201,169,110,0.12)',
+                        color: 'var(--gold)',
+                        border: '1px solid rgba(201,169,110,0.15)',
+                      }}>
                         Premium Zone
                       </span>
-                      <h2
-                        className="text-[36px] sm:text-[42px] font-black leading-[1.05] mb-2"
-                        style={{ color: 'var(--cream)', fontFamily: 'Outfit, sans-serif' }}
-                      >
+                      <h2 style={{
+                        fontSize: '42px',
+                        fontWeight: 900,
+                        lineHeight: 1.05,
+                        marginBottom: '8px',
+                        color: 'var(--cream)',
+                        fontFamily: 'Outfit, sans-serif',
+                      }}>
                         {data.name}
                       </h2>
-                      <p
-                        className="text-[13px] font-semibold tracking-wide mb-3"
-                        style={{ color: 'var(--gold-dark)' }}
-                      >
+                      <p style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '10px', color: 'var(--gold-dark)' }}>
                         {data.subtitle}
                       </p>
-                      <p
-                        className="text-[13px] leading-[1.6]"
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
+                      <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
                         {data.description}
                       </p>
                     </motion.div>
 
-                    {/* ── Per Sq.Ft + Yield — Stitch Layout ── */}
-                    <motion.div variants={fadeIn} className="px-6 pb-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* Per Sq.Ft */}
-                        <div
-                          className="p-4 rounded-xl"
-                          style={{
-                            background: 'rgba(255,255,255,0.02)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                          }}
-                        >
-                          <div className="flex items-center gap-2 mb-2">
-                            <HiOutlineBuildingOffice
-                              className="w-4 h-4"
-                              style={{ color: 'var(--gold)' }}
-                            />
-                            <span
-                              className="text-[10px] uppercase tracking-[0.08em] font-bold"
-                              style={{ color: 'var(--text-muted)' }}
-                            >
+                    {/* ── Per Sq.Ft + Yield ── */}
+                    <motion.div variants={fadeIn} style={{ padding: '0 24px 16px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        {/* Per Sq Ft */}
+                        <div style={{
+                          padding: '16px',
+                          borderRadius: '12px',
+                          background: 'rgba(255,255,255,0.02)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <HiOutlineBuildingOffice style={{ width: '16px', height: '16px', color: 'var(--gold)', flexShrink: 0 }} />
+                            <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-muted)' }}>
                               Per Sq. Ft
                             </span>
                           </div>
-                          <div
-                            className="text-[22px] sm:text-[26px] font-black"
-                            style={{ color: 'var(--cream)' }}
-                          >
+                          <div style={{ fontSize: '26px', fontWeight: 900, color: 'var(--cream)' }}>
                             {data.pricePerSqFt}
                           </div>
                         </div>
 
                         {/* Yield */}
-                        <div
-                          className="p-4 rounded-xl"
-                          style={{
-                            background: 'rgba(255,255,255,0.02)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                          }}
-                        >
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <HiOutlineArrowTrendingUp
-                              className="w-4 h-4"
-                              style={{ color: '#22c55e' }}
-                            />
-                            <span
-                              className="text-[10px] uppercase tracking-[0.08em] font-bold"
-                              style={{ color: 'var(--text-muted)' }}
-                            >
+                        <div style={{
+                          padding: '16px',
+                          borderRadius: '12px',
+                          background: 'rgba(255,255,255,0.02)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <HiOutlineArrowTrendingUp style={{ width: '16px', height: '16px', color: '#22c55e', flexShrink: 0 }} />
+                            <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-muted)' }}>
                               Yield
                             </span>
                           </div>
-                          <div
-                            className="text-[22px] sm:text-[26px] font-black"
-                            style={{ color: '#22c55e' }}
-                          >
+                          <div style={{ fontSize: '26px', fontWeight: 900, color: '#22c55e' }}>
                             {data.rentalYield}
+                          </div>
+                          {/* Green progress bar */}
+                          <div style={{ marginTop: '8px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: '65%', borderRadius: '2px', background: 'linear-gradient(90deg, #16a34a, #22c55e)' }} />
                           </div>
                         </div>
                       </div>
                     </motion.div>
 
-                    {/* ── PRICE RANGES — Stitch Style ── */}
-                    <motion.div variants={fadeIn} className="px-6 pb-4">
-                      <SectionCard
-                        title="Price Ranges"
-                        icon={HiOutlineBuildingOffice}
-                        defaultOpen={true}
-                      >
-                        {/* BHK Tab Pills — Stitch style segmented control */}
-                        <div
-                          className="grid grid-cols-3 rounded-lg overflow-hidden mb-5"
-                          style={{
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            background: 'rgba(0,0,0,0.2)',
-                          }}
-                        >
+                    {/* ── PRICE RANGES ── */}
+                    <motion.div variants={fadeIn} style={{ padding: '0 24px 4px' }}>
+                      <SectionCard title="Price Ranges" icon={HiOutlineBuildingOffice} defaultOpen={true}>
+                        {/* BHK Tabs */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(3, 1fr)',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          marginBottom: '20px',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'rgba(0,0,0,0.2)',
+                        }}>
                           {[
                             { key: 'bhk1', label: '1BHK' },
                             { key: 'bhk2', label: '2BHK' },
@@ -411,20 +416,17 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                           ].map((tab, i) => (
                             <button
                               key={tab.key}
-                              className="py-3 text-[11px] font-bold tracking-wider cursor-pointer transition-all duration-200"
                               style={{
-                                background:
-                                  activeBHK === tab.key
-                                    ? 'rgba(201,169,110,0.2)'
-                                    : 'transparent',
-                                color:
-                                  activeBHK === tab.key
-                                    ? 'var(--gold)'
-                                    : 'var(--text-muted)',
-                                borderLeft:
-                                  i > 0
-                                    ? '1px solid rgba(255,255,255,0.08)'
-                                    : 'none',
+                                padding: '12px 0',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                letterSpacing: '0.05em',
+                                cursor: 'pointer',
+                                border: 'none',
+                                borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                                background: activeBHK === tab.key ? 'rgba(201,169,110,0.2)' : 'transparent',
+                                color: activeBHK === tab.key ? 'var(--gold)' : 'var(--text-muted)',
+                                transition: 'all 0.2s',
                               }}
                               onClick={() => setActiveBHK(tab.key)}
                             >
@@ -433,53 +435,31 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                           ))}
                         </div>
 
-                        {/* Buy / Rent — Large bold text */}
+                        {/* Buy / Rent values */}
                         <AnimatePresence mode="wait">
                           <motion.div
                             key={activeBHK}
-                            className="grid grid-cols-2 gap-6"
+                            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}
                             initial={{ opacity: 0, x: 8 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -8 }}
                             transition={{ duration: 0.15 }}
                           >
                             <div>
-                              <div className="flex items-center gap-1.5 mb-2">
-                                <HiOutlineHome
-                                  className="w-3.5 h-3.5"
-                                  style={{ color: 'var(--gold-dark)' }}
-                                />
-                                <span
-                                  className="text-[10px] uppercase tracking-[0.08em] font-bold"
-                                  style={{ color: 'var(--text-muted)' }}
-                                >
-                                  Buy
-                                </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                                <HiOutlineHome style={{ width: '14px', height: '14px', color: 'var(--gold-dark)', flexShrink: 0 }} />
+                                <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-muted)' }}>Buy</span>
                               </div>
-                              <p
-                                className="text-[22px] sm:text-[26px] font-black leading-tight"
-                                style={{ color: 'var(--cream)' }}
-                              >
+                              <p style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1.2, color: 'var(--cream)', margin: 0 }}>
                                 {data.priceRange?.[activeBHK]?.price || '—'}
                               </p>
                             </div>
                             <div>
-                              <div className="flex items-center gap-1.5 mb-2">
-                                <HiOutlineBanknotes
-                                  className="w-3.5 h-3.5"
-                                  style={{ color: 'var(--gold-dark)' }}
-                                />
-                                <span
-                                  className="text-[10px] uppercase tracking-[0.08em] font-bold"
-                                  style={{ color: 'var(--text-muted)' }}
-                                >
-                                  Rent/Mo
-                                </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                                <HiOutlineBanknotes style={{ width: '14px', height: '14px', color: 'var(--gold-dark)', flexShrink: 0 }} />
+                                <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-muted)' }}>Rent/Mo</span>
                               </div>
-                              <p
-                                className="text-[22px] sm:text-[26px] font-black leading-tight"
-                                style={{ color: 'var(--cream)' }}
-                              >
+                              <p style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1.2, color: 'var(--cream)', margin: 0 }}>
                                 {data.priceRange?.[activeBHK]?.rent || '—'}
                               </p>
                             </div>
@@ -488,21 +468,24 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                       </SectionCard>
                     </motion.div>
 
-                    {/* ── CONNECTIVITY — Stitch Style ── */}
+                    {/* ── CONNECTIVITY ── */}
                     {data.demographics?.connectivity && (
-                      <motion.div variants={fadeIn} className="px-6 pb-4">
+                      <motion.div variants={fadeIn} style={{ padding: '0 24px 4px' }}>
                         <SectionCard
                           title="Connectivity"
                           icon={HiOutlineMapPin}
                           badge={data.demographics.connectivity.length}
                           defaultOpen={true}
                         >
-                          <div className="flex flex-wrap gap-2">
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             {data.demographics.connectivity.map((c) => (
                               <span
                                 key={c}
-                                className="px-3 py-1.5 rounded-md text-[11px] font-medium"
                                 style={{
+                                  padding: '6px 12px',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: 500,
                                   background: 'rgba(255,255,255,0.03)',
                                   border: '1px solid rgba(255,255,255,0.08)',
                                   color: 'var(--cream-dim)',
@@ -516,29 +499,25 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                       </motion.div>
                     )}
 
-                    {/* ── CURATED PROJECTS — Stitch Style ── */}
+                    {/* ── CURATED PROJECTS ── */}
                     {data.projects?.length > 0 && (
-                      <motion.div variants={fadeIn} className="px-6 pb-4">
+                      <motion.div variants={fadeIn} style={{ padding: '0 24px 4px' }}>
                         <SectionCard
                           title="Curated Projects"
                           icon={HiOutlineSparkles}
                           badge={data.projects.length}
                           defaultOpen={true}
                         >
-                          <div className="space-y-3">
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {data.projects.map((project, i) => (
-                              <ProjectCard
-                                key={project.codename}
-                                project={project}
-                                index={i}
-                              />
+                              <ProjectCard key={project.codename} project={project} index={i} />
                             ))}
                           </div>
                         </SectionCard>
                       </motion.div>
                     )}
 
-                    <div className="h-10" />
+                    <div style={{ height: '40px' }} />
                   </motion.div>
                 )}
               </div>
