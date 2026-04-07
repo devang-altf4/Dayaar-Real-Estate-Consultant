@@ -51,7 +51,7 @@ export default function Navbar() {
         {/* Logo */}
         <a href="#hero" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
           <img
-            src="/images/1000002758.jpg.jpeg"
+            src="/images/banner.jpg"
             alt="Dayaar Real Estate Logo"
             style={{
               width: 36,
@@ -61,7 +61,7 @@ export default function Navbar() {
             }}
           />
           <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 18, color: '#FFFFFF' }}>
-           Dayaar Real Estate Consultant
+           Dayaar
           </span>
         </a>
 

@@ -248,8 +248,8 @@ export default function Footer() {
 
   const contactItems = [
     { icon: HiOutlinePhone, val: '08452 852324', href: 'tel:08452852324' },
-    { icon: HiOutlineEnvelope, val: 'info@idayaar.in', href: 'mailto:info@idayaar.in' },
-    { icon: HiOutlineMapPin, val: 'Mumbai, Maharashtra', href: '#' },
+    { icon: HiOutlineEnvelope, val: 'Info@dayaarrealestate.com', href: 'mailto:Info@dayaarrealestate.com' },
+    { icon: HiOutlineMapPin, val: 'Shop 7, 1st Flr, Oswal Garden, Kanakia Rd, Nr. Park View Hotel,Mira Rd (E), Thane – 401107', href: '#' },
   ];
 
   const socialItems = [
@@ -438,7 +438,7 @@ export default function Footer() {
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
         >
-          <p>© 2026 Dayaa Real Estate Consultant. All rights reserved. Made by Devang </p>
+          <p>© 2026 Dayaa Real Estate Consultant. All rights reserved. </p>
           <p>RERA registered consultant. Prices shown are indicative.</p>
         </motion.div>
       </motion.div>
