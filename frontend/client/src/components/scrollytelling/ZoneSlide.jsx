@@ -106,7 +106,7 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
             background: 'linear-gradient(180deg, rgba(18, 20, 26, 0.98) 0%, rgba(12, 14, 18, 0.99) 100%)',
             backdropFilter: 'blur(30px)',
             WebkitBackdropFilter: 'blur(30px)',
-            border: '1px solid rgba(201, 169, 110, 0.15)',
+            border: '1px solid rgba(30, 94, 255, 0.15)',
             boxShadow: '0 25px 60px rgba(0, 0, 0, 0.5)',
           }}
           initial={{ opacity: 0, y: 30 }}
@@ -132,7 +132,7 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.2em',
-                  color: '#c9a96e',
+                  color: '#1E5EFF',
                 }}
               >
                 Zone {String(index + 1).padStart(2, '0')}
@@ -145,9 +145,9 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
                   letterSpacing: '0.1em',
                   padding: isMobile ? '6px 12px' : '7px 14px',
                   borderRadius: 6,
-                  background: 'rgba(201, 169, 110, 0.1)',
-                  color: '#c9a96e',
-                  border: '1px solid rgba(201, 169, 110, 0.3)',
+                  background: 'rgba(30, 94, 255, 0.1)',
+                  color: '#1E5EFF',
+                  border: '1px solid rgba(30, 94, 255, 0.3)',
                 }}
               >
                 {highlight.tag}
@@ -170,12 +170,12 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
               {zone.name}
             </h2>
 
-            {/* Subtitle - Gold */}
+            {/* Subtitle - Blue */}
             <p
               style={{
                 fontSize: isMobile ? 14 : 16,
                 fontWeight: 500,
-                color: '#c9a96e',
+                color: '#1E5EFF',
                 margin: 0,
                 marginBottom: isMobile ? 10 : 12,
                 lineHeight: 1.4,
@@ -361,17 +361,17 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 borderRadius: isMobile ? 12 : 14,
-                background: 'linear-gradient(135deg, #d4b978 0%, #c9a96e 50%, #b8944d 100%)',
-                color: '#0c0c10',
+                background: 'linear-gradient(135deg, #4A7FBF 0%, #1E5EFF 50%, #0F2A44 100%)',
+                color: '#FFFFFF',
                 border: 'none',
                 cursor: 'pointer',
                 fontFamily: "'Inter', sans-serif",
-                boxShadow: '0 6px 24px rgba(201, 169, 110, 0.3)',
+                boxShadow: '0 6px 24px rgba(30, 94, 255, 0.3)',
                 transition: 'all 0.3s ease',
               }}
               whileHover={{
                 scale: 1.02,
-                boxShadow: '0 10px 36px rgba(201, 169, 110, 0.4)',
+                boxShadow: '0 10px 36px rgba(30, 94, 255, 0.4)',
               }}
               whileTap={{ scale: 0.98 }}
             >

@@ -12,17 +12,17 @@ export default function PriceRangeCard({ type, price, rent, index }) {
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.08, type: 'spring', damping: 22 }}
-      whileHover={{ borderColor: 'rgba(201,169,110,0.2)', background: 'rgba(255,255,255,0.04)' }}
+      whileHover={{ borderColor: 'rgba(30,94,255,0.2)', background: 'rgba(255,255,255,0.04)' }}
     >
       {/* BHK Badge */}
       <div
         className="shrink-0 w-14 h-14 rounded-xl flex items-center justify-center"
         style={{
-          background: 'linear-gradient(135deg, rgba(201,169,110,0.12) 0%, rgba(201,169,110,0.04) 100%)',
-          border: '1px solid rgba(201,169,110,0.1)',
+          background: 'linear-gradient(135deg, rgba(30,94,255,0.12) 0%, rgba(30,94,255,0.04) 100%)',
+          border: '1px solid rgba(30,94,255,0.1)',
         }}
       >
-        <span className="text-xs font-black" style={{ color: 'var(--gold)' }}>
+        <span className="text-xs font-black" style={{ color: '#1E5EFF' }}>
           {type}
         </span>
       </div>
@@ -32,7 +32,7 @@ export default function PriceRangeCard({ type, price, rent, index }) {
         {/* Buy Price */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <HiOutlineHome className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--gold-dark)', opacity: 0.7 }} />
+            <HiOutlineHome className="w-3.5 h-3.5 shrink-0" style={{ color: '#4A7FBF', opacity: 0.7 }} />
             <span
               className="text-[9px] uppercase tracking-[0.1em] font-bold"
               style={{ color: 'var(--text-muted)' }}
@@ -51,7 +51,7 @@ export default function PriceRangeCard({ type, price, rent, index }) {
         {/* Monthly Rent */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <HiOutlineBanknotes className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--gold-dark)', opacity: 0.7 }} />
+            <HiOutlineBanknotes className="w-3.5 h-3.5 shrink-0" style={{ color: '#4A7FBF', opacity: 0.7 }} />
             <span
               className="text-[9px] uppercase tracking-[0.1em] font-bold"
               style={{ color: 'var(--text-muted)' }}

@@ -1,22 +1,28 @@
 @import "tailwindcss";
 
-/* ========== LUXURY COLOR PALETTE ========== */
+/* ========== DAYAAR BLUE COLOR PALETTE ========== */
 :root {
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #111118;
-  --bg-card: #16161f;
-  --gold: #c9a96e;
-  --gold-light: #dfc089;
-  --gold-dark: #a88a4e;
-  --cream: #f5f0e8;
-  --cream-dim: #b5b0a8;
-  --text-primary: #f5f0e8;
-  --text-secondary: #8a8690;
-  --text-muted: #5a5660;
-  --border: rgba(201, 169, 110, 0.12);
-  --border-hover: rgba(201, 169, 110, 0.25);
-  --glass-bg: rgba(10, 10, 15, 0.75);
-  --glass-border: rgba(201, 169, 110, 0.15);
+  --bg-primary: #0B0B0D;
+  --bg-secondary: #0F2A44;
+  --bg-card: #0F2A44;
+  --blue: #1E5EFF;
+  --blue-light: #A9C9FF;
+  --blue-medium: #4A7FBF;
+  --blue-dark: #0F2A44;
+  --cream: #FFFFFF;
+  --cream-dim: rgba(255, 255, 255, 0.6);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --border: rgba(30, 94, 255, 0.15);
+  --border-hover: rgba(30, 94, 255, 0.35);
+  --glass-bg: rgba(11, 11, 13, 0.85);
+  --glass-border: rgba(30, 94, 255, 0.2);
+  
+  /* Legacy aliases for compatibility */
+  --gold: #1E5EFF;
+  --gold-light: #A9C9FF;
+  --gold-dark: #4A7FBF;
 }
 
 /* ========== GLOBAL RESETS ========== */
@@ -50,17 +56,17 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gold-dark);
+  background: var(--blue-medium);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gold);
+  background: var(--blue);
 }
 
 /* ========== SELECTION ========== */
 ::selection {
-  background: rgba(201, 169, 110, 0.3);
+  background: rgba(30, 94, 255, 0.3);
   color: var(--cream);
 }
 
@@ -80,9 +86,9 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--glass-border);
 }
 
-/* ========== GOLD GRADIENT TEXT ========== */
+/* ========== BLUE GRADIENT TEXT ========== */
 .text-gold-gradient {
-  background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+  background: linear-gradient(135deg, var(--blue-light), var(--blue), var(--blue-medium));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -141,9 +147,9 @@ section {
   }
 }
 
-@keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4); }
-  50% { box-shadow: 0 0 20px 5px rgba(201, 169, 110, 0.1); }
+@keyframes pulse-blue {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(30, 94, 255, 0.4); }
+  50% { box-shadow: 0 0 20px 5px rgba(30, 94, 255, 0.1); }
 }
 
 /* ========== BUTTON BASE ========== */
@@ -152,8 +158,8 @@ section {
   align-items: center;
   gap: 10px;
   padding: 16px 32px;
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-  color: var(--bg-primary);
+  background: linear-gradient(135deg, var(--blue), var(--blue-medium));
+  color: #FFFFFF;
   font-weight: 700;
   font-size: 14px;
   border-radius: 12px;
@@ -166,7 +172,7 @@ section {
 
 .btn-gold:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 40px rgba(201, 169, 110, 0.3);
+  box-shadow: 0 10px 40px rgba(30, 94, 255, 0.3);
 }
 
 .btn-outline {
@@ -185,8 +191,8 @@ section {
 }
 
 .btn-outline:hover {
-  background: rgba(201, 169, 110, 0.08);
-  border-color: var(--gold);
+  background: rgba(30, 94, 255, 0.1);
+  border-color: var(--blue);
   transform: translateY(-2px);
 }
 

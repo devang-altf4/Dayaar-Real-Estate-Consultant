@@ -10,8 +10,8 @@ import { FaWhatsapp, FaInstagram, FaYoutube } from 'react-icons/fa';
 // Inline styles - COMPACT spacing
 const styles = {
   footer: {
-    borderTop: '1px solid #1d2028',
-    background: '#070912',
+    borderTop: '1px solid rgba(30, 94, 255, 0.15)',
+    background: '#0B0B0D',
   },
   container: {
     margin: '0 auto',
@@ -53,13 +53,13 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 6,
-    background: '#d4b67f',
+    background: '#1E5EFF',
   },
   logoLetter: {
     fontSize: 18,
     fontWeight: 900,
     fontFamily: "'Outfit', sans-serif",
-    color: 'black',
+    color: 'white',
   },
   brandTextContainer: {
     display: 'flex',
@@ -69,7 +69,7 @@ const styles = {
     fontSize: 22,
     fontWeight: 600,
     lineHeight: 1,
-    color: '#f4f1ea',
+    color: '#FFFFFF',
     fontFamily: "'Outfit', sans-serif",
   },
   brandTagline: {
@@ -78,14 +78,14 @@ const styles = {
     fontWeight: 500,
     textTransform: 'uppercase',
     letterSpacing: '0.18em',
-    color: '#8e939c',
+    color: 'rgba(255,255,255,0.5)',
   },
   description: {
     marginBottom: 20,
     maxWidth: 340,
     fontSize: 13,
     lineHeight: 1.55,
-    color: '#a8acb4',
+    color: 'rgba(255,255,255,0.6)',
   },
   whatsappButton: {
     display: 'inline-flex',
@@ -116,14 +116,14 @@ const styles = {
   sectionHeaderLine: {
     height: 1,
     width: 20,
-    background: '#a79167',
+    background: '#1E5EFF',
   },
   sectionTitle: {
     fontSize: 11,
     fontWeight: 600,
     textTransform: 'uppercase',
     letterSpacing: '0.14em',
-    color: '#e9e5dd',
+    color: '#FFFFFF',
   },
   navLinks: {
     display: 'flex',
@@ -132,7 +132,7 @@ const styles = {
   },
   navLink: {
     fontSize: 14,
-    color: '#a8acb4',
+    color: 'rgba(255,255,255,0.6)',
     textDecoration: 'none',
     transition: 'color 0.2s',
     cursor: 'pointer',
@@ -158,19 +158,19 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: '50%',
-    border: '1px solid #2a2d35',
-    background: '#0d1018',
+    border: '1px solid rgba(30, 94, 255, 0.2)',
+    background: '#0F2A44',
     transition: 'border-color 0.2s',
   },
   contactIcon: {
     height: 14,
     width: 14,
-    color: '#d4b67f',
+    color: '#1E5EFF',
   },
   contactText: {
     wordBreak: 'break-word',
     fontSize: 13,
-    color: '#a8acb4',
+    color: 'rgba(255,255,255,0.6)',
     transition: 'color 0.2s',
   },
   socialSection: {},
@@ -189,9 +189,9 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
-    border: '1px solid #2a2d35',
-    background: '#0d1018',
-    color: '#a8acb4',
+    border: '1px solid rgba(30, 94, 255, 0.2)',
+    background: '#0F2A44',
+    color: 'rgba(255,255,255,0.6)',
     textDecoration: 'none',
     transition: 'border-color 0.2s, color 0.2s',
   },
@@ -204,10 +204,10 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 6,
-    borderTop: '1px solid #1c1f27',
+    borderTop: '1px solid rgba(30, 94, 255, 0.1)',
     paddingTop: 20,
     fontSize: 10,
-    color: '#767b86',
+    color: 'rgba(255,255,255,0.4)',
   },
   bottomBarMd: {
     flexDirection: 'row',
@@ -336,7 +336,7 @@ export default function Footer() {
                   href={link.href}
                   style={{
                     ...styles.navLink,
-                    color: hoveredLink === link.label ? '#f1ede5' : '#a8acb4',
+                    color: hoveredLink === link.label ? '#FFFFFF' : 'rgba(255,255,255,0.6)',
                   }}
                   onMouseEnter={() => setHoveredLink(link.label)}
                   onMouseLeave={() => setHoveredLink(null)}
@@ -375,7 +375,7 @@ export default function Footer() {
                   <div
                     style={{
                       ...styles.contactIconBox,
-                      borderColor: hoveredContact === i ? '#3b404a' : '#2a2d35',
+                      borderColor: hoveredContact === i ? 'rgba(30, 94, 255, 0.4)' : 'rgba(30, 94, 255, 0.2)',
                     }}
                   >
                     <c.icon style={styles.contactIcon} />
@@ -383,7 +383,7 @@ export default function Footer() {
                   <span
                     style={{
                       ...styles.contactText,
-                      color: hoveredContact === i ? '#f1ede5' : '#a8acb4',
+                      color: hoveredContact === i ? '#FFFFFF' : 'rgba(255,255,255,0.6)',
                     }}
                   >
                     {c.val}
@@ -415,8 +415,8 @@ export default function Footer() {
                   aria-label={item.label}
                   style={{
                     ...styles.socialIconBox,
-                    borderColor: hoveredSocial === item.label ? '#3b404a' : '#2a2d35',
-                    color: hoveredSocial === item.label ? '#d4b67f' : '#a8acb4',
+                    borderColor: hoveredSocial === item.label ? 'rgba(30, 94, 255, 0.4)' : 'rgba(30, 94, 255, 0.2)',
+                    color: hoveredSocial === item.label ? '#1E5EFF' : 'rgba(255,255,255,0.6)',
                   }}
                   onMouseEnter={() => setHoveredSocial(item.label)}
                   onMouseLeave={() => setHoveredSocial(null)}

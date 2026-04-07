@@ -55,11 +55,11 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
           background: 'linear-gradient(180deg, rgba(20, 22, 28, 0.98) 0%, rgba(12, 14, 18, 0.99) 100%)',
           backdropFilter: 'blur(30px)',
           WebkitBackdropFilter: 'blur(30px)',
-          border: '1px solid rgba(201, 169, 110, 0.12)',
+          border: '1px solid rgba(30, 94, 255, 0.12)',
           boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
         }}
         whileHover={{
-          borderColor: 'rgba(201, 169, 110, 0.25)',
+          borderColor: 'rgba(30, 94, 255, 0.25)',
         }}
         transition={{ duration: 0.3 }}
       >
@@ -89,7 +89,7 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     letterSpacing: '0.15em',
-                    color: 'var(--gold)',
+                    color: '#1E5EFF',
                   }}
                 >
                   Zone {String(index + 1).padStart(2, '0')}
@@ -102,9 +102,9 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
                     letterSpacing: '0.08em',
                     padding: isMobile ? '5px 10px' : '6px 12px',
                     borderRadius: 6,
-                    background: 'rgba(201, 169, 110, 0.1)',
-                    color: 'var(--gold)',
-                    border: '1px solid rgba(201, 169, 110, 0.25)',
+                    background: 'rgba(30, 94, 255, 0.1)',
+                    color: '#1E5EFF',
+                    border: '1px solid rgba(30, 94, 255, 0.25)',
                   }}
                 >
                   {highlight.tag}
@@ -319,17 +319,17 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
                   borderRadius: isMobile ? 12 : 14,
-                  background: 'linear-gradient(135deg, #c9a96e 0%, #b8944d 50%, #a6843d 100%)',
-                  color: '#0c0c10',
+                  background: 'linear-gradient(135deg, #4A7FBF 0%, #1E5EFF 50%, #0F2A44 100%)',
+                  color: '#FFFFFF',
                   border: 'none',
                   cursor: 'pointer',
                   fontFamily: "'Inter', sans-serif",
-                  boxShadow: '0 4px 16px rgba(201, 169, 110, 0.25)',
+                  boxShadow: '0 4px 16px rgba(30, 94, 255, 0.25)',
                   transition: 'all 0.3s ease',
                 }}
                 whileHover={{
                   scale: 1.02,
-                  boxShadow: '0 8px 28px rgba(201, 169, 110, 0.35)',
+                  boxShadow: '0 8px 28px rgba(30, 94, 255, 0.35)',
                 }}
                 whileTap={{ scale: 0.98 }}
               >

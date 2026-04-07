@@ -24,8 +24,8 @@ function SectionCard({ title, icon: Icon, children, badge, defaultOpen = true })
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.02)',
-      border: '1px solid rgba(255,255,255,0.12)',
+      background: 'rgba(30,94,255,0.03)',
+      border: '1px solid rgba(30,94,255,0.15)',
       borderRadius: '12px',
       overflow: 'hidden',
       marginBottom: '12px',
@@ -41,17 +41,17 @@ function SectionCard({ title, icon: Icon, children, badge, defaultOpen = true })
           cursor: 'pointer',
           background: 'transparent',
           border: 'none',
-          borderBottom: open ? '1px solid rgba(255,255,255,0.08)' : 'none',
+          borderBottom: open ? '1px solid rgba(30,94,255,0.1)' : 'none',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {Icon && <Icon style={{ width: '16px', height: '16px', color: 'var(--gold)', flexShrink: 0 }} />}
+          {Icon && <Icon style={{ width: '16px', height: '16px', color: '#1E5EFF', flexShrink: 0 }} />}
           <span style={{
             fontSize: '12px',
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            color: 'var(--cream)',
+            color: '#FFFFFF',
           }}>
             {title}
           </span>
@@ -62,15 +62,15 @@ function SectionCard({ title, icon: Icon, children, badge, defaultOpen = true })
               padding: '2px 8px',
               borderRadius: '6px',
               marginLeft: '4px',
-              background: 'rgba(201,169,110,0.15)',
-              color: 'var(--gold)',
+              background: 'rgba(30,94,255,0.15)',
+              color: '#A9C9FF',
             }}>
               {badge}
             </span>
           )}
         </div>
         <motion.div animate={{ rotate: open ? 0 : 180 }} transition={{ duration: 0.2 }}>
-          <HiOutlineChevronUp style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }} />
+          <HiOutlineChevronUp style={{ width: '16px', height: '16px', color: 'rgba(255,255,255,0.4)' }} />
         </motion.div>
       </button>
       <AnimatePresence>
@@ -189,9 +189,9 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                         fontWeight: 700,
                         padding: '5px 10px',
                         borderRadius: '6px',
-                        background: 'rgba(201,169,110,0.12)',
-                        color: 'var(--gold)',
-                        border: '1px solid rgba(201,169,110,0.15)',
+                        background: 'rgba(30,94,255,0.12)',
+                        color: '#1E5EFF',
+                        border: '1px solid rgba(30,94,255,0.15)',
                       }}>
                         Premium Zone
                       </span>
@@ -210,7 +210,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                         fontSize: '13px',
                         fontWeight: 500,
                         cursor: 'pointer',
-                        color: 'var(--gold)',
+                        color: '#1E5EFF',
                         background: 'transparent',
                         border: 'none',
                         padding: 0,
@@ -249,8 +249,8 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    background: 'var(--gold)',
-                    boxShadow: '0 0 10px rgba(201,169,110,0.6)',
+                    background: '#1E5EFF',
+                    boxShadow: '0 0 10px rgba(30,94,255,0.6)',
                     display: 'inline-block',
                   }} />
                   <span style={{
@@ -295,7 +295,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                         height: '40px',
                         borderRadius: '50%',
                         border: '2px solid var(--border)',
-                        borderTopColor: 'var(--gold)',
+                        borderTopColor: '#1E5EFF',
                       }}
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -326,9 +326,9 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                         padding: '5px 10px',
                         borderRadius: '6px',
                         marginBottom: '12px',
-                        background: 'rgba(201,169,110,0.12)',
-                        color: 'var(--gold)',
-                        border: '1px solid rgba(201,169,110,0.15)',
+                        background: 'rgba(30,94,255,0.12)',
+                        color: '#1E5EFF',
+                        border: '1px solid rgba(30,94,255,0.15)',
                       }}>
                         Premium Zone
                       </span>
@@ -342,7 +342,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                       }}>
                         {data.name}
                       </h2>
-                      <p style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '10px', color: 'var(--gold-dark)' }}>
+                      <p style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '10px', color: '#4A7FBF' }}>
                         {data.subtitle}
                       </p>
                       <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
@@ -361,7 +361,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                           border: '1px solid rgba(255,255,255,0.1)',
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <HiOutlineBuildingOffice style={{ width: '16px', height: '16px', color: 'var(--gold)', flexShrink: 0 }} />
+                            <HiOutlineBuildingOffice style={{ width: '16px', height: '16px', color: '#1E5EFF', flexShrink: 0 }} />
                             <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-muted)' }}>
                               Per Sq. Ft
                             </span>
@@ -423,8 +423,8 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                                 cursor: 'pointer',
                                 border: 'none',
                                 borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none',
-                                background: activeBHK === tab.key ? 'rgba(201,169,110,0.2)' : 'transparent',
-                                color: activeBHK === tab.key ? 'var(--gold)' : 'var(--text-muted)',
+                                background: activeBHK === tab.key ? 'rgba(30,94,255,0.2)' : 'transparent',
+                                color: activeBHK === tab.key ? '#1E5EFF' : 'var(--text-muted)',
                                 transition: 'all 0.2s',
                               }}
                               onClick={() => setActiveBHK(tab.key)}
@@ -446,7 +446,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                           >
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                                <HiOutlineHome style={{ width: '14px', height: '14px', color: 'var(--gold-dark)', flexShrink: 0 }} />
+                                <HiOutlineHome style={{ width: '14px', height: '14px', color: '#4A7FBF', flexShrink: 0 }} />
                                 <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-muted)' }}>Buy</span>
                               </div>
                               <p style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1.2, color: 'var(--cream)', margin: 0 }}>
@@ -455,7 +455,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                             </div>
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                                <HiOutlineBanknotes style={{ width: '14px', height: '14px', color: 'var(--gold-dark)', flexShrink: 0 }} />
+                                <HiOutlineBanknotes style={{ width: '14px', height: '14px', color: '#4A7FBF', flexShrink: 0 }} />
                                 <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-muted)' }}>Rent/Mo</span>
                               </div>
                               <p style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1.2, color: 'var(--cream)', margin: 0 }}>

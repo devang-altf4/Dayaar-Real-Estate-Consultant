@@ -70,7 +70,7 @@ const styles = {
   metaIcon: {
     width: 12,
     height: 12,
-    color: 'var(--gold-dark)',
+    color: '#4A7FBF',
   },
   configSection: {
     padding: '0 16px 12px',
@@ -87,7 +87,7 @@ const styles = {
     fontWeight: 700,
     display: 'block',
     marginBottom: 4,
-    color: 'var(--gold-dark)',
+    color: '#4A7FBF',
   },
   configPrice: {
     fontSize: 16,
@@ -131,7 +131,7 @@ export default function ProjectCard({ project, index }) {
   const getStatusStyle = () => {
     if (isPreLaunch) {
       return {
-        color: 'var(--gold)',
+        color: '#1E5EFF',
         text: 'PRE-LAUNCH',
       };
     }

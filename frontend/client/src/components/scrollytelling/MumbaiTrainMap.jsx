@@ -237,13 +237,13 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
         <path ref={pathRef} d={RAILWAY_PATH} fill="none" stroke="rgba(255,255,255,0.1)"
           strokeWidth="2" strokeLinecap="round" strokeDasharray="5 4" />
 
-        {/* Track progress (gold) */}
-        <motion.path d={RAILWAY_PATH} fill="none" stroke="#c9a96e" strokeWidth="2.5"
+        {/* Track progress (blue) */}
+        <motion.path d={RAILWAY_PATH} fill="none" stroke="#1E5EFF" strokeWidth="2.5"
           strokeLinecap="round"
           style={{
             strokeDasharray: pathLength || 1200,
             strokeDashoffset: dashOffset,
-            filter: 'drop-shadow(0 0 8px rgba(201,169,110,0.5))',
+            filter: 'drop-shadow(0 0 8px rgba(30,94,255,0.5))',
           }}
         />
 
@@ -263,20 +263,20 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
             <g key={zoneId}>
               {isActive && (
                 <>
-                  <motion.circle cx={coord.x} cy={coord.y} r="18" fill="none" stroke="#c9a96e" strokeWidth="0.8"
+                  <motion.circle cx={coord.x} cy={coord.y} r="18" fill="none" stroke="#1E5EFF" strokeWidth="0.8"
                     initial={{ r: 8, opacity: 0.7 }} animate={{ r: 26, opacity: 0 }}
                     transition={{ duration: 2, repeat: Infinity }} />
-                  <motion.circle cx={coord.x} cy={coord.y} r="12" fill="none" stroke="#c9a96e" strokeWidth="0.5"
+                  <motion.circle cx={coord.x} cy={coord.y} r="12" fill="none" stroke="#1E5EFF" strokeWidth="0.5"
                     initial={{ r: 6, opacity: 0.5 }} animate={{ r: 20, opacity: 0 }}
                     transition={{ duration: 2, repeat: Infinity, delay: 0.5 }} />
                 </>
               )}
               <circle cx={coord.x} cy={coord.y}
                 r={isActive ? 7 : isPast ? 4 : 3}
-                fill={isActive ? '#c9a96e' : isPast ? '#a6843d' : 'rgba(255,255,255,0.25)'}
+                fill={isActive ? '#1E5EFF' : isPast ? '#4A7FBF' : 'rgba(255,255,255,0.25)'}
                 stroke={isActive ? 'rgba(10,10,15,0.8)' : 'none'}
                 strokeWidth={isActive ? 2.5 : 0}
-                style={{ transition: 'all 0.5s cubic-bezier(0.4,0,0.2,1)', filter: isActive ? 'drop-shadow(0 0 12px rgba(201,169,110,0.8))' : 'none' }}
+                style={{ transition: 'all 0.5s cubic-bezier(0.4,0,0.2,1)', filter: isActive ? 'drop-shadow(0 0 12px rgba(30,94,255,0.8))' : 'none' }}
               />
               <line x1={coord.x + (isRight ? 9 : -9)} y1={coord.y}
                 x2={lx - (isRight ? 2 : -2)} y2={coord.y}
@@ -311,14 +311,14 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
 
         {/* TRAIN */}
         <g>
-          <circle cx={trainPos.x} cy={trainPos.y} r="14" fill="rgba(201,169,110,0.2)" style={{ filter: 'blur(6px)' }} />
+          <circle cx={trainPos.x} cy={trainPos.y} r="14" fill="rgba(30,94,255,0.2)" style={{ filter: 'blur(6px)' }} />
           <rect x={trainPos.x - 9} y={trainPos.y - 5.5} width="18" height="11" rx="3"
-            fill="#c9a96e" style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))' }} />
+            fill="#1E5EFF" style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))' }} />
           <rect x={trainPos.x - 6} y={trainPos.y - 3.5} width="5" height="3.5" rx="1" fill="#0a0a0f" opacity="0.5" />
           <rect x={trainPos.x + 1} y={trainPos.y - 3.5} width="5" height="3.5" rx="1" fill="#0a0a0f" opacity="0.5" />
           <line x1={trainPos.x - 7} y1={trainPos.y + 6.5} x2={trainPos.x + 7} y2={trainPos.y + 6.5}
-            stroke="#a6843d" strokeWidth="1.3" strokeLinecap="round" />
-          <circle cx={trainPos.x} cy={trainPos.y + 7} r="1" fill="#d4b978" />
+            stroke="#4A7FBF" strokeWidth="1.3" strokeLinecap="round" />
+          <circle cx={trainPos.x} cy={trainPos.y + 7} r="1" fill="#A9C9FF" />
         </g>
 
         <text x="140" y="450" fill="rgba(255,255,255,0.04)" fontSize="9" fontFamily="Inter" fontWeight="600"
@@ -360,10 +360,10 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
               style={{
                 borderRadius: isMobile ? 14 : 12,
                 overflow: 'hidden',
-                background: 'linear-gradient(165deg, rgba(12, 14, 20, 0.97) 0%, rgba(6, 8, 12, 0.98) 100%)',
+                background: 'linear-gradient(165deg, rgba(15, 42, 68, 0.97) 0%, rgba(11, 11, 13, 0.98) 100%)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(201, 169, 110, 0.1)',
+                border: '1px solid rgba(30, 94, 255, 0.15)',
                 boxShadow: '0 16px 40px rgba(0, 0, 0, 0.5)',
               }}
             >
@@ -371,26 +371,26 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
               <div style={{ padding: isMobile ? '12px 14px 0' : '12px 14px 0' }}>
                 {/* Zone + Tag */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? 6 : 6 }}>
-                  <span style={{ fontSize: isMobile ? 8 : 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#c9a96e' }}>
+                  <span style={{ fontSize: isMobile ? 8 : 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#1E5EFF' }}>
                     Zone {String(activeIndex + 1).padStart(2, '0')}
                   </span>
-                  <span style={{ fontSize: isMobile ? 7 : 7, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', padding: isMobile ? '3px 8px' : '3px 8px', borderRadius: 3, background: 'rgba(201, 169, 110, 0.08)', color: '#c9a96e', border: '1px solid rgba(201, 169, 110, 0.15)' }}>
+                  <span style={{ fontSize: isMobile ? 7 : 7, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', padding: isMobile ? '3px 8px' : '3px 8px', borderRadius: 3, background: 'rgba(30, 94, 255, 0.1)', color: '#A9C9FF', border: '1px solid rgba(30, 94, 255, 0.2)' }}>
                     {activeHighlight?.tag}
                   </span>
                 </div>
 
                 {/* Zone Name */}
-                <h3 style={{ fontSize: isMobile ? 22 : 22, fontWeight: 700, lineHeight: 1.1, color: '#f5f0e8', fontFamily: "'Outfit', sans-serif", margin: 0, marginBottom: isMobile ? 4 : 5 }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 22, fontWeight: 700, lineHeight: 1.1, color: '#FFFFFF', fontFamily: "'Outfit', sans-serif", margin: 0, marginBottom: isMobile ? 4 : 5 }}>
                   {activeZone?.name}
                 </h3>
 
                 {/* Subtitle */}
-                <p style={{ fontSize: isMobile ? 10 : 10, fontWeight: 500, color: '#c9a96e', margin: 0, marginBottom: isMobile ? 3 : 4 }}>
+                <p style={{ fontSize: isMobile ? 10 : 10, fontWeight: 500, color: '#A9C9FF', margin: 0, marginBottom: isMobile ? 3 : 4 }}>
                   {activeZone?.subtitle}
                 </p>
 
                 {/* Description */}
-                <p style={{ fontSize: isMobile ? 9 : 10, lineHeight: 1.4, color: 'rgba(255, 255, 255, 0.4)', margin: 0, marginBottom: isMobile ? 10 : 10 }}>
+                <p style={{ fontSize: isMobile ? 9 : 10, lineHeight: 1.4, color: 'rgba(255, 255, 255, 0.5)', margin: 0, marginBottom: isMobile ? 10 : 10 }}>
                   {activeZone?.description}
                 </p>
 
@@ -398,10 +398,10 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
                 <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: isMobile ? 10 : 10 }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
-                      <TbBuildingSkyscraper style={{ width: 10, height: 10, color: 'rgba(255, 255, 255, 0.3)' }} />
-                      <span style={{ fontSize: 7, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255, 255, 255, 0.3)' }}>Price/sqft</span>
+                      <TbBuildingSkyscraper style={{ width: 10, height: 10, color: 'rgba(255, 255, 255, 0.4)' }} />
+                      <span style={{ fontSize: 7, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255, 255, 255, 0.4)' }}>Price/sqft</span>
                     </div>
-                    <div style={{ fontSize: isMobile ? 15 : 15, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Outfit', sans-serif" }}>
+                    <div style={{ fontSize: isMobile ? 15 : 15, fontWeight: 700, color: '#FFFFFF', fontFamily: "'Outfit', sans-serif" }}>
                       {activePrice}/sqft
                     </div>
                   </div>
@@ -428,14 +428,14 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
                           padding: isMobile ? '8px 4px' : '8px 4px',
                           borderRadius: 8,
                           textAlign: 'center',
-                          background: 'rgba(255, 255, 255, 0.015)',
-                          border: '1px solid rgba(255, 255, 255, 0.04)',
+                          background: 'rgba(30, 94, 255, 0.05)',
+                          border: '1px solid rgba(30, 94, 255, 0.1)',
                         }}
                       >
-                        <span style={{ fontSize: isMobile ? 7 : 7, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', display: 'block', marginBottom: 3, color: 'rgba(255, 255, 255, 0.3)' }}>
+                        <span style={{ fontSize: isMobile ? 7 : 7, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', display: 'block', marginBottom: 3, color: 'rgba(255, 255, 255, 0.4)' }}>
                           {item.label}
                         </span>
-                        <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, display: 'block', color: '#f5f0e8', lineHeight: 1.2, fontFamily: "'Outfit', sans-serif" }}>
+                        <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, display: 'block', color: '#FFFFFF', lineHeight: 1.2, fontFamily: "'Outfit', sans-serif" }}>
                           {item.value}
                         </span>
                       </div>
@@ -460,14 +460,14 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                     borderRadius: 8,
-                    background: 'linear-gradient(135deg, #d4b978 0%, #c9a96e 50%, #b8944d 100%)',
-                    color: '#0a0a0f',
+                    background: 'linear-gradient(135deg, #1E5EFF 0%, #4A7FBF 100%)',
+                    color: '#FFFFFF',
                     border: 'none',
                     cursor: 'pointer',
                     fontFamily: "'Inter', sans-serif",
-                    boxShadow: '0 3px 12px rgba(201, 169, 110, 0.2)',
+                    boxShadow: '0 3px 12px rgba(30, 94, 255, 0.3)',
                   }}
-                  whileHover={{ scale: 1.02, boxShadow: '0 5px 18px rgba(201, 169, 110, 0.3)' }}
+                  whileHover={{ scale: 1.02, boxShadow: '0 5px 18px rgba(30, 94, 255, 0.4)' }}
                   whileTap={{ scale: 0.98 }}
                 >
                   View Full Market Data
@@ -493,9 +493,9 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
           style={{
             padding: '12px 18px',
             borderRadius: 14,
-            background: 'rgba(10, 10, 15, 0.75)',
+            background: 'rgba(11, 11, 13, 0.85)',
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(201, 169, 110, 0.12)',
+            border: '1px solid rgba(30, 94, 255, 0.15)',
           }}
         >
           <span
@@ -505,7 +505,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
               textTransform: 'uppercase',
               letterSpacing: '0.2em',
               display: 'block',
-              color: '#a6843d',
+              color: '#4A7FBF',
             }}
           >
             Mumbai Real Estate Map
@@ -516,7 +516,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
               fontWeight: 700,
               display: 'block',
               marginTop: 4,
-              color: '#f5f0e8',
+              color: '#FFFFFF',
             }}
           >
             {ZONE_INFO[ZONE_ORDER[activeIndex]]?.name}
@@ -542,11 +542,11 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(10, 10, 15, 0.5)',
-            border: '1px solid rgba(201, 169, 110, 0.12)',
+            background: 'rgba(11, 11, 13, 0.6)',
+            border: '1px solid rgba(30, 94, 255, 0.15)',
           }}
         >
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#a6843d' }}>N</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: '#4A7FBF' }}>N</span>
         </div>
       </div>
     </div>

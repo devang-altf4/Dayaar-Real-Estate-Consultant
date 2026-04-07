@@ -49,7 +49,7 @@ const styles = {
     height: 288,
     width: 288,
     borderRadius: '50%',
-    background: 'rgba(212, 182, 127, 0.05)',
+    background: 'rgba(30, 94, 255, 0.05)',
     filter: 'blur(48px)',
   },
   glowRight: {
@@ -92,7 +92,7 @@ const styles = {
   },
   heading: {
     fontFamily: "'Playfair Display', serif",
-    color: '#d4b67f',
+    color: '#1E5EFF',
     fontSize: 'clamp(2.2rem, 3.5vw, 3.2rem)',
     marginBottom: 16,
     fontWeight: 500,
@@ -127,7 +127,7 @@ const styles = {
     borderRadius: 8,
     border: '1px solid #2a2d35',
     background: '#11141a',
-    color: '#d4b67f',
+    color: '#1E5EFF',
   },
   iconBoxIcon: {
     height: 16,
@@ -229,11 +229,11 @@ const styles = {
     width: '100%',
     borderRadius: 6,
     border: 'none',
-    background: '#d4b67f',
+    background: '#1E5EFF',
     fontSize: 13,
     fontWeight: 700,
     letterSpacing: '0.05em',
-    color: 'black',
+    color: 'white',
     cursor: 'pointer',
     transition: 'transform 0.2s, box-shadow 0.2s',
     fontFamily: "'Inter', sans-serif",
@@ -246,7 +246,7 @@ const styles = {
     margin: '0 auto 16px',
     height: 56,
     width: 56,
-    color: '#d4b67f',
+    color: '#1E5EFF',
   },
   successTitle: {
     marginBottom: 10,
@@ -532,7 +532,7 @@ export default function LeadForm() {
                     type="submit"
                     disabled={submitting}
                     style={styles.submitButton}
-                    whileHover={{ transform: 'translateY(-1px)', boxShadow: '0 8px 24px rgba(212, 182, 127, 0.25)' }}
+                    whileHover={{ transform: 'translateY(-1px)', boxShadow: '0 8px 24px rgba(30, 94, 255, 0.25)' }}
                     whileTap={{ transform: 'scale(0.98)' }}
                   >
                     {submitting ? 'SUBMITTING...' : 'GET EXPERT RECOMMENDATIONS'}

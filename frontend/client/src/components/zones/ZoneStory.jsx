@@ -65,7 +65,7 @@ export default function ZoneStory({ zoneId, index, onExplore, isEven }) {
 
       {/* Gold divider line */}
       <div className="absolute bottom-0 left-0 right-0 h-px" style={{
-        background: 'linear-gradient(90deg, transparent 20%, rgba(201,169,110,0.2) 50%, transparent 80%)',
+        background: 'linear-gradient(90deg, transparent 20%, rgba(30,94,255,0.2) 50%, transparent 80%)',
       }} />
 
       {/* Content */}
@@ -82,16 +82,16 @@ export default function ZoneStory({ zoneId, index, onExplore, isEven }) {
             viewport={{ once: true, margin: '-100px' }}
             transition={{ delay: 0.2 }}
           >
-            <span className="text-[10px] uppercase tracking-[0.3em] font-medium" style={{ color: 'var(--gold)' }}>
+            <span className="text-[10px] uppercase tracking-[0.3em] font-medium" style={{ color: '#1E5EFF' }}>
               Zone {String(index + 1).padStart(2, '0')}
             </span>
-            <span className="w-8 h-px" style={{ background: 'var(--gold-dark)' }} />
+            <span className="w-8 h-px" style={{ background: '#4A7FBF' }} />
             <span
               className="text-[9px] uppercase tracking-wider font-bold px-3 py-1 rounded-full"
               style={{
-                background: 'rgba(201,169,110,0.12)',
-                color: 'var(--gold)',
-                border: '1px solid rgba(201,169,110,0.2)',
+                background: 'rgba(30,94,255,0.12)',
+                color: '#1E5EFF',
+                border: '1px solid rgba(30,94,255,0.2)',
               }}
             >
               {highlight.tag}
@@ -113,7 +113,7 @@ export default function ZoneStory({ zoneId, index, onExplore, isEven }) {
           {/* Subtitle */}
           <motion.p
             className="text-sm mb-2"
-            style={{ color: 'var(--gold)' }}
+            style={{ color: '#1E5EFF' }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: '-100px' }}
@@ -149,7 +149,7 @@ export default function ZoneStory({ zoneId, index, onExplore, isEven }) {
             <div className="w-px" style={{ background: 'var(--border)' }} />
             <div className={isEven ? '' : 'text-right'}>
               <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Growth</div>
-              <div className="text-lg sm:text-xl font-bold" style={{ color: 'var(--gold)' }}>{highlight.growth}</div>
+              <div className="text-lg sm:text-xl font-bold" style={{ color: '#1E5EFF' }}>{highlight.growth}</div>
             </div>
           </motion.div>
 
@@ -179,7 +179,7 @@ export default function ZoneStory({ zoneId, index, onExplore, isEven }) {
           fontFamily: 'Outfit, sans-serif',
           fontWeight: 900,
           color: 'transparent',
-          WebkitTextStroke: '1px rgba(201,169,110,0.08)',
+          WebkitTextStroke: '1px rgba(30,94,255,0.08)',
           lineHeight: 1,
         }}
       >

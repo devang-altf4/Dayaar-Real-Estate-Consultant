@@ -26,10 +26,10 @@ export default function Navbar() {
         right: 0,
         zIndex: 50,
         transition: 'all 0.5s ease',
-        background: scrolled ? 'rgba(10,10,15,0.92)' : 'transparent',
+        background: scrolled ? 'rgba(11,11,13,0.92)' : 'transparent',
         backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
         WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(201,169,110,0.1)' : '1px solid transparent',
+        borderBottom: scrolled ? '1px solid rgba(30,94,255,0.15)' : '1px solid transparent',
       }}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -60,7 +60,7 @@ export default function Navbar() {
               objectFit: 'cover',
             }}
           />
-          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 18, color: '#f5f0e8' }}>
+          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 18, color: '#FFFFFF' }}>
            Dayaar Real Estate Consultant
           </span>
         </a>
@@ -82,12 +82,12 @@ export default function Navbar() {
                 textTransform: 'uppercase',
                 letterSpacing: '0.15em',
                 fontWeight: 500,
-                color: '#b5b0a8',
+                color: 'rgba(255,255,255,0.6)',
                 textDecoration: 'none',
                 transition: 'color 0.3s',
               }}
-              onMouseEnter={(e) => (e.target.style.color = '#c9a96e')}
-              onMouseLeave={(e) => (e.target.style.color = '#b5b0a8')}
+              onMouseEnter={(e) => (e.target.style.color = '#1E5EFF')}
+              onMouseLeave={(e) => (e.target.style.color = 'rgba(255,255,255,0.6)')}
             >
               {link.label}
             </a>
@@ -99,8 +99,8 @@ export default function Navbar() {
               alignItems: 'center',
               gap: 8,
               padding: '10px 20px',
-              background: 'linear-gradient(135deg, #c9a96e, #a88a4e)',
-              color: '#0a0a0f',
+              background: 'linear-gradient(135deg, #1E5EFF, #4A7FBF)',
+              color: '#FFFFFF',
               fontWeight: 700,
               fontSize: 12,
               borderRadius: 10,
@@ -121,7 +121,7 @@ export default function Navbar() {
           className="md:hidden"
           style={{
             padding: 8,
-            color: '#f5f0e8',
+            color: '#FFFFFF',
             background: 'none',
             border: 'none',
             cursor: 'pointer',
@@ -140,8 +140,8 @@ export default function Navbar() {
         <motion.div
           className="md:hidden"
           style={{
-            background: 'rgba(10, 10, 15, 0.98)',
-            borderTop: '1px solid rgba(201, 169, 110, 0.12)',
+            background: 'rgba(11, 11, 13, 0.98)',
+            borderTop: '1px solid rgba(30, 94, 255, 0.15)',
             padding: '24px 24px 28px',
           }}
           initial={{ opacity: 0, height: 0 }}
@@ -157,15 +157,15 @@ export default function Navbar() {
                   fontSize: 15,
                   fontWeight: 500,
                   fontFamily: "'Inter', sans-serif",
-                  color: '#b5b0a8',
+                  color: 'rgba(255,255,255,0.6)',
                   textDecoration: 'none',
                   padding: '14px 0',
                   borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
                   transition: 'color 0.2s',
                 }}
                 onClick={() => setMobileOpen(false)}
-                onMouseEnter={(e) => (e.target.style.color = '#c9a96e')}
-                onMouseLeave={(e) => (e.target.style.color = '#b5b0a8')}
+                onMouseEnter={(e) => (e.target.style.color = '#1E5EFF')}
+                onMouseLeave={(e) => (e.target.style.color = 'rgba(255,255,255,0.6)')}
               >
                 {link.label}
               </a>
@@ -179,8 +179,8 @@ export default function Navbar() {
                 gap: 10,
                 marginTop: 16,
                 padding: '14px 24px',
-                background: 'linear-gradient(135deg, #d4b978, #c9a96e, #b8944d)',
-                color: '#0a0a0f',
+                background: 'linear-gradient(135deg, #1E5EFF, #4A7FBF)',
+                color: '#FFFFFF',
                 fontWeight: 700,
                 fontSize: 13,
                 borderRadius: 12,

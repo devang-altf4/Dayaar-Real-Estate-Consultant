@@ -116,15 +116,15 @@ export default function HeroSection() {
 
       {/* Overlays */}
       <div className="absolute inset-0" style={{
-        background: 'linear-gradient(180deg, rgba(10,10,15,0.5) 0%, rgba(10,10,15,0.3) 40%, rgba(10,10,15,0.7) 80%, rgba(10,10,15,1) 100%)',
+        background: 'linear-gradient(180deg, rgba(11,11,13,0.5) 0%, rgba(11,11,13,0.3) 40%, rgba(11,11,13,0.7) 80%, rgba(11,11,13,1) 100%)',
       }} />
       <div className="absolute inset-0" style={{
-        background: 'linear-gradient(90deg, rgba(10,10,15,0.6) 0%, transparent 50%, rgba(10,10,15,0.4) 100%)',
+        background: 'linear-gradient(90deg, rgba(11,11,13,0.6) 0%, transparent 50%, rgba(11,11,13,0.4) 100%)',
       }} />
 
-      {/* Gold bottom line */}
+      {/* Blue bottom line */}
       <div className="absolute bottom-0 left-0 right-0 h-1 opacity-60" style={{
-        background: 'linear-gradient(90deg, transparent, var(--gold), transparent)',
+        background: 'linear-gradient(90deg, transparent, #1E5EFF, transparent)',
       }} />
 
       {/* Content */}
@@ -140,8 +140,8 @@ export default function HeroSection() {
             transition={{ delay: 0.3, duration: 0.8 }}
             className="mb-6"
           >
-            <span className="inline-flex items-center gap-3 text-xs uppercase tracking-[0.3em] font-medium" style={{ color: 'var(--gold)' }}>
-              <span className="w-12 h-px" style={{ background: 'var(--gold)' }} />
+            <span className="inline-flex items-center gap-3 text-xs uppercase tracking-[0.3em] font-medium" style={{ color: '#1E5EFF' }}>
+              <span className="w-12 h-px" style={{ background: '#1E5EFF' }} />
               Mumbai's Premier Real Estate Consultant
             </span>
           </motion.div>
@@ -153,17 +153,17 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 1, type: 'spring', damping: 20 }}
           >
-            <span style={{ color: 'var(--cream)' }}>Your Next</span>
+            <span style={{ color: '#FFFFFF' }}>Your Next</span>
             <br />
             <span className="text-gold-gradient">Investment</span>
             <br />
-            <span style={{ color: 'var(--cream)' }}>Starts Here</span>
+            <span style={{ color: '#FFFFFF' }}>Starts Here</span>
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p
             className="text-base sm:text-lg max-w-lg mb-10 leading-relaxed"
-            style={{ color: 'var(--cream-dim)' }}
+            style={{ color: 'rgba(255,255,255,0.6)' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
@@ -218,7 +218,7 @@ export default function HeroSection() {
                   opacity: 0.25,
                   filter: 'blur(24px)',
                   pointerEvents: 'none',
-                  background: 'radial-gradient(circle, rgba(201,169,110,0.35) 0%, transparent 70%)',
+                  background: 'radial-gradient(circle, rgba(30,94,255,0.35) 0%, transparent 70%)',
                 }}
               />
               <div
@@ -231,11 +231,11 @@ export default function HeroSection() {
                   fontFamily: "'Outfit', sans-serif",
                   fontWeight: 900,
                   lineHeight: 1,
-                  background: 'linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark))',
+                  background: 'linear-gradient(135deg, #A9C9FF, #1E5EFF, #4A7FBF)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
-                  filter: 'drop-shadow(0 0 24px rgba(201,169,110,0.25))',
+                  filter: 'drop-shadow(0 0 24px rgba(30,94,255,0.25))',
                 }}
               >
                 <ContinuousCounter target={stat.value} suffix={stat.suffix} duration={stat.dur} />
@@ -249,7 +249,7 @@ export default function HeroSection() {
                   marginTop: 6,
                   fontWeight: 600,
                   textAlign: 'right',
-                  color: 'var(--cream-dim)',
+                  color: 'rgba(255,255,255,0.6)',
                 }}
               >
                 {stat.label}
@@ -265,11 +265,11 @@ export default function HeroSection() {
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
       >
-        <span className="text-[9px] uppercase tracking-[0.3em]" style={{ color: 'var(--text-muted)' }}>Scroll</span>
-        <div className="w-5 h-8 rounded-full border flex items-start justify-center pt-1.5" style={{ borderColor: 'var(--gold-dark)' }}>
+        <span className="text-[9px] uppercase tracking-[0.3em]" style={{ color: 'rgba(255,255,255,0.4)' }}>Scroll</span>
+        <div className="w-5 h-8 rounded-full border flex items-start justify-center pt-1.5" style={{ borderColor: '#4A7FBF' }}>
           <motion.div
             className="w-1 h-2 rounded-full"
-            style={{ background: 'var(--gold)' }}
+            style={{ background: '#1E5EFF' }}
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           />

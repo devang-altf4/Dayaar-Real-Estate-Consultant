@@ -55,8 +55,8 @@ export default function ScrollytellingContainer({ onExploreZone }) {
                 width: activeIndex === i ? 3 : 2,
                 height: activeIndex === i ? 24 : 12,
                 borderRadius: 2,
-                background: activeIndex === i ? '#c9a96e' : 'rgba(255,255,255,0.15)',
-                boxShadow: activeIndex === i ? '0 0 8px rgba(201,169,110,0.4)' : 'none',
+                background: activeIndex === i ? '#1E5EFF' : 'rgba(255,255,255,0.15)',
+                boxShadow: activeIndex === i ? '0 0 8px rgba(30,94,255,0.4)' : 'none',
                 transition: 'all 0.3s ease',
               }}
             />
@@ -66,11 +66,11 @@ export default function ScrollytellingContainer({ onExploreZone }) {
         {/* Scroll hint */}
         {!hasScrolled && (
           <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, zIndex: 20 }}>
-            <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 700, color: 'rgba(245,240,232,0.4)' }}>
+            <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>
               Scroll to explore
             </span>
-            <div style={{ width: 20, height: 32, borderRadius: 'full', border: '1px solid #a6843d' }}>
-              <div style={{ width: 4, height: 8, marginLeft: 'auto', marginRight: 'auto', marginTop: 6, borderRadius: 'full', background: '#c9a96e' }} />
+            <div style={{ width: 20, height: 32, borderRadius: 'full', border: '1px solid #4A7FBF' }}>
+              <div style={{ width: 4, height: 8, marginLeft: 'auto', marginRight: 'auto', marginTop: 6, borderRadius: 'full', background: '#1E5EFF' }} />
             </div>
           </div>
         )}
