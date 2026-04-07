@@ -35,10 +35,9 @@ export default function ScrollytellingContainer({ onExploreZone }) {
     <section
       ref={containerRef}
       id="zones-section"
-      className="relative"
-      style={{ height: `${ZONE_ORDER.length * 100}vh` }}
+      style={{ position: 'relative', height: `${ZONE_ORDER.length * 100}vh` }}
     >
-      <div className="sticky top-0 h-screen w-screen overflow-hidden">
+      <div style={{ position: 'sticky', top: 0, left: 0, right: 0, height: '100vh', width: '100%', overflow: 'hidden' }}>
         <MumbaiTrainMap
           scrollProgress={scrollYProgress}
           activeIndex={activeIndex}
@@ -48,17 +47,17 @@ export default function ScrollytellingContainer({ onExploreZone }) {
         />
 
         {/* Scroll progress dots */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 z-20">
+        <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, zIndex: 20 }}>
           {ZONE_ORDER.map((_, i) => (
             <div
               key={i}
-              className="transition-all duration-300"
               style={{
-                width: activeIndex === i ? '3px' : '2px',
-                height: activeIndex === i ? '24px' : '12px',
-                borderRadius: '2px',
-                background: activeIndex === i ? 'var(--gold)' : 'rgba(255,255,255,0.15)',
+                width: activeIndex === i ? 3 : 2,
+                height: activeIndex === i ? 24 : 12,
+                borderRadius: 2,
+                background: activeIndex === i ? '#c9a96e' : 'rgba(255,255,255,0.15)',
                 boxShadow: activeIndex === i ? '0 0 8px rgba(201,169,110,0.4)' : 'none',
+                transition: 'all 0.3s ease',
               }}
             />
           ))}
@@ -66,12 +65,12 @@ export default function ScrollytellingContainer({ onExploreZone }) {
 
         {/* Scroll hint */}
         {!hasScrolled && (
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20 animate-bounce">
-            <span className="text-[9px] uppercase tracking-[0.2em] font-bold" style={{ color: 'var(--cream-dim)' }}>
+          <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, zIndex: 20 }}>
+            <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 700, color: 'rgba(245,240,232,0.4)' }}>
               Scroll to explore
             </span>
-            <div className="w-5 h-8 rounded-full border" style={{ borderColor: 'var(--gold-dark)' }}>
-              <div className="w-1 h-2 mx-auto mt-1.5 rounded-full" style={{ background: 'var(--gold)' }} />
+            <div style={{ width: 20, height: 32, borderRadius: 'full', border: '1px solid #a6843d' }}>
+              <div style={{ width: 4, height: 8, marginLeft: 'auto', marginRight: 'auto', marginTop: 6, borderRadius: 'full', background: '#c9a96e' }} />
             </div>
           </div>
         )}

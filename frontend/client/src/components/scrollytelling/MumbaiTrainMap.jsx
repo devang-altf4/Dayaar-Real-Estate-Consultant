@@ -10,7 +10,10 @@ import { HiOutlineArrowRight } from 'react-icons/hi2';
 import { TbBuildingSkyscraper } from 'react-icons/tb';
 import { IoTrendingUpOutline } from 'react-icons/io5';
 
-const STATION_POSITIONS = [0.10, 0.26, 0.42, 0.58, 0.74, 0.90];
+// Geographic positions matching Mumbai's Western Line (real proportional distances)
+// Mira Road is far north, then Borivali cluster, Andheri cluster, Bandra, Dadar, SoBo
+// Positions tuned to match actual inter-station proportional spacing
+const STATION_POSITIONS = [0.04, 0.20, 0.38, 0.56, 0.74, 0.92];
 
 const ZONE_PRICES = {
   'mira-road':       '₹10.5K–₹14K',
@@ -39,13 +42,19 @@ const ZONE_HIGHLIGHTS = {
   'sobo':            { growth: '+6% YoY',  tag: 'Ultra-Premium',  config1: '₹3Cr – ₹8Cr',     config2: '₹8Cr – ₹20Cr',      config3: '₹20Cr – ₹50Cr+' },
 };
 
+// Mumbai Western Railway Line — path traced to exactly match reference image 2
+// vbX=320,vbW=470 → path at x=461 appears at (461-320)/470 = 30% from left
+// S-curve: starts slightly left, curves further LEFT through N.suburbs (coast bends),
+// then right through Andheri/Bandra, then gently left again toward SoBo
 const RAILWAY_PATH = `
-  M 342,195
-  C 343,242 344,282 342,335
-  C 340,388 335,426 332,478
-  C 329,530 324,566 321,616
-  C 319,658 330,682 333,702
-  C 335,714 322,720 316,726
+  M 435,60
+  C 428,105  418,158  408,208
+  C 398,255  394,305  400,355
+  C 406,400  418,442  426,488
+  C 434,528  440,568  436,610
+  C 432,650  428,690  432,732
+  C 436,770  438,808  436,848
+  C 434,872  431,884  428,900
 `;
 
 // Hook for responsive
@@ -67,8 +76,11 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
   const containerRef = useRef(null);
   const [pathLength, setPathLength] = useState(0);
   const [stationCoords, setStationCoords] = useState([]);
-  const [trainPos, setTrainPos] = useState({ x: 340, y: 130 });
-  const [containerSize, setContainerSize] = useState({ w: 1200, h: 800 });
+  const [trainPos, setTrainPos] = useState({ x: 435, y: 60 });
+  const [containerSize, setContainerSize] = useState(() => ({
+    w: typeof window !== 'undefined' ? window.innerWidth : 1268,
+    h: typeof window !== 'undefined' ? window.innerHeight : 710,
+  }));
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
 
@@ -109,18 +121,36 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
 
   const dashOffset = useTransform(smoothProgress, [0, 1], [pathLength || 1200, 0]);
 
-  // Responsive viewBox: wider on desktop to prevent vertical cropping
-  const vbX = isMobile ? 0 : -200;
-  const vbW = isMobile ? 900 : 1300;
-  const vbH = 900;
-  const viewBox = `${vbX} 0 ${vbW} ${vbH}`;
+  // ─── Dynamic ViewBox — works on ANY screen size ───────────────────────────
+  // Strategy: fix vbH to cover the full SVG path (y=40→920, span=880 units),
+  // then derive vbW from the container's actual aspect ratio.
+  // This guarantees height is ALWAYS the binding dimension in xMidYMid slice,
+  // so the full north-to-south route is visible regardless of viewport width.
+  //
+  // Path center x≈420. Place it at 38% from left on desktop, 30% on mobile.
+  const PATH_VB_Y    = 40;   // top of viewBox (slightly above first station y=60)
+  const PATH_VB_H    = 880;  // covers y=40 → y=920  (path runs y=60 → y=900)
+  const PATH_SVG_X   = 420;  // approximate x-center of the railway path
+  const pathLeftPct  = isMobile ? 0.30 : 0.38;
+
+  const cH = containerSize.h || window.innerHeight;
+  const cW = containerSize.w || window.innerWidth;
+
+  // vbW = cW * (PATH_VB_H / cH)  →  aspect ratio of vbW/vbH == cW/cH
+  // When these match, scale_H == scale_W, so ANY scale is binding (no clipping).
+  const vbH = PATH_VB_H;
+  const vbY = PATH_VB_Y;
+  const vbW = (cW / cH) * vbH;
+  const vbX = PATH_SVG_X - pathLeftPct * vbW;
+  const viewBox = `${vbX} ${vbY} ${vbW} ${vbH}`;
 
   const svgToScreen = (svgX, svgY) => {
-    const cW = containerSize.w, cH = containerSize.h;
-    const scale = Math.max(cW / vbW, cH / vbH);
-    const scaledW = vbW * scale, scaledH = vbH * scale;
-    const offsetX = (cW - scaledW) / 2, offsetY = (cH - scaledH) / 2;
-    return { x: offsetX + (svgX - vbX) * scale, y: offsetY + svgY * scale };
+    // With matched aspect ratios, scale = cH/vbH = cW/vbW (same value).
+    const scale = cH / vbH;
+    return {
+      x: (svgX - vbX) * scale,
+      y: (svgY - vbY) * scale,
+    };
   };
 
   const activeZoneId = ZONE_ORDER[activeIndex];
