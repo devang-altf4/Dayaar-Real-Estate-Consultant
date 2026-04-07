@@ -158,6 +158,8 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
   const activeHighlight = ZONE_HIGHLIGHTS[activeZoneId];
   const activePrice = ZONE_PRICES[activeZoneId];
   const activeCoord = stationCoords[activeIndex];
+  const mobileBadgeTop = 'calc(74px + env(safe-area-inset-top, 0px))';
+  const mobileCardTop = 'calc(86px + env(safe-area-inset-top, 0px))';
 
   // On mobile, flip popup to TOP when train is in lower half of the map (Western Suburbs onwards)
   // This keeps the map animation visible as the train goes lower
@@ -339,7 +341,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
               left: 12,
               right: 12,
               ...(popupOnTop
-                ? { top: 60, bottom: 'auto' }
+                ? { top: mobileCardTop, bottom: 'auto' }
                 : { bottom: 12, top: 'auto' }),
               pointerEvents: 'auto',
             } : {
@@ -484,39 +486,47 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
       <div
         style={{
           position: 'absolute',
-          top: 24,
-          left: 24,
+          top: isMobile ? mobileBadgeTop : 24,
+          left: isMobile ? 'auto' : 24,
+          right: isMobile ? 12 : 'auto',
           zIndex: 20,
+          pointerEvents: 'none',
         }}
       >
         <div
           style={{
-            padding: '12px 18px',
-            borderRadius: 14,
+            padding: isMobile ? '8px 10px' : '12px 18px',
+            borderRadius: isMobile ? 10 : 14,
             background: 'rgba(11, 11, 13, 0.85)',
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(30, 94, 255, 0.15)',
+            maxWidth: isMobile ? 160 : 'none',
           }}
         >
           <span
             style={{
-              fontSize: 9,
+              fontSize: isMobile ? 7 : 9,
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.2em',
               display: 'block',
               color: '#4A7FBF',
+              textAlign: isMobile ? 'right' : 'left',
             }}
           >
             Mumbai Real Estate Map
           </span>
           <span
             style={{
-              fontSize: 16,
+              fontSize: isMobile ? 12 : 16,
               fontWeight: 700,
               display: 'block',
-              marginTop: 4,
+              marginTop: isMobile ? 2 : 4,
               color: '#FFFFFF',
+              textAlign: isMobile ? 'right' : 'left',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
             {ZONE_INFO[ZONE_ORDER[activeIndex]]?.name}

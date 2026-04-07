@@ -12,6 +12,7 @@ export default function Navbar() {
   });
 
   const navLinks = [
+    { label: 'Our Journey', href: '#about-section' },
     { label: 'Zones', href: '#zones-section' },
     { label: 'Get in Touch', href: '#lead-section' },
     { label: 'Contact', href: '#footer' },
