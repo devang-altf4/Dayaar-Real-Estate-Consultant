@@ -58,7 +58,7 @@ const styles = {
   logoLetter: {
     fontSize: 18,
     fontWeight: 900,
-    fontFamily: "'Outfit', sans-serif",
+    fontFamily: "var(--font-heading)",
     color: 'white',
   },
   brandTextContainer: {
@@ -70,7 +70,7 @@ const styles = {
     fontWeight: 600,
     lineHeight: 1,
     color: '#FFFFFF',
-    fontFamily: "'Outfit', sans-serif",
+    fontFamily: "var(--font-heading)",
   },
   brandTagline: {
     marginTop: 4,
@@ -445,3 +445,4 @@ export default function Footer() {
     </footer>
   );
 }
+

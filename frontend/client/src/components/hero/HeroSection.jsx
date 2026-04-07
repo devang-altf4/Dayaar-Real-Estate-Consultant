@@ -148,7 +148,7 @@ export default function HeroSection() {
 
           {/* Heading */}
           <motion.h1
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 leading-[0.95]"
+            className="text-5xl sm:text-6xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-[0.98]"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 1, type: 'spring', damping: 20 }}
@@ -227,8 +227,8 @@ export default function HeroSection() {
                   display: 'flex',
                   justifyContent: 'flex-end',
                   width: 200,
-                  fontSize: 'clamp(3rem, 5vw, 4.5rem)',
-                  fontFamily: "'Outfit', sans-serif",
+                  fontSize: 'clamp(2.4rem, 3.8vw, 3.7rem)',
+                  fontFamily: "var(--font-heading)",
                   fontWeight: 900,
                   lineHeight: 1,
                   background: 'linear-gradient(135deg, #A9C9FF, #1E5EFF, #4A7FBF)',
@@ -278,3 +278,4 @@ export default function HeroSection() {
     </section>
   );
 }
+

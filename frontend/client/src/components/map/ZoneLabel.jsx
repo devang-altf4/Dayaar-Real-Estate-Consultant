@@ -37,7 +37,7 @@ export default function ZoneLabel({ zoneId, name, position, color, index, isSele
         textAnchor="middle"
         fill={isActive ? '#0f172a' : '#f1f5f9'}
         fontSize="10"
-        fontFamily="Outfit, sans-serif"
+        fontFamily="var(--font-heading)"
         fontWeight={isActive ? '800' : '600'}
         letterSpacing="0.3"
         style={{ pointerEvents: 'none' }}
@@ -47,3 +47,4 @@ export default function ZoneLabel({ zoneId, name, position, color, index, isSele
     </motion.g>
   );
 }
+

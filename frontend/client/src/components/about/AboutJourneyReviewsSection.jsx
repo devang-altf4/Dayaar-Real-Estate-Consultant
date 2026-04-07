@@ -395,7 +395,7 @@ function JourneyExperience() {
             style={{
               margin: '8px 0 8px',
               color: '#FFFFFF',
-              fontSize: isMobile ? '1.36rem' : 'clamp(1.45rem, 2.8vw, 2.4rem)',
+              fontSize: isMobile ? '1.36rem' : 'clamp(1.28rem, 2.2vw, 1.9rem)',
               lineHeight: 1.12,
             }}
           >
@@ -634,7 +634,7 @@ function JourneyExperience() {
                   <h4
                     style={{
                       margin: '10px 0 0',
-                      fontSize: isMobile ? '1.2rem' : 'clamp(1.3rem, 2.4vw, 1.95rem)',
+                      fontSize: isMobile ? '1.2rem' : 'clamp(1.18rem, 1.8vw, 1.62rem)',
                       color: '#FFFFFF',
                       lineHeight: 1.14,
                       wordBreak: 'break-word',
@@ -814,11 +814,11 @@ export default function AboutJourneyReviewsSection() {
             style={{
               marginTop: 14,
               marginBottom: 10,
-              fontFamily: 'Outfit, sans-serif',
-              fontWeight: 900,
-              lineHeight: 0.96,
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 800,
+              lineHeight: 1.02,
               color: '#FFFFFF',
-              fontSize: isMobile ? 'clamp(1.7rem, 8vw, 2.3rem)' : 'clamp(2.3rem, 6vw, 4.8rem)',
+              fontSize: isMobile ? 'clamp(1.7rem, 8vw, 2.3rem)' : 'clamp(1.95rem, 4.2vw, 3.45rem)',
             }}
           >
             Our Journey with
@@ -835,7 +835,7 @@ export default function AboutJourneyReviewsSection() {
             </span>
           </h2>
 
-          <p style={{ maxWidth: 760, color: 'rgba(255,255,255,0.66)', fontSize: isMobile ? 13 : 15, lineHeight: 1.7 }}>
+          <p style={{ maxWidth: 760, color: 'rgba(255,255,255,0.66)', fontSize: isMobile ? 13 : 14, lineHeight: 1.7 }}>
             Year-wise milestones highlighting our growth, expansion, achievements, and long-term vision.
           </p>
         </MotionDiv>
@@ -867,7 +867,7 @@ export default function AboutJourneyReviewsSection() {
                 style={{
                   margin: '8px 0 0',
                   color: '#FFFFFF',
-                  fontSize: isMobile ? 'clamp(1.2rem, 6vw, 1.55rem)' : 'clamp(1.55rem, 3vw, 2.6rem)',
+                  fontSize: isMobile ? 'clamp(1.2rem, 6vw, 1.55rem)' : 'clamp(1.35rem, 2.2vw, 2.05rem)',
                   lineHeight: 1.15,
                 }}
               >
@@ -886,3 +886,4 @@ export default function AboutJourneyReviewsSection() {
     </MotionSection>
   );
 }
+

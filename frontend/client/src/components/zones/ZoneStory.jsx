@@ -176,7 +176,7 @@ export default function ZoneStory({ zoneId, index, onExplore, isEven }) {
         className={`absolute ${isEven ? 'right-8 sm:right-16' : 'left-8 sm:left-16'} top-1/2 -translate-y-1/2 pointer-events-none select-none`}
         style={{
           fontSize: 'clamp(120px, 20vw, 280px)',
-          fontFamily: 'Outfit, sans-serif',
+          fontFamily: 'var(--font-heading)',
           fontWeight: 900,
           color: 'transparent',
           WebkitTextStroke: '1px rgba(30,94,255,0.08)',
@@ -188,3 +188,4 @@ export default function ZoneStory({ zoneId, index, onExplore, isEven }) {
     </section>
   );
 }
+

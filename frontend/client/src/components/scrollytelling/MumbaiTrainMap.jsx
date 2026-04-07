@@ -285,21 +285,21 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
                 stroke={isActive ? '#1E5EFF' : 'rgba(255,255,255,0.06)'} strokeWidth="0.6" style={{ transition: 'all 0.4s' }} />
               <text x={lx} y={coord.y - 12} textAnchor={anchor}
                 fill={isActive ? '#1E5EFF' : isPast ? 'rgba(169,201,255,0.45)' : 'rgba(169,201,255,0.15)'}
-                fontSize={isActive ? '14' : '9'} fontFamily="Outfit, sans-serif"
+                fontSize={isActive ? '14' : '9'} fontFamily="var(--font-heading)"
                 fontWeight={isActive ? '800' : '600'} letterSpacing="1.5"
                 style={{ transition: 'all 0.5s', filter: isActive ? 'drop-shadow(0 0 8px rgba(30,94,255,0.5))' : 'none' }}>
                 {ZONE_INFO[zoneId].name.toUpperCase()}
               </text>
               <motion.text x={lx} y={coord.y + 6} textAnchor={anchor}
                 fill={isActive ? '#A9C9FF' : isPast ? 'rgba(169,201,255,0.2)' : 'rgba(169,201,255,0.06)'}
-                fontSize={isActive ? '10' : '7.5'} fontFamily="Inter, sans-serif" fontWeight="700"
+                fontSize={isActive ? '10' : '7.5'} fontFamily="var(--font-body)" fontWeight="700"
                 style={{ transition: 'all 0.4s' }}>
                 {price}/sqft
               </motion.text>
               {stations.map((s, si) => (
                 <motion.text key={s} x={lx} y={coord.y + 22 + si * 13} textAnchor={anchor}
                   fill={isActive ? 'rgba(169,201,255,0.6)' : 'rgba(255,255,255,0.07)'}
-                  fontSize="7.5" fontFamily="Inter, sans-serif" fontWeight="500" letterSpacing="0.8"
+                  fontSize="7.5" fontFamily="var(--font-body)" fontWeight="500" letterSpacing="0.8"
                   initial={false}
                   animate={{ opacity: isActive ? 1 : isPast ? 0.2 : 0.05, x: isActive ? 0 : (isRight ? -4 : 4) }}
                   transition={{ duration: 0.3, delay: si * 0.06 }}
@@ -323,7 +323,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
           <circle cx={trainPos.x} cy={trainPos.y + 7} r="1" fill="#A9C9FF" />
         </g>
 
-        <text x="140" y="450" fill="rgba(255,255,255,0.04)" fontSize="9" fontFamily="Inter" fontWeight="600"
+        <text x="140" y="450" fill="rgba(255,255,255,0.04)" fontSize="9" fontFamily="var(--font-body)" fontWeight="600"
           letterSpacing="4" transform="rotate(-70, 140, 450)" style={{ textTransform: 'uppercase' }}>
           Western Line
         </text>
@@ -382,7 +382,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
                 </div>
 
                 {/* Zone Name */}
-                <h3 style={{ fontSize: isMobile ? 22 : 22, fontWeight: 700, lineHeight: 1.1, color: '#FFFFFF', fontFamily: "'Outfit', sans-serif", margin: 0, marginBottom: isMobile ? 4 : 5 }}>
+                <h3 style={{ fontSize: isMobile ? 22 : 22, fontWeight: 700, lineHeight: 1.1, color: '#FFFFFF', fontFamily: "var(--font-heading)", margin: 0, marginBottom: isMobile ? 4 : 5 }}>
                   {activeZone?.name}
                 </h3>
 
@@ -403,7 +403,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
                       <TbBuildingSkyscraper style={{ width: 10, height: 10, color: 'rgba(255, 255, 255, 0.4)' }} />
                       <span style={{ fontSize: 7, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255, 255, 255, 0.4)' }}>Price/sqft</span>
                     </div>
-                    <div style={{ fontSize: isMobile ? 15 : 15, fontWeight: 700, color: '#FFFFFF', fontFamily: "'Outfit', sans-serif" }}>
+                    <div style={{ fontSize: isMobile ? 15 : 15, fontWeight: 700, color: '#FFFFFF', fontFamily: "var(--font-heading)" }}>
                       {activePrice}/sqft
                     </div>
                   </div>
@@ -412,7 +412,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
                       <IoTrendingUpOutline style={{ width: 10, height: 10, color: '#22c55e' }} />
                       <span style={{ fontSize: 7, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#22c55e' }}>Growth</span>
                     </div>
-                    <div style={{ fontSize: isMobile ? 15 : 15, fontWeight: 700, color: '#22c55e', fontFamily: "'Outfit', sans-serif" }}>
+                    <div style={{ fontSize: isMobile ? 15 : 15, fontWeight: 700, color: '#22c55e', fontFamily: "var(--font-heading)" }}>
                       {activeHighlight?.growth}
                     </div>
                   </div>
@@ -437,7 +437,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
                         <span style={{ fontSize: isMobile ? 7 : 7, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', display: 'block', marginBottom: 3, color: 'rgba(255, 255, 255, 0.4)' }}>
                           {item.label}
                         </span>
-                        <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, display: 'block', color: '#FFFFFF', lineHeight: 1.2, fontFamily: "'Outfit', sans-serif" }}>
+                        <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, display: 'block', color: '#FFFFFF', lineHeight: 1.2, fontFamily: "var(--font-heading)" }}>
                           {item.value}
                         </span>
                       </div>
@@ -466,7 +466,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
                     color: '#FFFFFF',
                     border: 'none',
                     cursor: 'pointer',
-                    fontFamily: "'Inter', sans-serif",
+                    fontFamily: "var(--font-body)",
                     boxShadow: '0 3px 12px rgba(30, 94, 255, 0.3)',
                   }}
                   whileHover={{ scale: 1.02, boxShadow: '0 5px 18px rgba(30, 94, 255, 0.4)' }}
@@ -562,3 +562,4 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
     </div>
   );
 }
+

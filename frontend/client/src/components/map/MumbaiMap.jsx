@@ -47,7 +47,10 @@ export default function MumbaiMap({ onZoneSelect, selectedZone }) {
           >
             Explore Mumbai
           </motion.span>
-          <h2 className="font-[Outfit] text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mt-2 mb-5">
+          <h2
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mt-2 mb-5"
+            style={{ fontFamily: 'var(--font-heading)' }}
+          >
             Premium{' '}
             <span
               style={{

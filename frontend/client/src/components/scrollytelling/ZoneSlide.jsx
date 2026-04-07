@@ -162,7 +162,7 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
                 lineHeight: 1.05,
                 letterSpacing: '-0.02em',
                 color: '#f5f0e8',
-                fontFamily: "'Outfit', sans-serif",
+                fontFamily: "var(--font-heading)",
                 margin: 0,
                 marginBottom: isMobile ? 14 : 18,
               }}
@@ -240,7 +240,7 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
                     fontSize: isMobile ? 22 : 26,
                     fontWeight: 700,
                     color: '#f5f0e8',
-                    fontFamily: "'Outfit', sans-serif",
+                    fontFamily: "var(--font-heading)",
                     letterSpacing: '-0.01em',
                   }}
                 >
@@ -283,7 +283,7 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
                     fontSize: isMobile ? 22 : 26,
                     fontWeight: 700,
                     color: '#22c55e',
-                    fontFamily: "'Outfit', sans-serif",
+                    fontFamily: "var(--font-heading)",
                   }}
                 >
                   {highlight.growth}
@@ -334,7 +334,7 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
                         display: 'block',
                         color: '#f5f0e8',
                         lineHeight: 1.3,
-                        fontFamily: "'Outfit', sans-serif",
+                        fontFamily: "var(--font-heading)",
                       }}
                     >
                       {item.value}
@@ -365,7 +365,7 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
                 color: '#FFFFFF',
                 border: 'none',
                 cursor: 'pointer',
-                fontFamily: "'Inter', sans-serif",
+                fontFamily: "var(--font-body)",
                 boxShadow: '0 6px 24px rgba(30, 94, 255, 0.3)',
                 transition: 'all 0.3s ease',
               }}
@@ -391,3 +391,4 @@ export default function ZoneSlide({ zoneId, index, zone, highlight, isActive, on
     </div>
   );
 }
+

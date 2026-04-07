@@ -2,6 +2,8 @@
 
 /* ========== DAYAAR BLUE COLOR PALETTE ========== */
 :root {
+  --font-heading: "Sora", "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
   --bg-primary: #0B0B0D;
   --bg-secondary: #0F2A44;
   --bg-card: #0F2A44;
@@ -39,7 +41,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   background: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;
@@ -72,10 +74,10 @@ body {
 
 /* ========== TYPOGRAPHY ========== */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.14;
+  letter-spacing: -0.01em;
 }
 
 /* ========== GLASS MORPHISM ========== */
@@ -198,7 +200,7 @@ section {
 
 /* ========== INPUT STYLING ========== */
 input, select, textarea {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
 }
 
 /* ========== ZONE CARD ASPECT RATIO ========== */
@@ -230,3 +232,4 @@ textarea:focus {
   border-color: #646b78 !important;
   box-shadow: 0 0 0 2px rgba(100, 107, 120, 0.28);
 }
+

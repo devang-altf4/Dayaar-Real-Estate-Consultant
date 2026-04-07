@@ -91,7 +91,7 @@ const styles = {
     alignSelf: 'start',
   },
   heading: {
-    fontFamily: "'Playfair Display', serif",
+    fontFamily: 'var(--font-heading)',
     color: '#1E5EFF',
     fontSize: 'clamp(2.2rem, 3.5vw, 3.2rem)',
     marginBottom: 16,
@@ -141,7 +141,7 @@ const styles = {
     paddingTop: 0,
   },
   formTitle: {
-    fontFamily: "'Playfair Display', serif",
+    fontFamily: 'var(--font-heading)',
     fontSize: 'clamp(1.25rem, 1.4vw, 1.5rem)',
     marginBottom: 20,
     letterSpacing: '0.02em',
@@ -180,7 +180,7 @@ const styles = {
     color: '#f2eee6',
     outline: 'none',
     transition: 'border-color 0.2s, box-shadow 0.2s',
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "var(--font-body)",
   },
   select: {
     height: 46,
@@ -194,7 +194,7 @@ const styles = {
     outline: 'none',
     transition: 'border-color 0.2s, box-shadow 0.2s',
     cursor: 'pointer',
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "var(--font-body)",
     appearance: 'none',
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237d828c'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
     backgroundRepeat: 'no-repeat',
@@ -236,7 +236,7 @@ const styles = {
     color: 'white',
     cursor: 'pointer',
     transition: 'transform 0.2s, box-shadow 0.2s',
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "var(--font-body)",
   },
   successContainer: {
     padding: '48px 0',
@@ -252,7 +252,7 @@ const styles = {
     marginBottom: 10,
     fontSize: 26,
     color: '#f4f1e9',
-    fontFamily: "'Playfair Display', serif",
+    fontFamily: 'var(--font-heading)',
   },
   successText: {
     margin: '0 auto',
@@ -546,3 +546,4 @@ export default function LeadForm() {
     </section>
   );
 }
+

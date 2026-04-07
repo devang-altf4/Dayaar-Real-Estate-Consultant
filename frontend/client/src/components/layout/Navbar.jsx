@@ -61,7 +61,7 @@ export default function Navbar() {
               objectFit: 'cover',
             }}
           />
-          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 18, color: '#FFFFFF' }}>
+          <span style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: 18, color: '#FFFFFF' }}>
            Dayaar
           </span>
         </a>
@@ -157,7 +157,7 @@ export default function Navbar() {
                 style={{
                   fontSize: 15,
                   fontWeight: 500,
-                  fontFamily: "'Inter', sans-serif",
+                  fontFamily: "var(--font-body)",
                   color: 'rgba(255,255,255,0.6)',
                   textDecoration: 'none',
                   padding: '14px 0',
@@ -200,3 +200,4 @@ export default function Navbar() {
     </motion.nav>
   );
 }
+

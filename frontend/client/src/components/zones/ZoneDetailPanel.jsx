@@ -163,7 +163,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                       flexShrink: 0,
                     }}
                   />
-                  <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--cream)' }}>Dayaar</span>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '16px', color: 'var(--cream)' }}>Dayaar</span>
                 </div>
 
                 {/* Title */}
@@ -173,7 +173,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                   lineHeight: 1.2,
                   marginBottom: '16px',
                   color: 'var(--cream)',
-                  fontFamily: 'Outfit, sans-serif',
+                  fontFamily: 'var(--font-heading)',
                 }}>
                   Full Market Data
                 </h2>
@@ -195,7 +195,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                       }}>
                         Premium Zone
                       </span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>· Inter</span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>· Manrope</span>
                     </div>
 
                     <p style={{ fontSize: '13px', lineHeight: 1.7, marginBottom: '32px', color: 'var(--text-secondary)' }}>
@@ -338,7 +338,7 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                         lineHeight: 1.05,
                         marginBottom: '8px',
                         color: 'var(--cream)',
-                        fontFamily: 'Outfit, sans-serif',
+                        fontFamily: 'var(--font-heading)',
                       }}>
                         {data.name}
                       </h2>
@@ -527,3 +527,4 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
     </AnimatePresence>
   );
 }
+

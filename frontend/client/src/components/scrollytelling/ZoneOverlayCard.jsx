@@ -120,7 +120,7 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
                   letterSpacing: '-0.02em',
                   marginBottom: isMobile ? 8 : 10,
                   color: 'var(--cream)',
-                  fontFamily: "'Outfit', sans-serif",
+                  fontFamily: "var(--font-heading)",
                   margin: 0,
                   marginBottom: isMobile ? 10 : 12,
                 }}
@@ -198,7 +198,7 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
                       fontSize: isMobile ? 20 : 24,
                       fontWeight: 700,
                       color: 'var(--cream)',
-                      fontFamily: "'Outfit', sans-serif",
+                      fontFamily: "var(--font-heading)",
                       letterSpacing: '-0.01em',
                     }}
                   >
@@ -241,7 +241,7 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
                       fontSize: isMobile ? 20 : 24,
                       fontWeight: 700,
                       color: '#22c55e',
-                      fontFamily: "'Outfit', sans-serif",
+                      fontFamily: "var(--font-heading)",
                     }}
                   >
                     {highlight.growth}
@@ -292,7 +292,7 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
                           display: 'block',
                           color: 'var(--cream)',
                           lineHeight: 1.3,
-                          fontFamily: "'Outfit', sans-serif",
+                          fontFamily: "var(--font-heading)",
                         }}
                       >
                         {item.value}
@@ -323,7 +323,7 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
                   color: '#FFFFFF',
                   border: 'none',
                   cursor: 'pointer',
-                  fontFamily: "'Inter', sans-serif",
+                  fontFamily: "var(--font-body)",
                   boxShadow: '0 4px 16px rgba(30, 94, 255, 0.25)',
                   transition: 'all 0.3s ease',
                 }}
@@ -350,3 +350,4 @@ export default function ZoneOverlayCard({ zoneId, index, zone, highlight, onExpl
     </div>
   );
 }
+
