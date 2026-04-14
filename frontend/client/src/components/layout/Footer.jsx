@@ -6,6 +6,15 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { HiOutlinePhone, HiOutlineEnvelope, HiOutlineMapPin } from 'react-icons/hi2';
 import { FaWhatsapp, FaInstagram, FaYoutube } from 'react-icons/fa';
+import { FaFacebookF, FaThreads } from 'react-icons/fa6';
+
+// Custom "Say More" icon (speech bubble)
+const SayMoreIcon = ({ style }) => (
+  <svg style={style} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/>
+    <path d="M7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/>
+  </svg>
+);
 
 // Inline styles - COMPACT spacing
 const styles = {
@@ -180,6 +189,7 @@ const styles = {
   socialIcons: {
     display: 'flex',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 10,
   },
   socialIconBox: {
@@ -247,15 +257,19 @@ export default function Footer() {
   ];
 
   const contactItems = [
-    { icon: HiOutlinePhone, val: '08452 852324', href: 'tel:08452852324' },
+    { icon: HiOutlinePhone, val: '+91 84528 52324', href: 'tel:+918452852324' },
+    { icon: HiOutlinePhone, val: '+91 91379 95833', href: 'tel:+919137995833' },
     { icon: HiOutlineEnvelope, val: 'Info@dayaarrealestate.com', href: 'mailto:Info@dayaarrealestate.com' },
-    { icon: HiOutlineMapPin, val: 'Shop 7, 1st Flr, Oswal Garden, Kanakia Rd, Nr. Park View Hotel,Mira Rd (E), Thane – 401107', href: '#' },
+    { icon: HiOutlineMapPin, val: 'Shop no.7, 1st Flr, Oswal Garden, Kanakia Rd, Nr. Park View Hotel,Mira Rd (E), Thane – 401107', href: '#' },
   ];
 
   const socialItems = [
     { icon: FaWhatsapp, href: 'https://wa.me/918452852324', label: 'WhatsApp' },
     { icon: FaInstagram, href: 'https://www.instagram.com/dayaarrealestate/', label: 'Instagram' },
-    { icon: FaYoutube, href: '#', label: 'YouTube' },
+    { icon: FaYoutube, href: 'https://youtube.com/@dayaarrealestate?si=mImWA7vroHH1nQl-', label: 'YouTube' },
+    { icon: FaFacebookF, href: 'https://www.facebook.com/share/1AbnJpepHy/', label: 'Facebook' },
+    { icon: FaThreads, href: 'https://www.threads.net/@dayaarrealestate', label: 'Threads' },
+    { icon: SayMoreIcon, href: 'https://share.google/FuO2KO2BOSIMPMH7U', label: 'Say More' },
   ];
 
   const getContainerStyle = () => {
@@ -290,9 +304,9 @@ export default function Footer() {
           >
             <div style={styles.logoContainer}>
               <img
-                src="/images/1000002758.jpg.jpeg"
+                src="/images/dayaar-logo.png"
                 alt="Dayaar Real Estate Logo"
-                style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+                style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }}
               />
               <div style={styles.brandTextContainer}>
                 <h3 style={styles.brandName}>Dayaar</h3>

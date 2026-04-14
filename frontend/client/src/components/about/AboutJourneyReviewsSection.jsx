@@ -182,9 +182,9 @@ function ReviewsLane() {
 
       if (width && !interactionRef.current.hovering && !interactionRef.current.dragging) {
         const speed = prefersReducedMotion ? 26 : 64;
-        let next = offsetRef.current + delta * speed;
-        if (next >= 0) next -= width;
-        if (next < -width) next += width;
+        let next = offsetRef.current - delta * speed;
+        if (next <= -width) next += width;
+        if (next > 0) next -= width;
         offsetRef.current = next;
         x.set(next);
       }

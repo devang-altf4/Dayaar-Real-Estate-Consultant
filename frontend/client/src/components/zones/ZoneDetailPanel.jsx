@@ -153,13 +153,12 @@ export default function ZoneDetailPanel({ selectedZone, onClose }) {
                 {/* Logo */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
                   <img
-                    src="/images/1000002758.jpg.jpeg"
+                    src="/images/dayaar-logo.png"
                     alt="Dayaar Logo"
                     style={{
                       width: '36px',
                       height: '36px',
-                      borderRadius: '8px',
-                      objectFit: 'cover',
+                      objectFit: 'contain',
                       flexShrink: 0,
                     }}
                   />
