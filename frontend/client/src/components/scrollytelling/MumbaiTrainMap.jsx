@@ -42,19 +42,30 @@ const ZONE_HIGHLIGHTS = {
   'sobo':            { growth: '+6% YoY',  tag: 'Ultra-Premium',  config1: '₹3Cr – ₹8Cr',     config2: '₹8Cr – ₹20Cr',      config3: '₹20Cr – ₹50Cr+' },
 };
 
-// Mumbai Western Railway Line — path traced to exactly match reference image 2
-// vbX=320,vbW=470 → path at x=461 appears at (461-320)/470 = 30% from left
-// S-curve: starts slightly left, curves further LEFT through N.suburbs (coast bends),
-// then right through Andheri/Bandra, then gently left again toward SoBo
-const RAILWAY_PATH = `
-  M 435,60
-  C 428,105  418,158  408,208
-  C 398,255  394,305  400,355
-  C 406,400  418,442  426,488
-  C 434,528  440,568  436,610
-  C 432,650  428,690  432,732
-  C 436,770  438,808  436,848
-  C 434,872  431,884  428,900
+// ─── DESKTOP path: old proven coordinates in dynamic-viewBox space ───────────
+// These coordinates were calibrated to look correct on desktop with the
+// dynamic viewBox that zooms into the track area.
+const RAILWAY_PATH_DESKTOP = `
+  M 475,92
+  C 472,135  468,185  464,240
+  C 458,305  454,355  449,400
+  C 442,450  435,505  427,560
+  C 427,610  428,660  430,720
+  C 432,760  433,800  434,840
+`;
+
+// ─── MOBILE path: image-pixel coordinates for fixed 1024×1024 viewBox ────────
+// Using viewBox="0 0 1024 1024" makes SVG coords = image pixel coords,
+// so the line overlays the exact same track on ALL mobile screen sizes.
+const RAILWAY_PATH_MOBILE = `
+  M 430,100
+  C 426,150  422,200  418,250
+  C 415,280  412,310  409,340
+  C 405,375  402,410  399,448
+  C 396,480  390,518  384,555
+  C 384,590  385,626  386,662
+  C 387,700  390,740  395,780
+  C 398,810  400,835  402,850
 `;
 
 // Hook for responsive
@@ -76,13 +87,15 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
   const containerRef = useRef(null);
   const [pathLength, setPathLength] = useState(0);
   const [stationCoords, setStationCoords] = useState([]);
-  const [trainPos, setTrainPos] = useState({ x: 435, y: 60 });
+  const [trainPos, setTrainPos] = useState({ x: 475, y: 92 });
   const [containerSize, setContainerSize] = useState(() => ({
     w: typeof window !== 'undefined' ? window.innerWidth : 1268,
     h: typeof window !== 'undefined' ? window.innerHeight : 710,
   }));
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
+
+  const RAILWAY_PATH = isMobile ? RAILWAY_PATH_MOBILE : RAILWAY_PATH_DESKTOP;
 
   useEffect(() => {
     if (!pathRef.current) return;
@@ -93,7 +106,7 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
       return { x: pt.x, y: pt.y };
     });
     setStationCoords(coords);
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -121,37 +134,46 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
 
   const dashOffset = useTransform(smoothProgress, [0, 1], [pathLength || 1200, 0]);
 
-  // ─── Dynamic ViewBox — works on ANY screen size ───────────────────────────
-  // Strategy: fix vbH to cover the full SVG path (y=40→920, span=880 units),
-  // then derive vbW from the container's actual aspect ratio.
-  // This guarantees height is ALWAYS the binding dimension in xMidYMid slice,
-  // so the full north-to-south route is visible regardless of viewport width.
-  //
-  // Path center x≈420. Place it at 38% from left on desktop, 30% on mobile.
-  const PATH_VB_Y    = 40;   // top of viewBox (slightly above first station y=60)
-  const PATH_VB_H    = 880;  // covers y=40 → y=920  (path runs y=60 → y=900)
-  const PATH_SVG_X   = 420;  // approximate x-center of the railway path
-  const pathLeftPct  = isMobile ? 0.30 : 0.38;
-
   const cH = containerSize.h || window.innerHeight;
   const cW = containerSize.w || window.innerWidth;
 
-  // vbW = cW * (PATH_VB_H / cH)  →  aspect ratio of vbW/vbH == cW/cH
-  // When these match, scale_H == scale_W, so ANY scale is binding (no clipping).
-  const vbH = PATH_VB_H;
-  const vbY = PATH_VB_Y;
-  const vbW = (cW / cH) * vbH;
-  const vbX = PATH_SVG_X - pathLeftPct * vbW;
-  const viewBox = `${vbX} ${vbY} ${vbW} ${vbH}`;
+  // ─── Dual ViewBox Strategy ─────────────────────────────────────────────────
+  // MOBILE: Fixed viewBox "0 0 1024 1024" → SVG coords = image pixel coords
+  //         → perfect track alignment on all mobile screens.
+  // DESKTOP: Dynamic viewBox zoomed into track area → fills the map nicely,
+  //          all stations visible, proven correct from earlier iteration.
+  let viewBox, svgToScreen;
 
-  const svgToScreen = (svgX, svgY) => {
-    // With matched aspect ratios, scale = cH/vbH = cW/vbW (same value).
-    const scale = cH / vbH;
-    return {
-      x: (svgX - vbX) * scale,
-      y: (svgY - vbY) * scale,
+  if (isMobile) {
+    viewBox = '0 0 1024 1024';
+    svgToScreen = (svgX, svgY) => {
+      const scale = Math.max(cW / 1024, cH / 1024);
+      const offsetX = (1024 * scale - cW) / 2;
+      const offsetY = (1024 * scale - cH) / 2;
+      return {
+        x: svgX * scale - offsetX,
+        y: svgY * scale - offsetY,
+      };
     };
-  };
+  } else {
+    // Old proven desktop viewBox: height-binding, zoomed into track
+    const PATH_VB_Y = 72;
+    const PATH_VB_H = 848;
+    const PATH_SVG_X = 435;
+    const pathLeftPct = 0.38;
+    const vbH = PATH_VB_H;
+    const vbY = PATH_VB_Y;
+    const vbW = (cW / cH) * vbH;
+    const vbX = PATH_SVG_X - pathLeftPct * vbW;
+    viewBox = `${vbX} ${vbY} ${vbW} ${vbH}`;
+    svgToScreen = (svgX, svgY) => {
+      const scale = cH / vbH;
+      return {
+        x: (svgX - vbX) * scale,
+        y: (svgY - vbY) * scale,
+      };
+    };
+  }
 
   const activeZoneId = ZONE_ORDER[activeIndex];
   const activeZone = ZONE_INFO[activeZoneId];
@@ -237,10 +259,10 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
 
         {/* Track background */}
         <path ref={pathRef} d={RAILWAY_PATH} fill="none" stroke="rgba(255,255,255,0.1)"
-          strokeWidth="2" strokeLinecap="round" strokeDasharray="5 4" />
+          strokeWidth={isMobile ? 3 : 2} strokeLinecap="round" strokeDasharray={isMobile ? '8 6' : '5 4'} />
 
         {/* Track progress (blue) */}
-        <motion.path d={RAILWAY_PATH} fill="none" stroke="#1E5EFF" strokeWidth="2.5"
+        <motion.path d={RAILWAY_PATH} fill="none" stroke="#1E5EFF" strokeWidth={isMobile ? 3.5 : 2.5}
           strokeLinecap="round"
           style={{
             strokeDasharray: pathLength || 1200,
@@ -258,50 +280,73 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
           const price = ZONE_PRICES[zoneId];
           const stations = ZONE_STATIONS[zoneId];
           const isRight = true;
-          const lx = coord.x + 20;
+          const lx = coord.x + (isMobile ? 30 : 20);
           const anchor = 'start';
+
+          // Responsive sizes
+          const pulseR1 = isMobile ? 25 : 18;
+          const pulseR1End = isMobile ? 40 : 26;
+          const pulseR1Start = isMobile ? 12 : 8;
+          const pulseR2 = isMobile ? 18 : 12;
+          const pulseR2End = isMobile ? 30 : 20;
+          const pulseR2Start = isMobile ? 9 : 6;
+          const dotR = isActive ? (isMobile ? 10 : 7) : isPast ? (isMobile ? 6 : 4) : (isMobile ? 4 : 3);
+          const dotStrokeW = isActive ? (isMobile ? 3.5 : 2.5) : 0;
+          const lineX1Offset = isMobile ? 14 : 9;
+          const lineX2Offset = isMobile ? 3 : 2;
+          const nameY = coord.y - (isMobile ? 16 : 12);
+          const nameFontActive = isMobile ? 20 : 14;
+          const nameFontInactive = isMobile ? 12 : 9;
+          const priceY = coord.y + (isMobile ? 8 : 6);
+          const priceFontActive = isMobile ? 14 : 10;
+          const priceFontInactive = isMobile ? 10 : 7.5;
+          const stationBaseY = isMobile ? 28 : 22;
+          const stationSpacing = isMobile ? 18 : 13;
+          const stationFont = isMobile ? 10 : 7.5;
+          const letterSp = isMobile ? 2 : 1.5;
+          const stLetterSp = isMobile ? 1 : 0.8;
 
           return (
             <g key={zoneId}>
               {isActive && (
                 <>
-                  <motion.circle cx={coord.x} cy={coord.y} r="18" fill="none" stroke="#1E5EFF" strokeWidth="0.8"
-                    initial={{ r: 8, opacity: 0.7 }} animate={{ r: 26, opacity: 0 }}
+                  <motion.circle cx={coord.x} cy={coord.y} r={pulseR1} fill="none" stroke="#1E5EFF" strokeWidth={isMobile ? 2 : 0.8}
+                    initial={{ r: pulseR1Start, opacity: 0.7 }} animate={{ r: pulseR1End, opacity: 0 }}
                     transition={{ duration: 2, repeat: Infinity }} />
-                  <motion.circle cx={coord.x} cy={coord.y} r="12" fill="none" stroke="#1E5EFF" strokeWidth="0.5"
-                    initial={{ r: 6, opacity: 0.5 }} animate={{ r: 20, opacity: 0 }}
+                  <motion.circle cx={coord.x} cy={coord.y} r={pulseR2} fill="none" stroke="#1E5EFF" strokeWidth={isMobile ? 1.2 : 0.5}
+                    initial={{ r: pulseR2Start, opacity: 0.5 }} animate={{ r: pulseR2End, opacity: 0 }}
                     transition={{ duration: 2, repeat: Infinity, delay: 0.5 }} />
                 </>
               )}
               <circle cx={coord.x} cy={coord.y}
-                r={isActive ? 7 : isPast ? 4 : 3}
+                r={dotR}
                 fill={isActive ? '#1E5EFF' : isPast ? '#4A7FBF' : 'rgba(255,255,255,0.25)'}
                 stroke={isActive ? 'rgba(10,10,15,0.8)' : 'none'}
-                strokeWidth={isActive ? 2.5 : 0}
-                style={{ transition: 'all 0.5s cubic-bezier(0.4,0,0.2,1)', filter: isActive ? 'drop-shadow(0 0 12px rgba(30,94,255,0.8))' : 'none' }}
+                strokeWidth={dotStrokeW}
+                style={{ transition: 'all 0.5s cubic-bezier(0.4,0,0.2,1)', filter: isActive ? `drop-shadow(0 0 ${isMobile ? 30 : 12}px rgba(30,94,255,0.8))` : 'none' }}
               />
-              <line x1={coord.x + (isRight ? 9 : -9)} y1={coord.y}
-                x2={lx - (isRight ? 2 : -2)} y2={coord.y}
-                stroke={isActive ? '#1E5EFF' : 'rgba(255,255,255,0.06)'} strokeWidth="0.6" style={{ transition: 'all 0.4s' }} />
-              <text x={lx} y={coord.y - 12} textAnchor={anchor}
+              <line x1={coord.x + (isRight ? lineX1Offset : -lineX1Offset)} y1={coord.y}
+                x2={lx - (isRight ? lineX2Offset : -lineX2Offset)} y2={coord.y}
+                stroke={isActive ? '#1E5EFF' : 'rgba(255,255,255,0.06)'} strokeWidth={isMobile ? 1.5 : 0.6} style={{ transition: 'all 0.4s' }} />
+              <text x={lx} y={nameY} textAnchor={anchor}
                 fill={isActive ? '#1E5EFF' : isPast ? 'rgba(169,201,255,0.45)' : 'rgba(169,201,255,0.15)'}
-                fontSize={isActive ? '14' : '9'} fontFamily="var(--font-heading)"
-                fontWeight={isActive ? '800' : '600'} letterSpacing="1.5"
-                style={{ transition: 'all 0.5s', filter: isActive ? 'drop-shadow(0 0 8px rgba(30,94,255,0.5))' : 'none' }}>
+                fontSize={isActive ? nameFontActive : nameFontInactive} fontFamily="var(--font-heading)"
+                fontWeight={isActive ? '800' : '600'} letterSpacing={letterSp}
+                style={{ transition: 'all 0.5s', filter: isActive ? `drop-shadow(0 0 ${isMobile ? 20 : 8}px rgba(30,94,255,0.5))` : 'none' }}>
                 {ZONE_INFO[zoneId].name.toUpperCase()}
               </text>
-              <motion.text x={lx} y={coord.y + 6} textAnchor={anchor}
+              <motion.text x={lx} y={priceY} textAnchor={anchor}
                 fill={isActive ? '#A9C9FF' : isPast ? 'rgba(169,201,255,0.2)' : 'rgba(169,201,255,0.06)'}
-                fontSize={isActive ? '10' : '7.5'} fontFamily="var(--font-body)" fontWeight="700"
+                fontSize={isActive ? priceFontActive : priceFontInactive} fontFamily="var(--font-body)" fontWeight="700"
                 style={{ transition: 'all 0.4s' }}>
                 {price}/sqft
               </motion.text>
               {stations.map((s, si) => (
-                <motion.text key={s} x={lx} y={coord.y + 22 + si * 13} textAnchor={anchor}
+                <motion.text key={s} x={lx} y={coord.y + stationBaseY + si * stationSpacing} textAnchor={anchor}
                   fill={isActive ? 'rgba(169,201,255,0.6)' : 'rgba(255,255,255,0.07)'}
-                  fontSize="7.5" fontFamily="var(--font-body)" fontWeight="500" letterSpacing="0.8"
+                  fontSize={stationFont} fontFamily="var(--font-body)" fontWeight="500" letterSpacing={stLetterSp}
                   initial={false}
-                  animate={{ opacity: isActive ? 1 : isPast ? 0.2 : 0.05, x: isActive ? 0 : (isRight ? -4 : 4) }}
+                  animate={{ opacity: isActive ? 1 : isPast ? 0.2 : 0.05, x: isActive ? 0 : (isRight ? (isMobile ? -10 : -4) : (isMobile ? 10 : 4)) }}
                   transition={{ duration: 0.3, delay: si * 0.06 }}
                   style={{ textTransform: 'uppercase' }}>
                   {s}
@@ -312,19 +357,24 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
         })}
 
         {/* TRAIN */}
-        <g>
-          <circle cx={trainPos.x} cy={trainPos.y} r="14" fill="rgba(30,94,255,0.2)" style={{ filter: 'blur(6px)' }} />
-          <rect x={trainPos.x - 9} y={trainPos.y - 5.5} width="18" height="11" rx="3"
-            fill="#1E5EFF" style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))' }} />
-          <rect x={trainPos.x - 6} y={trainPos.y - 3.5} width="5" height="3.5" rx="1" fill="#0a0a0f" opacity="0.5" />
-          <rect x={trainPos.x + 1} y={trainPos.y - 3.5} width="5" height="3.5" rx="1" fill="#0a0a0f" opacity="0.5" />
-          <line x1={trainPos.x - 7} y1={trainPos.y + 6.5} x2={trainPos.x + 7} y2={trainPos.y + 6.5}
-            stroke="#4A7FBF" strokeWidth="1.3" strokeLinecap="round" />
-          <circle cx={trainPos.x} cy={trainPos.y + 7} r="1" fill="#A9C9FF" />
-        </g>
+        {(() => {
+          const s = isMobile ? 1.5 : 1; // scale factor
+          return (
+            <g>
+              <circle cx={trainPos.x} cy={trainPos.y} r={14*s} fill="rgba(30,94,255,0.2)" style={{ filter: `blur(${6*s}px)` }} />
+              <rect x={trainPos.x - 9*s} y={trainPos.y - 5.5*s} width={18*s} height={11*s} rx={3*s}
+                fill="#1E5EFF" style={{ filter: `drop-shadow(0 ${2*s}px ${6*s}px rgba(0,0,0,0.5))` }} />
+              <rect x={trainPos.x - 6*s} y={trainPos.y - 3.5*s} width={5*s} height={3.5*s} rx={1*s} fill="#0a0a0f" opacity="0.5" />
+              <rect x={trainPos.x + 1*s} y={trainPos.y - 3.5*s} width={5*s} height={3.5*s} rx={1*s} fill="#0a0a0f" opacity="0.5" />
+              <line x1={trainPos.x - 7*s} y1={trainPos.y + 6.5*s} x2={trainPos.x + 7*s} y2={trainPos.y + 6.5*s}
+                stroke="#4A7FBF" strokeWidth={1.3*s} strokeLinecap="round" />
+              <circle cx={trainPos.x} cy={trainPos.y + 7*s} r={1*s} fill="#A9C9FF" />
+            </g>
+          );
+        })()}
 
-        <text x="140" y="450" fill="rgba(255,255,255,0.04)" fontSize="9" fontFamily="var(--font-body)" fontWeight="600"
-          letterSpacing="4" transform="rotate(-70, 140, 450)" style={{ textTransform: 'uppercase' }}>
+        <text x={isMobile ? 200 : 140} y={isMobile ? 500 : 450} fill="rgba(255,255,255,0.04)" fontSize={isMobile ? 22 : 9} fontFamily="var(--font-body)" fontWeight="600"
+          letterSpacing={isMobile ? 10 : 4} transform={`rotate(-70, ${isMobile ? 200 : 140}, ${isMobile ? 500 : 450})`} style={{ textTransform: 'uppercase' }}>
           Western Line
         </text>
       </svg>
