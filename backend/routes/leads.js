@@ -5,13 +5,24 @@ const Lead = require('../models/Lead');
 // POST /api/leads — submit a new lead
 router.post('/', async (req, res) => {
   try {
-    const { name, phone, budget, profession, familySize, interestedZone } = req.body;
+    const {
+      name,
+      phone,
+      budget,
+      profession,
+      bhk,
+      locationPreferred,
+      specificRequirement,
+      interestedZone
+    } = req.body;
     const lead = await Lead.create({
       name,
       phone,
       budget,
       profession,
-      familySize,
+      bhk,
+      locationPreferred,
+      specificRequirement,
       interestedZone
     });
     res.status(201).json({

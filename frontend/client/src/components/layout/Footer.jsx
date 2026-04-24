@@ -260,7 +260,7 @@ export default function Footer() {
     { icon: HiOutlinePhone, val: '+91 84528 52324', href: 'tel:+918452852324' },
     { icon: HiOutlinePhone, val: '+91 91379 95833', href: 'tel:+919137995833' },
     { icon: HiOutlineEnvelope, val: 'Info@dayaarrealestate.com', href: 'mailto:Info@dayaarrealestate.com' },
-    { icon: HiOutlineMapPin, val: 'Shop no.7, 1st Flr, Oswal Garden, Kanakia Rd, Nr. Park View Hotel,Mira Rd (E), Thane – 401107', href: '#' },
+    { icon: HiOutlineMapPin, val: 'Office no.7, 1st Flr, Oswal Garden, Kanakia Rd, Nr. Park View Hotel,Mira Rd (E), Thane – 401107', href: '#' },
   ];
 
   const socialItems = [

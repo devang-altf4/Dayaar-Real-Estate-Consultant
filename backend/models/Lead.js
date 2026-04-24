@@ -33,11 +33,31 @@ const leadSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Profession cannot exceed 100 characters']
   },
-  familySize: {
-    type: Number,
-    required: [true, 'Family size is required'],
-    min: [1, 'Family size must be at least 1'],
-    max: [20, 'Family size cannot exceed 20']
+  bhk: {
+    type: String,
+    required: [true, 'BHK is required'],
+    enum: {
+      values: [
+        '1 BHK',
+        '2 BHK',
+        '3 BHK',
+        '4 BHK',
+        '5+ BHK'
+      ],
+      message: '{VALUE} is not a valid BHK option'
+    }
+  },
+  locationPreferred: {
+    type: String,
+    required: [true, 'Preferred location is required'],
+    trim: true,
+    maxlength: [150, 'Preferred location cannot exceed 150 characters']
+  },
+  specificRequirement: {
+    type: String,
+    required: [true, 'Specific requirement is required'],
+    trim: true,
+    maxlength: [1000, 'Specific requirement cannot exceed 1000 characters']
   },
   interestedZone: {
     type: String,

@@ -12,7 +12,9 @@ import {
   HiOutlinePhone,
   HiOutlineCurrencyRupee,
   HiOutlineBriefcase,
-  HiOutlineUserGroup,
+  HiOutlineHomeModern,
+  HiOutlineMapPin,
+  HiOutlineClipboardDocumentList,
   HiOutlineCheckCircle,
   HiOutlineShieldCheck,
   HiOutlineClock,
@@ -27,6 +29,14 @@ const BUDGET_OPTIONS = [
   '₹2 – ₹5 Crore',
   '₹5 – ₹10 Crore',
   '₹10 Crore+',
+];
+
+const BHK_OPTIONS = [
+  '1 BHK',
+  '2 BHK',
+  '3 BHK',
+  '4 BHK',
+  '5+ BHK',
 ];
 
 // Inline styles - COMPACT spacing
@@ -182,6 +192,21 @@ const styles = {
     transition: 'border-color 0.2s, box-shadow 0.2s',
     fontFamily: "var(--font-body)",
   },
+  textarea: {
+    minHeight: 88,
+    width: '100%',
+    resize: 'vertical',
+    borderRadius: 6,
+    border: '1px solid #2a2d35',
+    background: '#121520',
+    padding: '12px 14px',
+    fontSize: 14,
+    color: '#f2eee6',
+    outline: 'none',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+    fontFamily: "var(--font-body)",
+    lineHeight: 1.5,
+  },
   select: {
     height: 46,
     width: '100%',
@@ -280,7 +305,15 @@ function useMediaQuery(query) {
 }
 
 export default function LeadForm() {
-  const [form, setForm] = useState({ name: '', phone: '', budget: '', profession: '', familySize: '' });
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    budget: '',
+    profession: '',
+    bhk: '',
+    locationPreferred: '',
+    specificRequirement: '',
+  });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -297,8 +330,9 @@ export default function LeadForm() {
     if (!/^(\+91)?[6-9]\d{9}$/.test(normalizedPhone)) e.phone = 'Enter valid Indian phone number';
     if (!form.budget) e.budget = 'Select a budget range';
     if (!form.profession.trim()) e.profession = 'Required';
-    const familyCount = Number(form.familySize);
-    if (!Number.isInteger(familyCount) || familyCount < 1) e.familySize = 'Required';
+    if (!form.bhk) e.bhk = 'Select BHK';
+    if (!form.locationPreferred.trim()) e.locationPreferred = 'Required';
+    if (!form.specificRequirement.trim()) e.specificRequirement = 'Required';
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -307,11 +341,11 @@ export default function LeadForm() {
     ev.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
+    const phone = form.phone.replace(/\s+/g, '').replace(/^\+91/, '');
     try {
       await api.post('/leads', {
         ...form,
-        phone: form.phone.replace(/\s+/g, ''),
-        familySize: parseInt(form.familySize, 10),
+        phone,
       });
       setDone(true);
     } catch (err) {
@@ -332,11 +366,17 @@ export default function LeadForm() {
     boxShadow: focusedField === fieldName ? '0 0 0 2px rgba(100, 107, 120, 0.28)' : 'none',
   });
 
-  const getSelectStyle = (hasValue) => ({
+  const getSelectStyle = (fieldName, hasValue) => ({
     ...styles.select,
     color: hasValue ? '#f2eee6' : '#7d828c',
-    borderColor: focusedField === 'budget' ? '#646b78' : '#2a2d35',
-    boxShadow: focusedField === 'budget' ? '0 0 0 2px rgba(100, 107, 120, 0.28)' : 'none',
+    borderColor: focusedField === fieldName ? '#646b78' : '#2a2d35',
+    boxShadow: focusedField === fieldName ? '0 0 0 2px rgba(100, 107, 120, 0.28)' : 'none',
+  });
+
+  const getTextareaStyle = (fieldName) => ({
+    ...styles.textarea,
+    borderColor: focusedField === fieldName ? '#646b78' : '#2a2d35',
+    boxShadow: focusedField === fieldName ? '0 0 0 2px rgba(100, 107, 120, 0.28)' : 'none',
   });
 
   const getContainerStyle = () => {
@@ -473,7 +513,7 @@ export default function LeadForm() {
                       onChange={(e) => set('budget', e.target.value)}
                       onFocus={() => setFocusedField('budget')}
                       onBlur={() => setFocusedField(null)}
-                      style={getSelectStyle(!!form.budget)}
+                      style={getSelectStyle('budget', !!form.budget)}
                     >
                       <option value="" disabled>Select your budget</option>
                       {BUDGET_OPTIONS.map((o) => (
@@ -505,21 +545,58 @@ export default function LeadForm() {
 
                     <div>
                       <label style={styles.label}>
-                        <HiOutlineUserGroup style={styles.labelIcon} />
-                        FAMILY SIZE
+                        <HiOutlineHomeModern style={styles.labelIcon} />
+                        BHK
                       </label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={form.familySize}
-                        onChange={(e) => set('familySize', e.target.value.replace(/\D/g, '').slice(0, 2))}
-                        onFocus={() => setFocusedField('familySize')}
+                      <select
+                        value={form.bhk}
+                        onChange={(e) => set('bhk', e.target.value)}
+                        onFocus={() => setFocusedField('bhk')}
                         onBlur={() => setFocusedField(null)}
-                        placeholder="e.g. 4"
-                        style={getInputStyle('familySize')}
-                      />
-                      {errors.familySize && <p style={styles.error}>{errors.familySize}</p>}
+                        style={getSelectStyle('bhk', !!form.bhk)}
+                      >
+                        <option value="" disabled>Select BHK</option>
+                        {BHK_OPTIONS.map((o) => (
+                          <option key={o} value={o} style={styles.selectOption}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.bhk && <p style={styles.error}>{errors.bhk}</p>}
                     </div>
+                  </div>
+
+                  <div>
+                    <label style={styles.label}>
+                      <HiOutlineMapPin style={styles.labelIcon} />
+                      LOCATION PREFERRED
+                    </label>
+                    <input
+                      type="text"
+                      value={form.locationPreferred}
+                      onChange={(e) => set('locationPreferred', e.target.value)}
+                      onFocus={() => setFocusedField('locationPreferred')}
+                      onBlur={() => setFocusedField(null)}
+                      placeholder="e.g. Andheri West, Bandra, Juhu"
+                      style={getInputStyle('locationPreferred')}
+                    />
+                    {errors.locationPreferred && <p style={styles.error}>{errors.locationPreferred}</p>}
+                  </div>
+
+                  <div>
+                    <label style={styles.label}>
+                      <HiOutlineClipboardDocumentList style={styles.labelIcon} />
+                      SPECIFIC REQUIREMENT
+                    </label>
+                    <textarea
+                      value={form.specificRequirement}
+                      onChange={(e) => set('specificRequirement', e.target.value)}
+                      onFocus={() => setFocusedField('specificRequirement')}
+                      onBlur={() => setFocusedField(null)}
+                      placeholder="Share your preferred amenities, possession timeline, or any other requirement"
+                      style={getTextareaStyle('specificRequirement')}
+                    />
+                    {errors.specificRequirement && <p style={styles.error}>{errors.specificRequirement}</p>}
                   </div>
 
                   {errors.server && (
