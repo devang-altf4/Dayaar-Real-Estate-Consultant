@@ -286,7 +286,7 @@ export default function Footer() {
 
   return (
     <footer id="footer" style={styles.footer}>
-      <motion.div
+      <motion.div 
         style={getContainerStyle()}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}

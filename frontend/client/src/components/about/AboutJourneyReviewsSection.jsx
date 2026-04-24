@@ -757,6 +757,15 @@ function JourneyExperience() {
 
 export default function AboutJourneyReviewsSection() {
   const isMobile = useIsMobile();
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+
+  const sectionPadding = isAboutExpanded
+    ? isMobile
+      ? '76px 0 84px'
+      : '98px 0 112px'
+    : isMobile
+      ? '76px 0 56px'
+      : '98px 0 76px';
 
   return (
     <MotionSection
@@ -766,7 +775,7 @@ export default function AboutJourneyReviewsSection() {
       viewport={{ once: true }}
       style={{
         position: 'relative',
-        padding: isMobile ? '76px 0 84px' : '98px 0 112px',
+        padding: sectionPadding,
         background:
           'radial-gradient(120% 120% at 86% -14%, rgba(30,94,255,0.24) 0%, rgba(11,11,13,0) 45%), radial-gradient(120% 170% at -15% 45%, rgba(74,127,191,0.15) 0%, rgba(11,11,13,0) 44%), #0B0B0D',
         overflow: 'hidden',
@@ -792,7 +801,7 @@ export default function AboutJourneyReviewsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.65 }}
-          style={{ marginBottom: isMobile ? 18 : 30 }}
+          style={{ marginBottom: isAboutExpanded ? (isMobile ? 18 : 30) : 0 }}
         >
           <span
             style={{
@@ -816,15 +825,25 @@ export default function AboutJourneyReviewsSection() {
               marginBottom: 10,
               fontFamily: 'var(--font-heading)',
               fontWeight: 800,
-              lineHeight: 1.02,
+              lineHeight: isAboutExpanded ? 1.02 : isMobile ? 1.02 : 0.96,
               color: '#FFFFFF',
-              fontSize: isMobile ? 'clamp(1.7rem, 8vw, 2.3rem)' : 'clamp(1.95rem, 4.2vw, 3.45rem)',
+              maxWidth: isMobile
+                ? '100%'
+                : isAboutExpanded
+                  ? 'clamp(640px, 62vw, 920px)'
+                  : 'clamp(760px, 78vw, 1180px)',
+              fontSize: isMobile
+                ? 'clamp(1.7rem, 8vw, 2.3rem)'
+                : isAboutExpanded
+                  ? 'clamp(1.95rem, 4.2vw, 3.45rem)'
+                  : 'clamp(2.3rem, 5.9vw, 4.95rem)',
             }}
           >
             Our Journey with
             <span
               style={{
-                display: 'block',
+                display: isMobile || isAboutExpanded ? 'block' : 'inline',
+                marginLeft: isMobile || isAboutExpanded ? 0 : 12,
                 background: 'linear-gradient(135deg, #A9C9FF, #1E5EFF, #4A7FBF)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -835,13 +854,295 @@ export default function AboutJourneyReviewsSection() {
             </span>
           </h2>
 
-          <p style={{ maxWidth: 760, color: 'rgba(255,255,255,0.66)', fontSize: isMobile ? 13 : 14, lineHeight: 1.7 }}>
+          <p
+            style={{
+              maxWidth: isMobile ? '100%' : isAboutExpanded ? 760 : 980,
+              color: 'rgba(255,255,255,0.66)',
+              fontSize: isMobile ? 13 : isAboutExpanded ? 14 : 15,
+              lineHeight: 1.7,
+            }}
+          >
             Year-wise milestones highlighting our growth, expansion, achievements, and long-term vision.
           </p>
+
+          {/* ── Leadership & Vision — Founder Card ── */}
+          <MotionDiv
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            style={{
+              marginTop: isMobile ? 28 : 42,
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : '1.15fr 0.85fr',
+              gap: isMobile ? 24 : 40,
+              alignItems: 'center',
+              borderRadius: isMobile ? 20 : 28,
+              border: '1px solid rgba(255,255,255,0.08)',
+              background:
+                'linear-gradient(152deg, rgba(8,10,17,0.96) 0%, rgba(14,20,34,0.92) 55%, rgba(9,12,19,0.96) 100%)',
+              padding: isMobile ? '24px 18px' : 'clamp(32px, 3vw, 48px)',
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
+            {/* Ambient glow */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: -60,
+                right: -40,
+                width: 220,
+                height: 220,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(30,94,255,0.18) 0%, transparent 70%)',
+                filter: 'blur(6px)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Left — Text content */}
+            <div style={{ minWidth: 0 }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  color: '#1E5EFF',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.22em',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  marginBottom: 16,
+                }}
+              >
+                <span style={{ width: 24, height: 1, background: '#1E5EFF' }} />
+                Leadership &amp; Vision
+              </span>
+
+              <h3
+                style={{
+                  margin: '0 0 16px',
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 800,
+                  lineHeight: 1.05,
+                  fontSize: isMobile ? 'clamp(1.5rem, 7vw, 2rem)' : 'clamp(1.6rem, 2.8vw, 2.4rem)',
+                  textTransform: 'uppercase',
+                  background: 'linear-gradient(135deg, #A9C9FF, #1E5EFF, #4A7FBF)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                Know Our Founder
+              </h3>
+
+              <p
+                style={{
+                  margin: '0 0 12px',
+                  color: 'rgba(255,255,255,0.62)',
+                  fontSize: isMobile ? 13 : 14,
+                  lineHeight: 1.72,
+                  maxWidth: 540,
+                }}
+              >
+                Salman Rasheed is a visionary leader and the driving force behind Dayaar Real Estate, serving as its dedicated Founder and Chief Executive Officer. With a profound understanding of dynamic property markets and an unwavering commitment to client success, he has systematically built the firm into a highly trusted name in real estate consulting.
+              </p>
+              <p
+                style={{
+                  margin: '0 0 12px',
+                  color: 'rgba(255,255,255,0.55)',
+                  fontSize: isMobile ? 12 : 13,
+                  lineHeight: 1.72,
+                  maxWidth: 540,
+                }}
+              >
+                His professional journey is rooted in a clear, central mission: to simplify the complexities of property investment through transparent, reliable, and deeply personalized service. Under Salman's strategic leadership, Dayaar Real Estate has developed a sterling reputation for seamlessly connecting families with their ideal homes while securing robust, high-yield assets for commercial investors.
+              </p>
+              <p
+                style={{
+                  margin: '0 0 24px',
+                  color: 'rgba(255,255,255,0.50)',
+                  fontSize: isMobile ? 12 : 13,
+                  lineHeight: 1.72,
+                  maxWidth: 540,
+                }}
+              >
+                He firmly believes that genuine success in the industry extends far beyond closing individual transactions; it fundamentally relies on building enduring partnerships and actively contributing to long-term community growth. By prioritizing uncompromising integrity, sharp market intelligence, and innovative operational strategies, Salman ensures his team consistently delivers bespoke guidance tailored to the distinct financial goals of every client. His hands-on approach and relentless dedication to excellence have successfully positioned the agency as a premier beacon of trust within a highly competitive landscape. Looking ahead, Salman remains focused on driving sustainable expansion, empowering his consultants, and continuously redefining the modern standards of the real estate experience.
+              </p>
+
+              {/* Role & Entity row */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: isMobile ? 28 : 48,
+                  paddingTop: 16,
+                  borderTop: '1px solid rgba(255,255,255,0.1)',
+                }}
+              >
+                <div>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: 9,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.2em',
+                      color: 'rgba(255,255,255,0.4)',
+                      fontWeight: 600,
+                      marginBottom: 4,
+                    }}
+                  >
+                    Role
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF' }}>
+                    Founder / CEO
+                  </span>
+                </div>
+                <div>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: 9,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.2em',
+                      color: 'rgba(255,255,255,0.4)',
+                      fontWeight: 600,
+                      marginBottom: 4,
+                    }}
+                  >
+                    Entity
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF' }}>
+                    Dayaar Real Estate
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right — Founder image */}
+            <div
+              style={{
+                position: 'relative',
+                borderRadius: isMobile ? 16 : 20,
+                overflow: 'hidden',
+                border: '1px solid rgba(30,94,255,0.25)',
+                aspectRatio: isMobile ? '4/5' : '3/4',
+                background: 'linear-gradient(180deg, rgba(14,20,34,0.6) 0%, rgba(8,10,17,0.9) 100%)',
+              }}
+            >
+              <img
+                src="/ceo photo.png"
+                alt="Salman Rasheed — Founder & CEO, Dayaar Real Estate"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'top center',
+                }}
+                loading="lazy"
+              />
+
+              {/* Gradient overlay at bottom */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: '35%',
+                  background: 'linear-gradient(to top, rgba(8,10,17,0.9) 0%, transparent 100%)',
+                  pointerEvents: 'none',
+                }}
+              />
+
+              {/* ID badge */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 14,
+                  right: 14,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '5px 10px',
+                  borderRadius: 6,
+                  background: 'rgba(0,0,0,0.55)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(30,94,255,0.3)',
+                }}
+              >
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 2,
+                    background: '#1E5EFF',
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: 'rgba(255,255,255,0.7)',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  ID: SR-01
+                </span>
+              </div>
+            </div>
+          </MotionDiv>
+
+          <MotionButton
+            type="button"
+            onClick={() => setIsAboutExpanded((prev) => !prev)}
+            aria-expanded={isAboutExpanded}
+            aria-controls="about-section-content"
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ y: -1 }}
+            style={{
+              marginTop: isMobile ? 14 : 18,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 999,
+              border: '1px solid rgba(30,94,255,0.42)',
+              background: isAboutExpanded
+                ? 'linear-gradient(135deg, rgba(74,127,191,0.2), rgba(30,94,255,0.16))'
+                : 'linear-gradient(135deg, rgba(30,94,255,0.24), rgba(74,127,191,0.2))',
+              color: '#EAF2FF',
+              padding: isMobile ? '10px 16px' : '11px 18px',
+              fontSize: 11,
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 10px 26px rgba(13,31,68,0.34)',
+            }}
+          >
+            {isAboutExpanded ? 'Hide About Us' : 'Show About Us'}
+          </MotionButton>
         </MotionDiv>
 
-        <JourneyExperience />
+        <AnimatePresence initial={false} mode="wait">
+          {isAboutExpanded && (
+            <MotionDiv
+              key="about-section-content"
+              id="about-section-content"
+              initial={{ height: 0, opacity: 0, y: 10 }}
+              animate={{ height: 'auto', opacity: 1, y: 0 }}
+              exit={{ height: 0, opacity: 0, y: -8 }}
+              transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+              style={{ overflow: 'hidden' }}
+            >
+              <JourneyExperience />
+            </MotionDiv>
+          )}
+        </AnimatePresence>
 
+        {/* Customer Reviews — always visible, not gated by toggle */}
         <MotionDiv
           initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}

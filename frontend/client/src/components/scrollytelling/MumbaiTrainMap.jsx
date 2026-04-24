@@ -11,9 +11,11 @@ import { TbBuildingSkyscraper } from 'react-icons/tb';
 import { IoTrendingUpOutline } from 'react-icons/io5';
 
 // Geographic positions matching Mumbai's Western Line (real proportional distances)
-// Mira Road is far north, then Borivali cluster, Andheri cluster, Bandra, Dadar, SoBo
-// Positions tuned to match actual inter-station proportional spacing
-const STATION_POSITIONS = [0.04, 0.20, 0.38, 0.56, 0.74, 0.92];
+// Mira Road is far north, then Borivali cluster, Andheri cluster, Bandra, Dadar, SoBo.
+// Desktop uses its own percentages because the rail path is extended lower,
+// while mobile keeps the already-correct composition.
+const STATION_POSITIONS_DESKTOP = [0.026, 0.114, 0.219, 0.485, 0.75, 0.96];
+const STATION_POSITIONS_MOBILE = [0.03, 0.13, 0.25, 0.55, 0.90, 0.99];
 
 const ZONE_PRICES = {
   'mira-road':       '₹10.5K–₹14K',
@@ -42,16 +44,16 @@ const ZONE_HIGHLIGHTS = {
   'sobo':            { growth: '+6% YoY',  tag: 'Ultra-Premium',  config1: '₹3Cr – ₹8Cr',     config2: '₹8Cr – ₹20Cr',      config3: '₹20Cr – ₹50Cr+' },
 };
 
-// ─── DESKTOP path: old proven coordinates in dynamic-viewBox space ───────────
-// These coordinates were calibrated to look correct on desktop with the
-// dynamic viewBox that zooms into the track area.
+// ─── DESKTOP path: calibrated for the top-down wide desktop crop ─────────────
+// The lower leg is extended so Central Mumbai and SoBo sit on the lower island
+// positions marked in the desktop reference.
 const RAILWAY_PATH_DESKTOP = `
   M 475,92
   C 472,135  468,185  464,240
   C 458,305  454,355  449,400
   C 442,450  435,505  427,560
   C 427,610  428,660  430,720
-  C 432,760  433,800  434,840
+  C 432,780  433,850  434,930
 `;
 
 // ─── MOBILE path: image-pixel coordinates for fixed 1024×1024 viewBox ────────
@@ -96,17 +98,18 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
   const isMobile = useIsMobile();
 
   const RAILWAY_PATH = isMobile ? RAILWAY_PATH_MOBILE : RAILWAY_PATH_DESKTOP;
+  const stationPositions = isMobile ? STATION_POSITIONS_MOBILE : STATION_POSITIONS_DESKTOP;
 
   useEffect(() => {
     if (!pathRef.current) return;
     const len = pathRef.current.getTotalLength();
     setPathLength(len);
-    const coords = STATION_POSITIONS.map((pct) => {
+    const coords = stationPositions.map((pct) => {
       const pt = pathRef.current.getPointAtLength(pct * len);
       return { x: pt.x, y: pt.y };
     });
     setStationCoords(coords);
-  }, [isMobile]);
+  }, [stationPositions]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -136,12 +139,23 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
 
   const cH = containerSize.h || window.innerHeight;
   const cW = containerSize.w || window.innerWidth;
+  const desktopNavOffset = isMobile ? 0 : 64;
+  const mapFrameH = Math.max(1, cH - desktopNavOffset);
+  const mapLayerStyle = {
+    position: 'absolute',
+    top: desktopNavOffset,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: `calc(100% - ${desktopNavOffset}px)`,
+  };
 
   // ─── Dual ViewBox Strategy ─────────────────────────────────────────────────
   // MOBILE: Fixed viewBox "0 0 1024 1024" → SVG coords = image pixel coords
   //         → perfect track alignment on all mobile screens.
-  // DESKTOP: Dynamic viewBox zoomed into track area → fills the map nicely,
-  //          all stations visible, proven correct from earlier iteration.
+  // DESKTOP: Dynamic viewBox with uniform scaling → wide top-down crop without
+  //          warping the satellite map or route.
   let viewBox, svgToScreen;
 
   if (isMobile) {
@@ -156,21 +170,20 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
       };
     };
   } else {
-    // Old proven desktop viewBox: height-binding, zoomed into track
     const PATH_VB_Y = 72;
-    const PATH_VB_H = 848;
+    const PATH_VB_H = 858;
     const PATH_SVG_X = 435;
     const pathLeftPct = 0.38;
     const vbH = PATH_VB_H;
     const vbY = PATH_VB_Y;
-    const vbW = (cW / cH) * vbH;
+    const vbW = (cW / mapFrameH) * vbH;
     const vbX = PATH_SVG_X - pathLeftPct * vbW;
     viewBox = `${vbX} ${vbY} ${vbW} ${vbH}`;
     svgToScreen = (svgX, svgY) => {
-      const scale = cH / vbH;
+      const scale = mapFrameH / vbH;
       return {
         x: (svgX - vbX) * scale,
-        y: (svgY - vbY) * scale,
+        y: desktopNavOffset + (svgY - vbY) * scale,
       };
     };
   }
@@ -229,25 +242,22 @@ export default function MumbaiTrainMap({ scrollProgress, activeIndex, onExploreZ
         src="/images/mumbai-map.png"
         alt="Mumbai satellite map"
         style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
+          ...mapLayerStyle,
           objectFit: 'cover',
+          objectPosition: isMobile ? 'center center' : 'center 62%',
           filter: 'brightness(0.4) contrast(1.15) saturate(0.6)',
         }}
       />
       {/* Vignette */}
       <div style={{
-        position: 'absolute',
-        inset: 0,
+        ...mapLayerStyle,
         background: 'radial-gradient(ellipse 80% 70% at 55% 50%, transparent 30%, rgba(10,10,15,0.6) 100%)',
       }} />
 
       {/* SVG OVERLAY */}
       <svg
         viewBox={viewBox}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+        style={mapLayerStyle}
         preserveAspectRatio="xMidYMid slice"
       >
         <defs>
