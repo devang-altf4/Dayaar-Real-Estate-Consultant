@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "seed": "node scripts/seedData.js"
+    "seed": "node scripts/seedData.js",
+    "update:mira-road-projects": "node scripts/updateMiraRoadProjects.js"
   },
   "keywords": [],
   "author": "",

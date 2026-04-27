@@ -20,40 +20,44 @@
     },
     "projects": [
       {
-        "codename": "Codename Horizon Sky",
-        "tagline": "Rise above the ordinary",
+        "codename": "Codename Coral",
+        "tagline": "Modern family living in Mira Road",
         "type": "Residential",
         "status": "Under Construction",
-        "possession": "Mar 2028",
+        "possession": "Dec 2029",
+        "imageUrl": "/images/projects/coral.jpg",
         "configs": {
-          "bhk1": { "startingPrice": "₹48L", "carpet": "385 sq.ft." },
-          "bhk2": { "startingPrice": "₹78L", "carpet": "565 sq.ft." }
+          "bhk2": { "startingPrice": "₹1.17 Cr Onwards", "carpet": "645-689 SqFt" },
+          "bhk3": { "startingPrice": "₹1.75 Cr Onwards", "carpet": "946-1031 SqFt" }
         },
-        "amenities": ["Rooftop Infinity Pool", "EV Charging", "Co-working Lounge", "Jogging Track"]
+        "amenities": ["Price Breakup Available", "Jodi On Request", "Mira Road Address", "Residential Tower"]
       },
       {
-        "codename": "Codename Forest Edge",
-        "tagline": "Where nature meets modern living",
+        "codename": "Prestige Garden Trails",
+        "tagline": "Mira Road pricing and carpet options",
         "type": "Residential",
         "status": "Pre-Launch",
-        "possession": "Jun 2029",
+        "possession": "Dec 2029",
+        "imageUrl": "/images/projects/prestige.jpg",
         "configs": {
-          "bhk1": { "startingPrice": "₹52L", "carpet": "370 sq.ft." },
-          "bhk2": { "startingPrice": "₹82L", "carpet": "540 sq.ft." }
+          "bhk1": { "startingPrice": "₹88 Lacs Onwards", "carpet": "452 SqFt" },
+          "bhk2": { "startingPrice": "₹1.29 Cr Onwards", "carpet": "680-760 SqFt" },
+          "bhk3": { "startingPrice": "₹1.66 Cr Onwards", "carpet": "862-1078 SqFt" }
         },
-        "amenities": ["Zen Garden", "Cricket Net", "Smart Home Ready", "Clubhouse"]
+        "amenities": ["1/2/3 BHK Options", "Price Breakup Available", "Mira Road Address", "Residential Community"]
       },
       {
-        "codename": "Codename Parkwood Rise",
-        "tagline": "Elevated living, grounded values",
+        "codename": "Sunteck Sky Park",
+        "tagline": "Premium homes with larger carpet ranges",
         "type": "Residential",
         "status": "Under Construction",
-        "possession": "Dec 2027",
+        "possession": "Dec 2028",
+        "imageUrl": "/images/projects/sunteck.jpg",
         "configs": {
-          "bhk1": { "startingPrice": "₹45L", "carpet": "365 sq.ft." },
-          "bhk2": { "startingPrice": "₹76L", "carpet": "530 sq.ft." }
+          "bhk2": { "startingPrice": "₹1.29 Cr Onwards", "carpet": "665-740 SqFt" },
+          "bhk3": { "startingPrice": "₹1.92 Cr Onwards", "carpet": "948-1051 SqFt" }
         },
-        "amenities": ["Kids Play Zone", "24/7 Security", "Landscaped Garden", "Gymnasium"]
+        "amenities": ["Price Breakup Available", "2/3 BHK Layouts", "Mira Road Address", "Premium Tower"]
       }
     ]
   },

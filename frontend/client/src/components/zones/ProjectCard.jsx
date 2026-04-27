@@ -13,6 +13,19 @@ const styles = {
     background: 'rgba(255,255,255,0.02)',
     border: '1px solid rgba(255,255,255,0.08)',
   },
+  imageSection: {
+    padding: '12px 12px 0',
+  },
+  image: {
+    width: '100%',
+    display: 'block',
+    height: 'clamp(140px, 24vw, 210px)',
+    borderRadius: 10,
+    border: '1px solid rgba(255,255,255,0.08)',
+    objectFit: 'cover',
+    objectPosition: 'center',
+    background: 'rgba(255,255,255,0.03)',
+  },
   header: {
     padding: '16px 16px 12px',
   },
@@ -127,6 +140,11 @@ const styles = {
 
 export default function ProjectCard({ project, index }) {
   const isPreLaunch = project.status === 'Pre-Launch';
+  const configItems = [
+    { key: 'bhk1', label: '1 BHK' },
+    { key: 'bhk2', label: '2 BHK' },
+    { key: 'bhk3', label: '3 BHK' },
+  ].filter(({ key }) => project.configs?.[key]);
   
   const getStatusStyle = () => {
     if (isPreLaunch) {
@@ -150,6 +168,17 @@ export default function ProjectCard({ project, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, type: 'spring', damping: 24 }}
     >
+      {project.imageUrl && (
+        <div style={styles.imageSection}>
+          <img
+            src={project.imageUrl}
+            alt={`${project.codename} preview`}
+            style={styles.image}
+            loading="lazy"
+          />
+        </div>
+      )}
+
       {/* Header with status badge */}
       <div style={styles.header}>
         <div style={styles.headerRow}>
@@ -183,29 +212,23 @@ export default function ProjectCard({ project, index }) {
 
       {/* BHK Configs - Stitch layout */}
       <div style={styles.configSection}>
-        <div style={styles.configGrid}>
-          {project.configs?.bhk1 && (
-            <div>
-              <span style={styles.configLabel}>1 BHK</span>
+        <div
+          style={{
+            ...styles.configGrid,
+            gridTemplateColumns: `repeat(${Math.max(1, Math.min(configItems.length, 3))}, minmax(0, 1fr))`,
+          }}
+        >
+          {configItems.map(({ key, label }) => (
+            <div key={key}>
+              <span style={styles.configLabel}>{label}</span>
               <p style={styles.configPrice}>
-                {project.configs.bhk1.startingPrice}
+                {project.configs[key].startingPrice}
               </p>
               <span style={styles.configCarpet}>
-                {project.configs.bhk1.carpet}
+                {project.configs[key].carpet}
               </span>
             </div>
-          )}
-          {project.configs?.bhk2 && (
-            <div>
-              <span style={styles.configLabel}>2 BHK</span>
-              <p style={styles.configPrice}>
-                {project.configs.bhk2.startingPrice}
-              </p>
-              <span style={styles.configCarpet}>
-                {project.configs.bhk2.carpet}
-              </span>
-            </div>
-          )}
+          ))}
         </div>
       </div>
 
