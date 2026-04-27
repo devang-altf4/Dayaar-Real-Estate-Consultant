@@ -1,7 +1,7 @@
 [
   {
     "zoneId": "mira-road",
-    "name": "Mira Road",
+    "name": "Northern Suburbs",
     "subtitle": "Mira Road · Bhayandar · Dahisar",
     "description": "Mumbai's fastest-growing northern corridor — affordable luxury meets modern infrastructure.",
     "color": "#06b6d4",
@@ -82,52 +82,42 @@
     },
     "projects": [
       {
-        "codename": "Codename Metro Heights",
-        "tagline": "Next to the future of transit",
+        "codename": "Godrej Reserve",
+        "tagline": "Kandivali East premium residences",
         "type": "Residential",
         "status": "Under Construction",
-        "possession": "Sep 2027",
+        "possession": "Dec 2030",
+        "imageUrl": "/images/projects/godrej-reserve.png",
         "configs": {
-          "bhk1": { "startingPrice": "₹95L", "carpet": "410 sq.ft." },
-          "bhk2": { "startingPrice": "₹1.55Cr", "carpet": "620 sq.ft." }
+          "bhk3": { "startingPrice": "₹5.70 Cr*", "carpet": "1126-1457 Sq.Ft." }
         },
-        "amenities": ["Metro Connectivity", "Clubhouse", "Infinity Edge Pool", "Kids Zone"]
+        "amenities": ["4 BHK: 2033 Sq.Ft. On Request", "Kandivali East", "Complete Costing Details", "Premium Tower"]
       },
       {
-        "codename": "Codename Garden Reserve",
-        "tagline": "Your private green sanctuary",
+        "codename": "Rivali Park",
+        "tagline": "Moonrise and Stargaze inventory",
         "type": "Residential",
         "status": "Under Construction",
-        "possession": "Mar 2028",
+        "possession": "Aug 2028",
+        "imageUrl": "/images/projects/rivali-park.png",
         "configs": {
-          "bhk1": { "startingPrice": "₹92L", "carpet": "395 sq.ft." },
-          "bhk2": { "startingPrice": "₹1.48Cr", "carpet": "590 sq.ft." }
+          "bhk2": { "startingPrice": "₹2.15 Cr*", "carpet": "772-782 Sq.ft." },
+          "bhk3": { "startingPrice": "₹3.04 Cr*", "carpet": "950-1114 Sq.ft." }
         },
-        "amenities": ["2-Acre Landscaped Garden", "Yoga Deck", "Senior Citizen Park", "Banquet Hall"]
+        "amenities": ["Moonrise: 3 BHK 1105 Sq.ft. ₹3.06 Cr*", "Stargaze: 2 BHK upto ₹2.51 Cr*", "Stargaze: 3 BHK upto ₹3.62 Cr*", "View Payment Plan"]
       },
       {
-        "codename": "Codename Urban Vista",
-        "tagline": "The view that changes everything",
-        "type": "Mixed-Use",
-        "status": "Pre-Launch",
-        "possession": "Jun 2029",
-        "configs": {
-          "bhk1": { "startingPrice": "₹1.02Cr", "carpet": "430 sq.ft." },
-          "bhk2": { "startingPrice": "₹1.62Cr", "carpet": "640 sq.ft." }
-        },
-        "amenities": ["Sky Lounge", "Retail Podium", "Smart Parking", "Concierge"]
-      },
-      {
-        "codename": "Codename Blue Sapphire",
-        "tagline": "Crafted for connoisseurs",
+        "codename": "Chandak Treesourus",
+        "tagline": "Pricing and carpet options",
         "type": "Residential",
         "status": "Under Construction",
-        "possession": "Dec 2027",
+        "possession": "Jun 2027",
+        "imageUrl": "/images/projects/chandak-treesourus.png",
         "configs": {
-          "bhk1": { "startingPrice": "₹98L", "carpet": "405 sq.ft." },
-          "bhk2": { "startingPrice": "₹1.52Cr", "carpet": "610 sq.ft." }
+          "bhk2": { "startingPrice": "₹2.30 Cr Onwards", "carpet": "718-744 SqFt" },
+          "bhk3": { "startingPrice": "₹3.36 Cr Onwards", "carpet": "1019 SqFt" }
         },
-        "amenities": ["Temperature-Controlled Pool", "Squash Court", "Business Center", "Amphitheatre"]
+        "amenities": ["2+2 BHK Jodi: 1440 SqFt ₹4.61 Cr", "2+2 BHK Jodi: 1482 SqFt ₹4.74 Cr", "2+3 BHK Jodi: 1750 SqFt ₹5.78 Cr", "Carpet options available"]
       }
     ]
   },
