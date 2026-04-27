@@ -7,7 +7,10 @@ const app = express();
 
 // Middleware
 const allowedOrigins = [
+  'http://localhost:3000',
   'http://localhost:5173',
+  'https://dayaarrealestate.com',
+  'https://www.dayaarrealestate.com',
   'https://dayaar-real-estate-consultant.vercel.app',
   process.env.CLIENT_URL
 ].filter(Boolean);
@@ -19,7 +22,9 @@ app.use(cors({
     } else {
       callback(new Error('Not allowed by CORS'));
     }
-  }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
 }));
 app.use(express.json({ limit: '10kb' }));
 
