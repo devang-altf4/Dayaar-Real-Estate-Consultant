@@ -123,7 +123,7 @@
   },
   {
     "zoneId": "andheri",
-    "name": "Andheri Belt",
+    "name": "Central Suburbs",
     "subtitle": "Goregaon · Andheri · Vile Parle",
     "description": "Mumbai's commercial powerhouse — where corporate energy meets premium residential living.",
     "color": "#a855f7",
@@ -142,40 +142,43 @@
     },
     "projects": [
       {
-        "codename": "Codename Skyshore",
-        "tagline": "Where sky meets shore",
+        "codename": "Roswalt Zaiden",
+        "tagline": "Premium residences in Central Suburbs",
         "type": "Residential",
         "status": "Under Construction",
-        "possession": "Jun 2028",
+        "possession": "Dec 2028",
+        "imageUrl": "/images/projects/roswalt-zaiden.png",
         "configs": {
-          "bhk1": { "startingPrice": "₹1.25Cr", "carpet": "450 sq.ft." },
-          "bhk2": { "startingPrice": "₹2.15Cr", "carpet": "680 sq.ft." }
+          "bhk1": { "startingPrice": "₹1.25 Cr* Onwards", "carpet": "401 Sq.Ft." },
+          "bhk2": { "startingPrice": "₹1.85 - 2.07 Cr* Onwards", "carpet": "605-625 Sq.Ft." }
         },
-        "amenities": ["Rooftop Observatory", "Business Center", "Lap Pool", "Private Theater"]
+        "amenities": ["1 BHK and 2 BHK Inventory", "Price Breakup Available", "Premium Tower", "Central Suburbs"]
       },
       {
-        "codename": "Codename Altavia",
-        "tagline": "The altitude of luxury",
+        "codename": "Vista Residences",
+        "tagline": "2 and 3 BHK premium apartments",
         "type": "Residential",
         "status": "Under Construction",
-        "possession": "Mar 2028",
+        "possession": "Jun 2029",
+        "imageUrl": "/images/projects/vista-residences.png",
         "configs": {
-          "bhk1": { "startingPrice": "₹1.30Cr", "carpet": "435 sq.ft." },
-          "bhk2": { "startingPrice": "₹2.25Cr", "carpet": "650 sq.ft." }
+          "bhk2": { "startingPrice": "₹2.68 Cr Onwards", "carpet": "As per inventory" },
+          "bhk3": { "startingPrice": "₹4.97 Cr+ Onwards", "carpet": "As per inventory" }
         },
-        "amenities": ["Amphitheater", "Pet Park", "Sky Jogging Track", "Library"]
+        "amenities": ["2 BHK and 3 BHK Options", "Premium Inventory", "Price Range Verified", "Central Suburbs"]
       },
       {
-        "codename": "Codename Emerald Bay",
-        "tagline": "Live in the heart of the action",
-        "type": "Mixed-Use",
-        "status": "Pre-Launch",
-        "possession": "Dec 2029",
+        "codename": "Godrej Skyshore",
+        "tagline": "Versova premium inventory",
+        "type": "Residential",
+        "status": "Under Construction",
+        "possession": "Dec 2031",
+        "imageUrl": "/images/projects/godrej-skyshore.png",
         "configs": {
-          "bhk1": { "startingPrice": "₹1.45Cr", "carpet": "470 sq.ft." },
-          "bhk2": { "startingPrice": "₹2.50Cr", "carpet": "710 sq.ft." }
+          "bhk3": { "startingPrice": "₹8.25 Cr Onwards", "carpet": "1500+ SqFt" },
+          "bhk4": { "startingPrice": "₹11.55 - 13.75 Cr Onwards", "carpet": "2100+ to 2500+ SqFt" }
         },
-        "amenities": ["Retail Boulevard", "Concierge Service", "Golf Simulator", "Wine Cellar"]
+        "amenities": ["3 BHK and 4 BHK Inventory", "Versova Pricing", "Premium Tower", "Price Breakup Available"]
       }
     ]
   },

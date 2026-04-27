@@ -9,7 +9,8 @@ const projectSchema = new mongoose.Schema({
   configs: {
     bhk1: { startingPrice: String, carpet: String },
     bhk2: { startingPrice: String, carpet: String },
-    bhk3: { startingPrice: String, carpet: String }
+    bhk3: { startingPrice: String, carpet: String },
+    bhk4: { startingPrice: String, carpet: String }
   },
   amenities: [String],
   imageUrl: { type: String }

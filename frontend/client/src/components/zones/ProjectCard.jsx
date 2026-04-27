@@ -144,6 +144,7 @@ export default function ProjectCard({ project, index }) {
     { key: 'bhk1', label: '1 BHK' },
     { key: 'bhk2', label: '2 BHK' },
     { key: 'bhk3', label: '3 BHK' },
+    { key: 'bhk4', label: '4 BHK' },
   ].filter(({ key }) => project.configs?.[key]);
   
   const getStatusStyle = () => {
