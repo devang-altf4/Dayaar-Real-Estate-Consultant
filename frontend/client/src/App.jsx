@@ -7,6 +7,7 @@ import AboutJourneyReviewsSection from './components/about/AboutJourneyReviewsSe
 import ScrollytellingContainer from './components/scrollytelling/ScrollytellingContainer';
 import LeadForm from './components/lead/LeadForm';
 import ZoneDetailPanel from './components/zones/ZoneDetailPanel';
+import ChatbotWidget from './components/chatbot/ChatbotWidget';
 
 function App() {
   const [selectedZone, setSelectedZone] = useState(null);
@@ -28,6 +29,7 @@ function App() {
 
       <Footer />
       <ZoneDetailPanel selectedZone={selectedZone} onClose={() => setSelectedZone(null)} />
+      <ChatbotWidget />
     </div>
   );
 }

@@ -31,6 +31,7 @@ app.use(express.json({ limit: '10kb' }));
 // Routes
 app.use('/api/zones', require('./routes/zones'));
 app.use('/api/leads', require('./routes/leads'));
+app.use('/api/chatbot', require('./routes/chatbot'));
 
 // Health check
 app.get('/api/health', (req, res) => {
