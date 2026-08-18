@@ -1,0 +1,25 @@
+{
+  "name": "dayaar-real-estate-crm",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-Quality Real Estate Sales CRM with Company Android Calling & Secret QA",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @dayaar/api --filter @dayaar/web dev",
+    "dev:api": "pnpm --filter @dayaar/api dev",
+    "dev:web": "pnpm --filter @dayaar/web dev",
+    "build": "pnpm --filter @dayaar/shared build && pnpm --filter @dayaar/api build && pnpm --filter @dayaar/web build",
+    "build:shared": "pnpm --filter @dayaar/shared build",
+    "build:api": "pnpm --filter @dayaar/api build",
+    "build:web": "pnpm --filter @dayaar/web build",
+    "test": "pnpm --filter @dayaar/api test",
+    "test:api": "pnpm --filter @dayaar/api test",
+    "lint": "pnpm --filter @dayaar/shared lint && pnpm --filter @dayaar/api lint",
+    "seed": "pnpm --filter @dayaar/api seed"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "pnpm@11.22.0"
+}

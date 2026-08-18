@@ -1,3 +1,17 @@
 /.vscode
 /mumbai_real_estate_market_map data.pdf
 /references for claude
+
+# Local secrets
+.env
+.env.*
+backend/.env
+backend/.env.*
+frontend/client/.env
+frontend/client/.env.*
+
+# Dependencies and build outputs
+node_modules/
+backend/node_modules/
+frontend/client/node_modules/
+frontend/client/dist/
