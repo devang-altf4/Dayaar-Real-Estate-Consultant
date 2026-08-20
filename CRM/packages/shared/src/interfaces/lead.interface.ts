@@ -43,24 +43,7 @@ export interface ILead {
   temperature: Temperature;
   qualification?: ILeadQualification;
   nextFollowUpAt?: string | Date | null;
-  isUnderSecretVerification?: boolean;
   employeeNotes?: string;
   createdAt: string | Date;
   updatedAt: string | Date;
-}
-
-/**
- * Sanitized projection of a Lead served exclusively to Employee B (the verifier)
- * so they cannot see Employee A's notes, prior disposition, recordings, or QA flags.
- */
-export interface ISanitizedVerificationLead {
-  _id: string;
-  name: string;
-  phone: string;
-  alternatePhone?: string;
-  email?: string;
-  source: string;
-  project: string;
-  attemptCount: number;
-  createdAt: string | Date;
 }

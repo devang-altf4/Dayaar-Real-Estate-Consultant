@@ -9,10 +9,10 @@ export class DeviceCapabilities {
   @Prop({ default: true })
   canPlaceCalls: boolean;
 
-  @Prop({ default: true })
+  @Prop({ default: false })
   canReadCallLogs: boolean;
 
-  @Prop({ default: true })
+  @Prop({ default: false })
   canSyncRecordings: boolean;
 }
 

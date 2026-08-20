@@ -20,10 +20,10 @@ export const ClaimDevicePairingSchema = z.object({
   capabilities: z
     .object({
       canPlaceCalls: z.boolean().default(true),
-      canReadCallLogs: z.boolean().default(true),
-      canSyncRecordings: z.boolean().default(true),
+      canReadCallLogs: z.boolean().default(false),
+      canSyncRecordings: z.boolean().default(false),
     })
-    .default({ canPlaceCalls: true, canReadCallLogs: true, canSyncRecordings: true }),
+    .default({ canPlaceCalls: true, canReadCallLogs: false, canSyncRecordings: false }),
   simState: z.nativeEnum(SimState).default(SimState.READY),
   simOperator: z.string().optional(),
 }).strict();
@@ -40,10 +40,18 @@ export const DeviceHeartbeatSchema = z.object({
   capabilities: z
     .object({
       canPlaceCalls: z.boolean().default(true),
-      canReadCallLogs: z.boolean().default(true),
-      canSyncRecordings: z.boolean().default(true),
+      canReadCallLogs: z.boolean().default(false),
+      canSyncRecordings: z.boolean().default(false),
     })
     .optional(),
 }).strict();
 
 export type DeviceHeartbeatDto = z.infer<typeof DeviceHeartbeatSchema>;
+
+export const UpdateDeviceFcmTokenSchema = z
+  .object({
+    fcmToken: z.string().trim().min(20).max(4096),
+  })
+  .strict();
+
+export type UpdateDeviceFcmTokenDto = z.infer<typeof UpdateDeviceFcmTokenSchema>;

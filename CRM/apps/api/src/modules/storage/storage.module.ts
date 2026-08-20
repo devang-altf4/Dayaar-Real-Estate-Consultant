@@ -1,10 +1,11 @@
-import { Module, Global } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { B2StorageProvider } from './b2-storage.provider';
 import { StorageService } from './storage.service';
-import { LocalStorageProvider } from './local-storage.provider';
+import { VpsStorageProvider } from './vps-storage.provider';
 
 @Global()
 @Module({
-  providers: [LocalStorageProvider, StorageService],
+  providers: [B2StorageProvider, VpsStorageProvider, StorageService],
   exports: [StorageService],
 })
 export class StorageModule {}

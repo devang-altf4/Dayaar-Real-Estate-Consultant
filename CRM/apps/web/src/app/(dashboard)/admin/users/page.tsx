@@ -17,6 +17,7 @@ export default function AdminUsersPage() {
     employeeCode: '',
     phone: '',
     managerId: '',
+    callingEnabled: false,
   });
 
   const { data: users, isLoading, refetch } = useQuery({
@@ -36,9 +37,16 @@ export default function AdminUsersPage() {
         employeeCode: '',
         phone: '',
         managerId: '',
+        callingEnabled: false,
       });
       refetch();
     },
+  });
+
+  const updateCallingSeatMutation = useMutation({
+    mutationFn: ({ userId, callingEnabled }: { userId: string; callingEnabled: boolean }) =>
+      api.patch(`/users/${userId}`, { callingEnabled }),
+    onSuccess: () => refetch(),
   });
 
   return (
@@ -71,13 +79,14 @@ export default function AdminUsersPage() {
                 <th className="p-4">Role</th>
                 <th className="p-4">Assigned Manager</th>
                 <th className="p-4">Status</th>
+                <th className="p-4">Calling Seat</th>
                 <th className="p-4">Created</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
                     Loading users...
                   </td>
                 </tr>
@@ -107,8 +116,22 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="p-4">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                        Active
+                        {u.isActive === false ? 'Inactive' : 'Active'}
                       </span>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        type="button"
+                        disabled={updateCallingSeatMutation.isPending || u.isActive === false}
+                        onClick={() => updateCallingSeatMutation.mutate({ userId: u._id, callingEnabled: !u.callingEnabled })}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border disabled:opacity-50 ${
+                          u.callingEnabled
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
+                        }`}
+                      >
+                        {u.callingEnabled ? 'Enabled' : 'Disabled'}
+                      </button>
                     </td>
                     <td className="p-4 text-slate-400 text-[11px]">{formatDate(u.createdAt)}</td>
                   </tr>
@@ -193,6 +216,38 @@ export default function AdminUsersPage() {
                   </select>
                 </div>
               </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Company SIM Phone *</label>
+                <input
+                  type="tel"
+                  required
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full text-xs p-2.5 rounded-lg border border-slate-300"
+                  placeholder="+919876543210"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">Must match the employee number configured in Callyzer.</p>
+              </div>
+
+              <label className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50">
+                <input
+                  type="checkbox"
+                  checked={form.callingEnabled}
+                  onChange={(e) => setForm({ ...form, callingEnabled: e.target.checked })}
+                  className="mt-0.5"
+                />
+                <span>
+                  <span className="block text-xs font-bold text-slate-800">Assign a calling seat</span>
+                  <span className="block text-[10px] text-slate-500">Subject to the organization seat limit.</span>
+                </span>
+              </label>
+
+              {(createUserMutation.error || updateCallingSeatMutation.error) && (
+                <p className="text-xs text-rose-600">
+                  {(createUserMutation.error as Error)?.message || (updateCallingSeatMutation.error as Error)?.message}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
@@ -205,7 +260,7 @@ export default function AdminUsersPage() {
               </button>
               <button
                 type="button"
-                disabled={!form.name || !form.email || !form.password || createUserMutation.isPending}
+                disabled={!form.name || !form.email || !form.phone || !form.employeeCode || !form.password || createUserMutation.isPending}
                 onClick={() => createUserMutation.mutate(form)}
                 className="px-5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition-colors"
               >

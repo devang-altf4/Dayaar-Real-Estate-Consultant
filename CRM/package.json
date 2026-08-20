@@ -2,7 +2,7 @@
   "name": "dayaar-real-estate-crm",
   "version": "1.0.0",
   "private": true,
-  "description": "Production-Quality Real Estate Sales CRM with Company Android Calling & Secret QA",
+  "description": "Real estate CRM with employee SIM calling and Callyzer call capture",
   "scripts": {
     "dev": "pnpm --parallel --filter @dayaar/api --filter @dayaar/web dev",
     "dev:api": "pnpm --filter @dayaar/api dev",

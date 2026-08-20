@@ -3,6 +3,9 @@ import {
   isWithinGeofence,
   normalizePhoneNumber,
   isValidPhoneNumber,
+  normalizePhoneToE164,
+  CallDisposition,
+  CallDispositionSchema,
   LeadStatus,
   Temperature,
   NotInterestedReason,
@@ -10,6 +13,7 @@ import {
   DeviceStatus,
   SimState,
 } from '@dayaar/shared';
+import { createStoreOnlyZip } from '../src/modules/callyzer/zip.util';
 
 describe('Real Estate CRM - Core Business Logic & Algorithms', () => {
   describe('1. Server-Side Geofence & Haversine Distance (Attendance)', () => {
@@ -70,6 +74,11 @@ describe('Real Estate CRM - Core Business Logic & Algorithms', () => {
       expect(isValidPhoneNumber('12345')).toBe(false);
       expect(isValidPhoneNumber('1811001122')).toBe(false);
     });
+
+    it('should persist canonical E.164 values for Callyzer matching', () => {
+      expect(normalizePhoneToE164('09811001122')).toBe('+919811001122');
+      expect(normalizePhoneToE164('+91 98110 01122')).toBe('+919811001122');
+    });
   });
 
   describe('3. Telephony Outcome Normalization & 4-Attempt Rule', () => {
@@ -116,49 +125,7 @@ describe('Real Estate CRM - Core Business Logic & Algorithms', () => {
     });
   });
 
-  describe('4. Secret QA Lead Verification Mismatch Rules', () => {
-    it('should flag DISPOSITION_MISMATCH when Employee A marked NOT_INTERESTED but Employee B qualifies as INTERESTED', () => {
-      const originalDisposition = LeadStatus.NOT_INTERESTED;
-      const verifierDisposition = LeadStatus.INTERESTED;
-
-      const positiveOutcomes = [
-        LeadStatus.INTERESTED,
-        LeadStatus.HOT,
-        LeadStatus.WARM,
-        LeadStatus.SITE_VISIT,
-        LeadStatus.NEGOTIATION,
-        LeadStatus.BOOKED,
-      ];
-
-      const isMismatch =
-        originalDisposition === LeadStatus.NOT_INTERESTED &&
-        positiveOutcomes.includes(verifierDisposition);
-
-      expect(isMismatch).toBe(true);
-    });
-
-    it('should NOT flag mismatch when both Employee A and Employee B agree customer is NOT_INTERESTED', () => {
-      const originalDisposition = LeadStatus.NOT_INTERESTED;
-      const verifierDisposition = LeadStatus.NOT_INTERESTED;
-
-      const positiveOutcomes = [
-        LeadStatus.INTERESTED,
-        LeadStatus.HOT,
-        LeadStatus.WARM,
-        LeadStatus.SITE_VISIT,
-        LeadStatus.NEGOTIATION,
-        LeadStatus.BOOKED,
-      ];
-
-      const isMismatch =
-        originalDisposition === LeadStatus.NOT_INTERESTED &&
-        positiveOutcomes.includes(verifierDisposition);
-
-      expect(isMismatch).toBe(false);
-    });
-  });
-
-  describe('5. Device Presence and Call Readiness Rules', () => {
+  describe('4. Device Presence and Call Readiness Rules', () => {
     it('should require ONLINE status, calling capability, and SIM_READY to place calls', () => {
       const checkCallReady = (status: DeviceStatus, canPlaceCalls: boolean, simState: SimState) => {
         return status === DeviceStatus.ONLINE && canPlaceCalls && simState === SimState.READY;
@@ -169,6 +136,31 @@ describe('Real Estate CRM - Core Business Logic & Algorithms', () => {
       expect(checkCallReady(DeviceStatus.STALE, true, SimState.READY)).toBe(false);
       expect(checkCallReady(DeviceStatus.ONLINE, false, SimState.READY)).toBe(false);
       expect(checkCallReady(DeviceStatus.ONLINE, true, SimState.ABSENT)).toBe(false);
+    });
+  });
+
+  describe('5. Per-call disposition and export rules', () => {
+    it('requires a reason and a timestamp for follow-up dispositions', () => {
+      expect(
+        CallDispositionSchema.safeParse({ disposition: CallDisposition.WARM, reason: '' }).success,
+      ).toBe(false);
+      expect(
+        CallDispositionSchema.safeParse({ disposition: CallDisposition.FOLLOW_UP, reason: 'Call tomorrow' }).success,
+      ).toBe(false);
+      expect(
+        CallDispositionSchema.safeParse({
+          disposition: CallDisposition.FOLLOW_UP,
+          reason: 'Call tomorrow',
+          followUpAt: '2026-08-21T10:00:00.000Z',
+        }).success,
+      ).toBe(true);
+    });
+
+    it('creates a structurally valid store-only ZIP envelope', () => {
+      const zip = createStoreOnlyZip([{ name: 'recording.mp3', data: Buffer.from('audio-bytes') }]);
+      expect(zip.readUInt32LE(0)).toBe(0x04034b50);
+      expect(zip.readUInt32LE(zip.length - 22)).toBe(0x06054b50);
+      expect(zip.includes(Buffer.from('recording.mp3'))).toBe(true);
     });
   });
 });

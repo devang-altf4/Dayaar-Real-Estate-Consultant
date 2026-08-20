@@ -9,7 +9,6 @@ import { AndroidDevice, AndroidDeviceDocument } from '../../database/schemas/and
 import { CallAttempt, CallAttemptDocument } from '../../database/schemas/call-attempt.schema';
 import { AttendanceRecord, AttendanceRecordDocument } from '../../database/schemas/attendance-record.schema';
 import { FollowUp, FollowUpDocument } from '../../database/schemas/follow-up.schema';
-import { LeadVerification, LeadVerificationDocument } from '../../database/schemas/lead-verification.schema';
 import {
   Role,
   LeadStatus,
@@ -24,12 +23,11 @@ import {
   DeviceStatus,
   CallProviderType,
   CallAttemptStatus,
+  CallOrigin,
+  CallSyncStatus,
   RecordingStatus,
   AttendanceStatus,
   FollowUpStatus,
-  VerificationStatus,
-  MismatchSeverity,
-  MismatchType,
 } from '@dayaar/shared';
 
 @Injectable()
@@ -44,7 +42,6 @@ export class SeedService {
     @InjectModel(CallAttempt.name) private callAttemptModel: Model<CallAttemptDocument>,
     @InjectModel(AttendanceRecord.name) private attendanceModel: Model<AttendanceRecordDocument>,
     @InjectModel(FollowUp.name) private followUpModel: Model<FollowUpDocument>,
-    @InjectModel(LeadVerification.name) private verificationModel: Model<LeadVerificationDocument>,
   ) {}
 
   async runSeed() {
@@ -68,7 +65,6 @@ export class SeedService {
       this.callAttemptModel.deleteMany({}),
       this.attendanceModel.deleteMany({}),
       this.followUpModel.deleteMany({}),
-      this.verificationModel.deleteMany({}),
     ]);
 
     // 2. Create Organization
@@ -154,6 +150,7 @@ export class SeedService {
         role: Role.EMPLOYEE,
         managerId: emp.mgr,
         isActive: true,
+        callingEnabled: true,
       });
       await user.save();
       employees.push(user);
@@ -175,7 +172,7 @@ export class SeedService {
         simState: SimState.READY,
         simOperator: i % 2 === 0 ? 'Airtel' : 'Jio',
         status: DeviceStatus.ONLINE,
-        capabilities: { canPlaceCalls: true, canReadCallLogs: true, canSyncRecordings: true },
+        capabilities: { canPlaceCalls: true, canReadCallLogs: false, canSyncRecordings: false },
         isPrimaryCallingDevice: true,
         lastSeenAt: new Date(),
         pairedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
@@ -291,16 +288,21 @@ export class SeedService {
         leadId: lead._id,
         employeeId: emp._id,
         deviceId: device._id,
-        provider: CallProviderType.ANDROID_SIM,
-        status: isConnected ? CallAttemptStatus.CONNECTED : CallAttemptStatus.NOT_CONNECTED,
+        provider: CallProviderType.CALLYZER_SIM,
+        origin: CallOrigin.ANDROID,
+        syncStatus: CallSyncStatus.MATCHED,
+        status: isConnected ? CallAttemptStatus.COMPLETED : CallAttemptStatus.NOT_CONNECTED,
         countsAsAttempt: true,
-        startedAt: new Date(Date.now() - (i + 1) * 35 * 60 * 1000),
+        dialedAt: new Date(Date.now() - (i + 1) * 35 * 60 * 1000),
         connectedAt: isConnected ? new Date(Date.now() - (i + 1) * 35 * 60 * 1000 + 6000) : null,
         endedAt: new Date(Date.now() - (i + 1) * 35 * 60 * 1000 + duration * 1000),
-        durationSeconds: duration,
-        phoneNumberDialed: lead.phone,
-        recordingStatus: isConnected ? RecordingStatus.AVAILABLE : RecordingStatus.NONE,
-        recordingObjectKey: isConnected ? `recordings/${orgId.toString()}/sample_${i + 1}.wav` : null,
+        duration,
+        phoneNumber: `+91${lead.phone}`,
+        employeePhoneNumber: `+91${emp.phone}`,
+        providerCallId: `demo-callyzer-${i + 1}`,
+        connected: isConnected,
+        recordingStatus: isConnected ? RecordingStatus.ARCHIVED : RecordingStatus.NO_RECORDING,
+        recordingB2Key: isConnected ? `recordings/${orgId.toString()}/sample_${i + 1}.wav` : null,
         recordingBytes: isConnected ? 1048576 : null,
         recordingMimeType: isConnected ? 'audio/wav' : null,
       });
@@ -328,32 +330,6 @@ export class SeedService {
       });
       await att.save();
     }
-
-    // 11. Seed a Secret Verification Mismatch Example
-    // Lead marked NOT_INTERESTED by Employee A (Rahul Kapoor)
-    const notInterestedLead = createdLeads.find((l) => l.status === LeadStatus.NOT_INTERESTED) || createdLeads[3];
-    const employeeA = employees[0]; // Rahul
-    const employeeB = employees[1]; // Sneha (Verifier)
-
-    const verificationTask = new this.verificationModel({
-      organizationId: orgId,
-      leadId: notInterestedLead._id,
-      originalEmployeeId: employeeA._id,
-      originalDisposition: LeadStatus.NOT_INTERESTED,
-      originalReason: NotInterestedReason.BUDGET,
-      originalReasonDetails: 'Customer stated budget is less than 50 Lakhs.',
-      verificationEmployeeId: employeeB._id,
-      verificationDisposition: LeadStatus.INTERESTED,
-      verificationReason: null,
-      status: VerificationStatus.REVIEW_REQUIRED,
-      isMismatch: true,
-      mismatchType: MismatchType.DISPOSITION_MISMATCH,
-      mismatchSeverity: MismatchSeverity.HIGH,
-      verifierNotes: 'Customer is very interested in 3BHK flat, budget ₹1.8 Crore, timeline 30 days! Ready for site visit.',
-      completedAt: new Date(),
-    });
-    await verificationTask.save();
-    this.logger.log('Seeded Secret QA Verification Mismatch scenario');
 
     this.logger.log('Database seeding successfully completed!');
     return {

@@ -1,31 +1,41 @@
 import {
-  CallProviderType,
   CallAttemptStatus,
   CallCommandStatus,
+  CallDisposition,
   CallEventType,
+  CallOrigin,
+  CallProviderType,
+  CallSyncStatus,
+  ProviderCallType,
   RecordingStatus,
 } from '../enums/call.enum';
 
 export interface ICallAttempt {
   _id: string;
   organizationId: string;
-  leadId: string;
-  employeeId: string;
+  leadId?: string | null;
+  employeeId?: string | null;
   deviceId?: string | null;
   callCommandId?: string | null;
   provider: CallProviderType;
+  origin: CallOrigin;
   status: CallAttemptStatus;
-  rawStatus?: string;
-  countsAsAttempt: boolean; // True ONLY for genuine customer failures
-  startedAt: string | Date;
+  syncStatus: CallSyncStatus;
+  phoneNumber: string;
+  employeePhoneNumber?: string | null;
+  dialedAt: string | Date;
   connectedAt?: string | Date | null;
   endedAt?: string | Date | null;
-  durationSeconds: number;
-  phoneNumberDialed: string;
+  duration?: number | null;
+  providerCallId?: string | null;
+  callType?: ProviderCallType | null;
+  connected?: boolean | null;
+  disposition?: CallDisposition | null;
+  reason?: string | null;
+  notes?: string | null;
+  followUpAt?: string | Date | null;
+  dispositionAt?: string | Date | null;
   recordingStatus: RecordingStatus;
-  recordingObjectKey?: string | null;
-  recordingBytes?: number | null;
-  recordingMimeType?: string | null;
   createdAt: string | Date;
 }
 
@@ -48,9 +58,9 @@ export interface ICallEvent {
   _id: string;
   organizationId: string;
   callAttemptId: string;
-  employeeId: string;
+  employeeId?: string | null;
   deviceId?: string | null;
   type: CallEventType;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: string | Date;
 }

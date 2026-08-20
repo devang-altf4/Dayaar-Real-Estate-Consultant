@@ -14,11 +14,9 @@ import {
   Clock,
   BarChart3,
   Smartphone,
-  ShieldCheck,
   UserCheck,
   FileText,
   Settings,
-  Cpu,
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -43,7 +41,6 @@ export function Sidebar() {
 
   const adminItems = [
     { label: 'User & Role Management', href: '/admin/users', icon: Users },
-    { label: 'Secret QA Mismatches', href: '/admin/verifications', icon: ShieldCheck, alertBadge: true },
     { label: 'Org Attendance Logs', href: '/admin/attendance', icon: Clock },
     { label: 'System Audit Trail', href: '/admin/audit-logs', icon: FileText },
     { label: 'Settings & Geofence', href: '/admin/settings', icon: Settings },
@@ -118,7 +115,7 @@ export function Sidebar() {
         {isAdmin && (
           <div>
             <span className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Administration & QA
+              Administration
             </span>
             <nav className="mt-2 space-y-1">
               {adminItems.map((item) => {
@@ -145,18 +142,6 @@ export function Sidebar() {
           </div>
         )}
       </div>
-
-      {process.env.NEXT_PUBLIC_DEV_SIMULATOR_ENABLED === 'true' && (
-        <div className="p-4 border-t border-slate-100 bg-slate-50">
-          <Link
-            href="/dev/device-simulator"
-            className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-amber-800 bg-amber-100/70 border border-amber-300/60 rounded-lg hover:bg-amber-100 transition-colors shadow-sm"
-          >
-            <Cpu className="h-4 w-4 text-amber-700" />
-            <span>Device Simulator (Dev)</span>
-          </Link>
-        </div>
-      )}
     </aside>
   );
 }

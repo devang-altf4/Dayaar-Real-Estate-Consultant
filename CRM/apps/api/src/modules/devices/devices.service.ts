@@ -152,7 +152,7 @@ export class DevicesService {
         simState: dto.simState || SimState.READY,
         simOperator: dto.simOperator || 'Airtel',
         status: DeviceStatus.ONLINE,
-        capabilities: dto.capabilities || { canPlaceCalls: true, canReadCallLogs: true, canSyncRecordings: true },
+        capabilities: dto.capabilities || { canPlaceCalls: true, canReadCallLogs: false, canSyncRecordings: false },
         isPrimaryCallingDevice: true,
         lastSeenAt: new Date(),
         pairedAt: new Date(),
@@ -207,6 +207,21 @@ export class DevicesService {
       simState: device.simState,
       lastSeenAt: device.lastSeenAt,
     };
+  }
+
+  async updateFcmToken(fcmToken: string, principal: DevicePrincipal) {
+    const result = await this.deviceModel.updateOne(
+      {
+        _id: new Types.ObjectId(principal.id),
+        organizationId: new Types.ObjectId(principal.organizationId),
+        userId: new Types.ObjectId(principal.userId),
+        deviceId: principal.deviceId,
+        status: { $ne: DeviceStatus.REVOKED },
+      },
+      { $set: { fcmToken, lastSeenAt: new Date(), status: DeviceStatus.ONLINE } },
+    );
+    if (!result.matchedCount) throw new NotFoundException('Active paired device not found.');
+    return { updated: true };
   }
 
   /**

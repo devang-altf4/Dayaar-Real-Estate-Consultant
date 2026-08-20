@@ -23,6 +23,8 @@ import {
   DeviceHeartbeatDto,
   ClaimDevicePairingSchema,
   DeviceHeartbeatSchema,
+  UpdateDeviceFcmTokenDto,
+  UpdateDeviceFcmTokenSchema,
 } from '@dayaar/shared';
 
 @Controller('devices')
@@ -63,6 +65,16 @@ export class DevicesController {
     const result = await this.devicesService.processHeartbeat(dto, device);
     this.devicesGateway.emitDeviceStatusUpdate(device.userId, result);
     return result;
+  }
+
+  @Public()
+  @UseGuards(DeviceAuthGuard)
+  @Post('fcm-token')
+  async updateFcmToken(
+    @Body(new ZodValidationPipe(UpdateDeviceFcmTokenSchema)) dto: UpdateDeviceFcmTokenDto,
+    @CurrentDevice() device: DevicePrincipal,
+  ) {
+    return this.devicesService.updateFcmToken(dto.fcmToken, device);
   }
 
   @Roles(Role.ADMIN)

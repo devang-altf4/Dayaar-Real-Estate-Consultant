@@ -72,6 +72,12 @@ export class Lead {
   @Prop({ required: true, default: 'Website' })
   source: string;
 
+  @Prop({ type: String, default: null })
+  consentSource: string | null;
+
+  @Prop({ type: Date, default: null })
+  consentDate: Date | null;
+
   @Prop({ trim: true })
   campaign: string;
 
@@ -104,9 +110,6 @@ export class Lead {
 
   @Prop({ type: Date, default: null, index: true })
   nextFollowUpAt: Date | null;
-
-  @Prop({ default: false, index: true })
-  isUnderSecretVerification: boolean;
 
   @Prop({ type: String })
   employeeNotes: string;

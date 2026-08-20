@@ -1,29 +1,36 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import {
   CallAttemptStatus,
+  CallProviderType,
   DeviceHeartbeatSchema,
   Role,
+  RecordingStatus,
 } from '@dayaar/shared';
 import { ZodValidationPipe } from '../src/common/pipes/zod-validation.pipe';
 import { DeviceAuthGuard } from '../src/common/guards/device-auth.guard';
-import { AndroidSimCallingProvider } from '../src/modules/calling/android-sim-calling.provider';
 import { SeedService } from '../src/modules/seed/seed.service';
 import { LeadsService } from '../src/modules/leads/leads.service';
 import { FollowupsService } from '../src/modules/followups/followups.service';
 import { DevicesGateway } from '../src/modules/devices/devices.gateway';
+import { UsersService } from '../src/modules/users/users.service';
+import { CallingService } from '../src/modules/calling/calling.service';
+import { CallyzerWebhookController } from '../src/modules/callyzer/callyzer-webhook.controller';
 
 describe('Phase 1 security hardening', () => {
   const originalNodeEnv = process.env.NODE_ENV;
   const originalSeedFlag = process.env.ALLOW_DESTRUCTIVE_SEED;
+  const originalWebhookSecret = process.env.CALLYZER_WEBHOOK_SECRET;
 
   afterEach(() => {
     process.env.NODE_ENV = originalNodeEnv;
     process.env.ALLOW_DESTRUCTIVE_SEED = originalSeedFlag;
+    process.env.CALLYZER_WEBHOOK_SECRET = originalWebhookSecret;
     jest.restoreAllMocks();
   });
 
@@ -31,7 +38,6 @@ describe('Phase 1 security hardening', () => {
     process.env.NODE_ENV = 'production';
     process.env.ALLOW_DESTRUCTIVE_SEED = 'true';
     const service = new SeedService(
-      null as any,
       null as any,
       null as any,
       null as any,
@@ -125,12 +131,77 @@ describe('Phase 1 security hardening', () => {
     ).toMatchObject({ deviceId: 'device-123', batteryLevel: 50 });
   });
 
-  it('does not classify NOT_CONNECTED as CONNECTED', () => {
-    const provider = new AndroidSimCallingProvider(null as any, null as any);
-    const result = provider.normalizeOutcome('NOT_CONNECTED', 0);
+  it('exposes only the decided Callyzer SIM provider', () => {
+    expect(Object.values(CallProviderType)).toEqual([CallProviderType.CALLYZER_SIM]);
+  });
 
-    expect(result.status).toBe(CallAttemptStatus.NOT_CONNECTED);
-    expect(result.countsAsAttempt).toBe(true);
+  it('rejects a calling seat assignment when the organization limit is full', async () => {
+    const userModel = {
+      findOne: jest.fn().mockResolvedValue(null),
+      countDocuments: jest.fn().mockResolvedValue(1),
+    };
+    const orgModel = {
+      findById: jest.fn().mockReturnValue({
+        select: jest.fn().mockResolvedValue({ callingSeatLimit: 1 }),
+      }),
+    };
+    const service = new UsersService(userModel as any, orgModel as any);
+    await expect(
+      service.create(
+        {
+          name: 'Caller One',
+          email: 'caller@example.com',
+          phone: '+919811001122',
+          password: 'Password@123',
+          role: Role.EMPLOYEE,
+          employeeCode: 'EMP900',
+          managerId: null,
+          callingEnabled: true,
+        },
+        new Types.ObjectId().toString(),
+      ),
+    ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('removes all recording metadata from employee call serialization', () => {
+    const service = new CallingService(
+      null as any,
+      null as any,
+      null as any,
+      null as any,
+      null as any,
+      null as any,
+      null as any,
+      null as any,
+      null as any,
+      null as any,
+    );
+    const source = {
+      _id: new Types.ObjectId(),
+      recordingStatus: RecordingStatus.ARCHIVED,
+      recordingBytes: 123,
+      recordingMimeType: 'audio/mpeg',
+      recordingB2Key: 'secret-primary-key',
+      recordingVpsPath: 'secret-backup-key',
+      recordingObjectKey: 'legacy-secret-key',
+      recordingUrl: 'https://storage.invalid/legacy-secret',
+      archivedAt: new Date(),
+      purgedAt: null,
+    };
+    const serialized = (service as any).serialize(source, Role.EMPLOYEE);
+    expect(serialized.recordingStatus).toBeUndefined();
+    expect(serialized.recordingBytes).toBeUndefined();
+    expect(serialized.recordingMimeType).toBeUndefined();
+    expect(serialized.recordingB2Key).toBeUndefined();
+    expect(serialized.recordingVpsPath).toBeUndefined();
+    expect(serialized.recordingObjectKey).toBeUndefined();
+    expect(serialized.recordingUrl).toBeUndefined();
+  });
+
+  it('rejects Callyzer webhooks with an invalid shared secret', async () => {
+    process.env.CALLYZER_WEBHOOK_SECRET = 'expected-secret';
+    const controller = new CallyzerWebhookController(null as any, null as any);
+    await expect(controller.receive({}, 'wrong-secret')).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('preserves manager team scope when a lead search is supplied', async () => {

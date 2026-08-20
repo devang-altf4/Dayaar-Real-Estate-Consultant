@@ -8,13 +8,10 @@ import {
   PhoneCall,
   Users,
   CheckCircle2,
-  AlertTriangle,
   Zap,
   TrendingUp,
   Clock,
   Smartphone,
-  ShieldCheck,
-  ArrowRight,
   Flame,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -114,7 +111,7 @@ export default function DashboardOverviewPage() {
       {/* Admin KPI Grid */}
       {isAdmin && adminData && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
               <div className="flex items-center justify-between text-slate-400">
                 <span className="text-xs font-semibold uppercase tracking-wider">Today Calls</span>
@@ -146,17 +143,6 @@ export default function DashboardOverviewPage() {
               <p className="text-[11px] text-slate-500 font-medium">Company Android Gateways</p>
             </div>
 
-            <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-xs font-semibold uppercase tracking-wider">QA Mismatches</span>
-                <AlertTriangle className="h-4 w-4 text-rose-600" />
-              </div>
-              <div className="text-2xl font-black text-rose-600">{adminData.mismatchesPendingReview}</div>
-              <Link href="/admin/verifications" className="text-[11px] text-rose-700 font-bold hover:underline flex items-center gap-1">
-                <span>Review Mismatches</span>
-                <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
           </div>
 
           {/* Top Performers Table */}

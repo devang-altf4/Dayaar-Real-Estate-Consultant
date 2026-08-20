@@ -23,10 +23,6 @@ import {
   FollowUp,
   FollowUpSchema,
 } from '../../database/schemas/follow-up.schema';
-import {
-  LeadVerification,
-  LeadVerificationSchema,
-} from '../../database/schemas/lead-verification.schema';
 
 @Module({
   imports: [
@@ -38,7 +34,6 @@ import {
       { name: CallAttempt.name, schema: CallAttemptSchema },
       { name: AttendanceRecord.name, schema: AttendanceRecordSchema },
       { name: FollowUp.name, schema: FollowUpSchema },
-      { name: LeadVerification.name, schema: LeadVerificationSchema },
     ]),
   ],
   providers: [SeedService],

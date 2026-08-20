@@ -1,155 +1,175 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { CheckCircle2, Database, MapPin, Save, Smartphone } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Settings, MapPin, Target, Building, Save, CheckCircle2 } from 'lucide-react';
+
+interface SettingsForm {
+  name: string;
+  officeLatitude: number;
+  officeLongitude: number;
+  allowedRadiusMeters: number;
+  dailyCallTarget: number;
+  maxUnsuccessfulAttempts: number;
+  callingSeatLimit: number;
+  recordingRetentionMonths: number;
+  timezone: string;
+}
+
+const DEFAULTS: SettingsForm = {
+  name: 'Dayaar Real Estate Consultant Pvt Ltd',
+  officeLatitude: 28.4595,
+  officeLongitude: 77.0266,
+  allowedRadiusMeters: 100,
+  dailyCallTarget: 300,
+  maxUnsuccessfulAttempts: 4,
+  callingSeatLimit: 10,
+  recordingRetentionMonths: 9,
+  timezone: 'Asia/Kolkata',
+};
 
 export default function AdminSettingsPage() {
-  const [form, setForm] = useState({
-    name: 'Dayaar Real Estate Consultant Pvt Ltd',
-    latitude: 28.4595,
-    longitude: 77.0266,
-    geofenceRadiusMeters: 100,
-    dailyCallTarget: 300,
-  });
+  const [form, setForm] = useState<SettingsForm>(DEFAULTS);
   const [saved, setSaved] = useState(false);
 
-  const { data: org, isLoading } = useQuery({
+  const { isLoading } = useQuery({
     queryKey: ['org-settings'],
     queryFn: async () => {
-      const res: any = await api.get('/organizations/current');
-      if (res) {
-        setForm({
-          name: res.name || form.name,
-          latitude: res.settings?.officeLocation?.latitude || form.latitude,
-          longitude: res.settings?.officeLocation?.longitude || form.longitude,
-          geofenceRadiusMeters: res.settings?.officeLocation?.radiusMeters || form.geofenceRadiusMeters,
-          dailyCallTarget: res.settings?.dailyCallTarget || form.dailyCallTarget,
-        });
-      }
-      return res;
+      const organization = await api.get<Partial<SettingsForm>>('/organizations/current');
+      setForm((current) => ({ ...current, ...organization }));
+      return organization;
     },
   });
 
   const saveMutation = useMutation({
-    mutationFn: () =>
-      api.patch('/organizations/current', {
-        name: form.name,
-        settings: {
-          officeLocation: {
-            latitude: Number(form.latitude),
-            longitude: Number(form.longitude),
-            radiusMeters: Number(form.geofenceRadiusMeters),
-          },
-          dailyCallTarget: Number(form.dailyCallTarget),
-        },
-      }),
+    mutationFn: () => api.patch('/organizations/settings', form),
     onSuccess: () => {
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      window.setTimeout(() => setSaved(false), 3000);
     },
   });
+
+  const numberField = (key: keyof SettingsForm, value: string) => {
+    setForm((current) => ({ ...current, [key]: Number(value) }));
+  };
+
+  if (isLoading) return <div className="p-12 text-center text-slate-400">Loading settings...</div>;
 
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-black text-slate-900">Organization & Geofence Settings</h1>
+        <h1 className="text-2xl font-black text-slate-900">Organization Settings</h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Configure office GPS coordinates, geofence radius for attendance, and daily 300-call quota
+          Configure attendance, calling seats, lead retry policy, and recording retention.
         </p>
       </div>
 
       {saved && (
         <div className="p-4 bg-emerald-50 text-emerald-900 border border-emerald-200 rounded-xl text-xs flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-          <span>Organization settings saved successfully!</span>
+          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          <span>Organization settings saved.</span>
+        </div>
+      )}
+
+      {saveMutation.error && (
+        <div className="p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs">
+          {(saveMutation.error as Error).message}
         </div>
       )}
 
       <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-6">
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-            Organization Name
-          </label>
+          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Organization Name</label>
           <input
-            type="text"
             value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-white"
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            className="w-full text-xs p-2.5 rounded-xl border border-slate-300"
           />
         </div>
 
-        {/* Geofence GPS Coordinates */}
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+        <section className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-            <MapPin className="h-4 w-4 text-sky-700" />
-            <span>Office GPS Geofence Configuration</span>
+            <MapPin className="h-4 w-4 text-sky-700" /> Office attendance geofence
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Office Latitude</label>
-              <input
-                type="number"
-                step="0.0001"
-                value={form.latitude}
-                onChange={(e) => setForm({ ...form, latitude: Number(e.target.value) })}
-                className="w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Office Longitude</label>
-              <input
-                type="number"
-                step="0.0001"
-                value={form.longitude}
-                onChange={(e) => setForm({ ...form, longitude: Number(e.target.value) })}
-                className="w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Allowed Radius (Meters)</label>
-              <input
-                type="number"
-                value={form.geofenceRadiusMeters}
-                onChange={(e) => setForm({ ...form, geofenceRadiusMeters: Number(e.target.value) })}
-                className="w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-mono"
-              />
-            </div>
+            {([
+              ['officeLatitude', 'Latitude', '0.0001'],
+              ['officeLongitude', 'Longitude', '0.0001'],
+              ['allowedRadiusMeters', 'Radius in metres', '1'],
+            ] as const).map(([key, label, step]) => (
+              <label key={key} className="text-xs font-semibold text-slate-600">
+                {label}
+                <input
+                  type="number"
+                  step={step}
+                  value={form[key]}
+                  onChange={(event) => numberField(key, event.target.value)}
+                  className="mt-1 w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-mono"
+                />
+              </label>
+            ))}
           </div>
-          <p className="text-[11px] text-slate-500">
-            Employees checking in from beyond {form.geofenceRadiusMeters}m of ({form.latitude}, {form.longitude}) will have attendance rejected.
-          </p>
-        </div>
+        </section>
 
-        {/* Call Target Configuration */}
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+        <section className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-            <Target className="h-4 w-4 text-amber-600" />
-            <span>Telecalling Quota Target</span>
+            <Smartphone className="h-4 w-4 text-emerald-700" /> SIM calling policy
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
-              Daily Calls Target per Telecaller
-            </label>
-            <input
-              type="number"
-              value={form.dailyCallTarget}
-              onChange={(e) => setForm({ ...form, dailyCallTarget: Number(e.target.value) })}
-              className="w-48 text-xs p-2 rounded-lg border border-slate-300 bg-white font-mono font-bold"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {([
+              ['callingSeatLimit', 'Calling seat limit', '1'],
+              ['dailyCallTarget', 'Daily call target', '1'],
+              ['maxUnsuccessfulAttempts', 'Unsuccessful attempt limit', '1'],
+            ] as const).map(([key, label, step]) => (
+              <label key={key} className="text-xs font-semibold text-slate-600">
+                {label}
+                <input
+                  type="number"
+                  step={step}
+                  value={form[key]}
+                  onChange={(event) => numberField(key, event.target.value)}
+                  className="mt-1 w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-mono"
+                />
+              </label>
+            ))}
           </div>
-        </div>
+        </section>
 
-        <div className="flex justify-end pt-2">
+        <section className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+            <Database className="h-4 w-4 text-purple-700" /> Recording lifecycle
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label className="text-xs font-semibold text-slate-600">
+              B2 retention in months (6-12)
+              <input
+                type="number"
+                min="6"
+                max="12"
+                value={form.recordingRetentionMonths}
+                onChange={(event) => numberField('recordingRetentionMonths', event.target.value)}
+                className="mt-1 w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-mono"
+              />
+            </label>
+            <label className="text-xs font-semibold text-slate-600">
+              Organization timezone
+              <input
+                value={form.timezone}
+                onChange={(event) => setForm({ ...form, timezone: event.target.value })}
+                className="mt-1 w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-mono"
+              />
+            </label>
+          </div>
+          <p className="text-[11px] text-slate-500">The VPS disaster-recovery copy is preserved independently of user-facing B2 retention.</p>
+        </section>
+
+        <div className="flex justify-end">
           <button
             type="button"
             disabled={saveMutation.isPending}
             onClick={() => saveMutation.mutate()}
-            className="flex items-center gap-2 px-6 py-2.5 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold shadow transition-colors"
+            className="flex items-center gap-2 px-6 py-2.5 bg-sky-700 hover:bg-sky-800 disabled:bg-slate-400 text-white rounded-xl text-xs font-bold"
           >
             <Save className="h-4 w-4" />
             <span>{saveMutation.isPending ? 'Saving...' : 'Save Configuration'}</span>

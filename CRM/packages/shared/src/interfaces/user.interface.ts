@@ -10,6 +10,7 @@ export interface IUser {
   role: Role;
   managerId?: string | null;
   isActive: boolean;
+  callingEnabled: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
 }

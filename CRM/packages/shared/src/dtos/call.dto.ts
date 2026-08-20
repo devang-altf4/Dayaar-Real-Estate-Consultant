@@ -1,40 +1,61 @@
 import { z } from 'zod';
-import { CallAttemptStatus, CallProviderType } from '../enums/call.enum';
+import {
+  CallAttemptStatus,
+  CallDisposition,
+  CallOrigin,
+} from '../enums/call.enum';
 import { MongoIdSchema } from './common.dto';
 
-export const InitiateCallSchema = z.object({
-  leadId: MongoIdSchema,
-}).strict();
+export const InitiateCallSchema = z
+  .object({
+    leadId: MongoIdSchema,
+    origin: z.nativeEnum(CallOrigin).optional(),
+  })
+  .strict();
 
 export type InitiateCallDto = z.infer<typeof InitiateCallSchema>;
 
-export const UpdateCallStatusSchema = z.object({
-  commandId: MongoIdSchema,
-  callAttemptId: MongoIdSchema,
-  status: z.nativeEnum(CallAttemptStatus),
-  rawStatus: z.string().optional(),
-  durationSeconds: z.number().min(0).default(0),
-  startedAt: z.string().or(z.date()).optional(),
-  connectedAt: z.string().or(z.date()).optional().nullable(),
-  endedAt: z.string().or(z.date()).optional().nullable(),
-  hasRecording: z.boolean().default(false),
-  recordingBytes: z.number().optional(),
-  recordingMimeType: z.string().optional(),
-}).strict();
+export const UpdateCallStatusSchema = z
+  .object({
+    commandId: MongoIdSchema.optional(),
+    callAttemptId: MongoIdSchema,
+    status: z.nativeEnum(CallAttemptStatus),
+    occurredAt: z.string().datetime().optional(),
+  })
+  .strict();
 
 export type UpdateCallStatusDto = z.infer<typeof UpdateCallStatusSchema>;
 
-export const CompleteCallLogSchema = z.object({
-  callAttemptId: MongoIdSchema,
-  status: z.nativeEnum(CallAttemptStatus),
-  rawStatus: z.string().optional(),
-  durationSeconds: z.number().min(0).default(0),
-  startedAt: z.string().or(z.date()).optional(),
-  connectedAt: z.string().or(z.date()).optional().nullable(),
-  endedAt: z.string().or(z.date()).optional().nullable(),
-  hasRecording: z.boolean().default(false),
-  recordingBytes: z.number().optional(),
-  recordingMimeType: z.string().optional(),
-}).strict();
+export const CallDispositionSchema = z
+  .object({
+    disposition: z.nativeEnum(CallDisposition),
+    reason: z.string().trim().min(2).max(1000),
+    notes: z.string().trim().max(5000).optional(),
+    followUpAt: z.string().datetime().optional().nullable(),
+    hotDetails: z.record(z.unknown()).optional(),
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    if (data.disposition === CallDisposition.FOLLOW_UP && !data.followUpAt) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['followUpAt'],
+        message: 'followUpAt is required for a follow-up disposition',
+      });
+    }
+  });
 
-export type CompleteCallLogDto = z.infer<typeof CompleteCallLogSchema>;
+export type CallDispositionDto = z.infer<typeof CallDispositionSchema>;
+
+export const RecordingExportSchema = z
+  .object({
+    from: z.string().datetime(),
+    to: z.string().datetime(),
+  })
+  .strict()
+  .refine((value) => new Date(value.from) <= new Date(value.to), {
+    message: 'from must be before or equal to to',
+    path: ['to'],
+  });
+
+export type RecordingExportDto = z.infer<typeof RecordingExportSchema>;

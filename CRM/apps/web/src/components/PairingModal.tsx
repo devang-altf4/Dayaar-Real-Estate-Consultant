@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { Smartphone, RefreshCw, X, ShieldCheck, QrCode } from 'lucide-react';
+import QRCode from 'qrcode';
 
 interface PairingModalProps {
   isOpen: boolean;
@@ -17,14 +18,13 @@ export function PairingModal({ isOpen, onClose }: PairingModalProps) {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 mins in seconds
+  const [qrDataUrl, setQrDataUrl] = useState('');
 
   const generateSession = async () => {
     setLoading(true);
     try {
       const res: any = await api.post('/devices/pairing-session');
       setPairingData(res);
-      sessionStorage.setItem('dayaar_dev_pairing_code', res.pairingCode);
-      sessionStorage.setItem('dayaar_dev_pairing_token', res.pairingToken);
       setTimeLeft(300);
     } catch (err) {
       console.error('Failed to generate pairing session', err);
@@ -47,6 +47,21 @@ export function PairingModal({ isOpen, onClose }: PairingModalProps) {
     return () => clearInterval(timer);
   }, [isOpen, timeLeft]);
 
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+  const pairingLink = pairingData
+    ? `dayaarcrm://pair?code=${encodeURIComponent(pairingData.pairingCode)}&token=${encodeURIComponent(pairingData.pairingToken)}&api=${encodeURIComponent(apiBaseUrl)}`
+    : '';
+
+  useEffect(() => {
+    if (!pairingLink) {
+      setQrDataUrl('');
+      return;
+    }
+    QRCode.toDataURL(pairingLink, { width: 260, margin: 1, errorCorrectionLevel: 'M' })
+      .then(setQrDataUrl)
+      .catch(() => setQrDataUrl(''));
+  }, [pairingLink]);
+
   if (!isOpen) return null;
 
   const mins = Math.floor(timeLeft / 60);
@@ -67,8 +82,17 @@ export function PairingModal({ isOpen, onClose }: PairingModalProps) {
 
         <div className="p-6 text-center space-y-5">
           <p className="text-xs text-slate-600 leading-relaxed">
-            Enter this 6-digit PIN into your company Android phone CRM app or in the <b>Dev Simulator</b> to link your calling SIM.
+            Scan this QR with the company Android phone. It contains the short-lived code and
+            single-use pairing token.
           </p>
+
+          {qrDataUrl && (
+            <div className="flex justify-center">
+              <div className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <img src={qrDataUrl} alt="Secure Android pairing QR" width={220} height={220} />
+              </div>
+            </div>
+          )}
 
           {/* 6-Digit PIN Display */}
           <div className="p-6 bg-slate-50 border-2 border-dashed border-sky-300 rounded-2xl flex flex-col items-center justify-center space-y-2">
@@ -92,6 +116,15 @@ export function PairingModal({ isOpen, onClose }: PairingModalProps) {
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
               <span>Generate New Code</span>
+            </button>
+            <button
+              type="button"
+              disabled={!pairingLink}
+              onClick={() => navigator.clipboard.writeText(pairingLink)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-sky-50 hover:bg-sky-100 text-sky-800 text-xs font-semibold rounded-lg"
+            >
+              <QrCode className="h-3.5 w-3.5" />
+              <span>Copy pairing link</span>
             </button>
           </div>
 

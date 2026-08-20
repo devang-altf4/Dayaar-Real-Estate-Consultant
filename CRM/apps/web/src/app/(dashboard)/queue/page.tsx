@@ -21,11 +21,11 @@ import {
   Flame,
 } from 'lucide-react';
 import { formatIndianCurrency, formatDate } from '@/lib/utils';
-import { DeviceStatus, LeadStatus, Temperature } from '@dayaar/shared';
+import { CallOrigin, DeviceStatus, LeadStatus, Temperature } from '@dayaar/shared';
 
 export default function DailyCallQueuePage() {
   const queryClient = useQueryClient();
-  const { deviceStatus, setActiveCall } = useSocket();
+  const { activeCall, deviceStatus, setActiveCall } = useSocket();
   const [activeTab, setActiveTab] = useState<'quick' | 'full'>('quick');
   const [callError, setCallError] = useState('');
 
@@ -42,6 +42,9 @@ export default function DailyCallQueuePage() {
 
   const queue = queueData?.queue || [];
   const currentLead = queue[0] || null;
+  const currentCallAttemptId = activeCall && currentLead && activeCall.leadId === currentLead._id
+    ? activeCall.callAttemptId
+    : undefined;
 
   const isDeviceOnline = deviceStatus.status === DeviceStatus.ONLINE;
   const isSimReady = deviceStatus.isSimReady ?? true;
@@ -49,7 +52,7 @@ export default function DailyCallQueuePage() {
 
   // Call Initiation Mutation
   const callMutation = useMutation({
-    mutationFn: (leadId: string) => api.post<any>('/calls/initiate', { leadId }),
+    mutationFn: (leadId: string) => api.post<any>('/calls/initiate', { leadId, origin: CallOrigin.WEB }),
     onSuccess: (data) => {
       setCallError('');
       setActiveCall({
@@ -233,7 +236,7 @@ export default function DailyCallQueuePage() {
 
                 {activeTab === 'quick' ? (
                   <QuickDispositionBar
-                    leadId={currentLead._id}
+                    callAttemptId={currentCallAttemptId}
                     onDispositionComplete={handleNextLead}
                   />
                 ) : (

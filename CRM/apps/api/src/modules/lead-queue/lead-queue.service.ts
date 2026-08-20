@@ -148,12 +148,12 @@ export class LeadQueueService {
     const todayCalls = await this.callAttemptModel.find({
       organizationId: orgId,
       employeeId: empId,
-      startedAt: { $gte: startOfDay, $lte: endOfDay },
+      dialedAt: { $gte: startOfDay, $lte: endOfDay },
     });
 
     const totalCalls = todayCalls.length;
     const connectedCalls = todayCalls.filter(
-      (c) => c.status === CallAttemptStatus.CONNECTED || c.durationSeconds > 0,
+      (c) => c.connected === true || (c.duration || 0) > 2,
     ).length;
     const unconnectedCalls = totalCalls - connectedCalls;
     const remainingCalls = Math.max(0, dailyTarget - totalCalls);

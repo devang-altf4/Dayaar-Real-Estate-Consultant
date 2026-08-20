@@ -1,10 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { StorageService } from './modules/storage/storage.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+
+  // Fail closed rather than archiving recordings somewhere we cannot trust.
+  app.get(StorageService).assertProductionReady();
 
   // Global prefix
   app.setGlobalPrefix('api');

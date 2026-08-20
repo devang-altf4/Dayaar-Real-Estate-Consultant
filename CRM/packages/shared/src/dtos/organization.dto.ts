@@ -9,6 +9,9 @@ export const UpdateOrganizationSettingsSchema = z
     maxAllowedGpsAccuracyMeters: z.number().min(1).max(5000).optional(),
     maxUnsuccessfulAttempts: z.number().int().min(1).max(20).optional(),
     dailyCallTarget: z.number().int().min(1).max(5000).optional(),
+    callingSeatLimit: z.number().int().min(1).max(1000).optional(),
+    recordingRetentionMonths: z.number().int().min(6).max(12).optional(),
+    timezone: z.string().trim().min(3).max(100).optional(),
   })
   .strict();
 

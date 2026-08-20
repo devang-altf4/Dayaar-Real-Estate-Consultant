@@ -44,3 +44,12 @@ export function isValidPhoneNumber(phone: string): boolean {
   const normalized = normalizePhoneNumber(phone);
   return /^[6-9]\d{9}$/.test(normalized);
 }
+
+/** Canonical E.164 value used for Callyzer matching and persistence. */
+export function normalizePhoneToE164(phone: string, countryCode = '91'): string {
+  const normalized = normalizePhoneNumber(phone);
+  if (!normalized) return '';
+  return normalized.length === 10
+    ? `+${countryCode}${normalized}`
+    : `+${normalized.replace(/^\+/, '')}`;
+}

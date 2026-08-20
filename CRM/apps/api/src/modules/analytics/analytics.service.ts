@@ -14,10 +14,6 @@ import {
   AttendanceRecord,
   AttendanceRecordDocument,
 } from '../../database/schemas/attendance-record.schema';
-import {
-  LeadVerification,
-  LeadVerificationDocument,
-} from '../../database/schemas/lead-verification.schema';
 import { User, UserDocument } from '../../database/schemas/user.schema';
 import {
   LeadStatus,
@@ -37,7 +33,6 @@ export class AnalyticsService {
     @InjectModel(CallAttempt.name) private callAttemptModel: Model<CallAttemptDocument>,
     @InjectModel(AndroidDevice.name) private deviceModel: Model<AndroidDeviceDocument>,
     @InjectModel(AttendanceRecord.name) private attendanceModel: Model<AttendanceRecordDocument>,
-    @InjectModel(LeadVerification.name) private verificationModel: Model<LeadVerificationDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
@@ -64,7 +59,6 @@ export class AnalyticsService {
       totalLeads,
       interestedLeads,
       notInterestedLeads,
-      pendingMismatches,
     ] = await Promise.all([
       this.userModel.countDocuments({ organizationId: orgId, isActive: true }),
       this.attendanceModel.countDocuments({
@@ -75,7 +69,7 @@ export class AnalyticsService {
       this.deviceModel.find({ organizationId: orgId }),
       this.callAttemptModel.find({
         organizationId: orgId,
-        startedAt: { $gte: start, $lte: end },
+        dialedAt: { $gte: start, $lte: end },
       }),
       this.leadModel.countDocuments({ organizationId: orgId }),
       this.leadModel.countDocuments({
@@ -85,11 +79,6 @@ export class AnalyticsService {
       this.leadModel.countDocuments({
         organizationId: orgId,
         status: LeadStatus.NOT_INTERESTED,
-      }),
-      this.verificationModel.countDocuments({
-        organizationId: orgId,
-        isMismatch: true,
-        status: { $ne: 'CLOSED' },
       }),
     ]);
 
@@ -101,7 +90,7 @@ export class AnalyticsService {
 
     const todayCallsTotal = todayCalls.length;
     const todayConnected = todayCalls.filter(
-      (c) => c.status === CallAttemptStatus.CONNECTED || c.durationSeconds > 0,
+      (c) => c.connected === true || (c.duration || 0) > 2,
     ).length;
     const todayNotConnected = todayCallsTotal - todayConnected;
     const connectionRate =
@@ -113,7 +102,7 @@ export class AnalyticsService {
       const empId = c.employeeId.toString();
       const curr = callerMap.get(empId) || { calls: 0, connected: 0 };
       curr.calls++;
-      if (c.status === CallAttemptStatus.CONNECTED || c.durationSeconds > 0) {
+      if (c.connected === true || (c.duration || 0) > 2) {
         curr.connected++;
       }
       callerMap.set(empId, curr);
@@ -148,7 +137,6 @@ export class AnalyticsService {
       totalLeadsInPipeline: totalLeads,
       interestedToday: interestedLeads,
       notInterestedToday: notInterestedLeads,
-      mismatchesPendingReview: pendingMismatches,
       topPerformers,
     };
   }
@@ -173,7 +161,7 @@ export class AnalyticsService {
       this.callAttemptModel.find({
         organizationId: orgId,
         employeeId: { $in: teamMemberIds },
-        startedAt: { $gte: start, $lte: end },
+        dialedAt: { $gte: start, $lte: end },
       }),
       this.attendanceModel.find({
         organizationId: orgId,
@@ -194,7 +182,7 @@ export class AnalyticsService {
 
     const teamCallsTotal = todayCalls.length;
     const teamConnected = todayCalls.filter(
-      (c) => c.status === CallAttemptStatus.CONNECTED || c.durationSeconds > 0,
+      (c) => c.connected === true || (c.duration || 0) > 2,
     ).length;
 
     return {
@@ -206,7 +194,7 @@ export class AnalyticsService {
       teamMembers: teamMembers.map((m) => {
         const empCalls = todayCalls.filter((c) => c.employeeId.toString() === m._id.toString());
         const empConnected = empCalls.filter(
-          (c) => c.status === CallAttemptStatus.CONNECTED || c.durationSeconds > 0,
+          (c) => c.connected === true || (c.duration || 0) > 2,
         ).length;
         const isCheckedIn = checkedInRecords.some(
           (r) => r.employeeId.toString() === m._id.toString(),
@@ -236,7 +224,7 @@ export class AnalyticsService {
       this.callAttemptModel.find({
         organizationId: orgId,
         employeeId: empId,
-        startedAt: { $gte: start, $lte: end },
+        dialedAt: { $gte: start, $lte: end },
       }),
       this.leadModel.find({
         organizationId: orgId,
@@ -251,9 +239,9 @@ export class AnalyticsService {
 
     const totalCalls = todayCalls.length;
     const connected = todayCalls.filter(
-      (c) => c.status === CallAttemptStatus.CONNECTED || c.durationSeconds > 0,
+      (c) => c.connected === true || (c.duration || 0) > 2,
     ).length;
-    const totalDuration = todayCalls.reduce((acc, c) => acc + (c.durationSeconds || 0), 0);
+    const totalDuration = todayCalls.reduce((acc, c) => acc + (c.duration || 0), 0);
     const avgDuration = connected > 0 ? Math.round(totalDuration / connected) : 0;
 
     const hotCount = assignedLeads.filter((l) => l.temperature === Temperature.HOT).length;

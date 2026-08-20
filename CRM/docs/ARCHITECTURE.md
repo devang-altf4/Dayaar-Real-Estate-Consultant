@@ -1,73 +1,45 @@
-# System Architecture - Dayaar Real Estate Sales CRM
+# Architecture
 
-## Overview
-Dayaar Real Estate Sales CRM is a high-throughput, enterprise-grade multi-tenant platform designed to support high-velocity real estate telecalling operations (30-50+ agents handling ~300 leads/day/caller).
+## Boundaries
 
-The platform decouples Web CRM business workflows from telephony execution by utilizing company-issued Android devices as cellular calling gateways. This completely avoids exorbitant PSTN double-leg cloud telephony costs while preserving end-to-end call tracking, automatic recording synchronization, and tamper-proof audit trails.
+The CRM API owns identity, tenancy, lead access, calling seats, dial intents, dispositions, archives, retention, and audit events. The Android app owns only secure device pairing and company-SIM dialing. Callyzer owns call capture and the source recording. Backblaze B2 is the primary private archive; the configured VPS path is the disaster-recovery copy.
 
----
+```text
+Web CRM --JWT--> NestJS API --FCM data command--> paired Android --company SIM--> customer
+                         ^                              |
+                         |                              | device status only
+                         +------------------------------+
 
-## High-Level Topology
-
-```
-+-----------------------------------------------------------------------------------+
-|                                 CLIENT TIER                                       |
-|                                                                                   |
-|  +------------------------------+             +--------------------------------+  |
-|  |     Next.js Web CRM App      |             |  Android Calling Gateway (P2)  |  |
-|  |  (Agents, Managers, Admins)  |             |  (Company SIM / Foreground Svc)|  |
-|  +--------------+---------------+             +---------------+----------------+  |
-|                 |                                             |                   |
-|                 | HTTPS / WSS                                 | HTTPS / WSS       |
-+-----------------|---------------------------------------------|-------------------+
-                  v                                             v
-+-----------------------------------------------------------------------------------+
-|                              BACKEND / API TIER                                   |
-|                                                                                   |
-|  +-----------------------------------------------------------------------------+  |
-|  |                          NestJS Modular Core Server                         |  |
-|  |                                                                             |  |
-|  |  [ Auth & RBAC ]        [ Leads & Queue Engine ]    [ Devices & Presence ]  |  |
-|  |  [ Calling Service ]    [ Secret Lead QA QA ]       [ Attendance Geofence ] |  |
-|  |  [ Analytics 300 ]      [ Audit Logger ]            [ Storage Provider ]    |  |
-|  |                                                                             |  |
-|  |                      +-------------------------------+                      |  |
-|  |                      | Socket.IO Realtime Dispatcher |                      |  |
-|  |                      +-------------------------------+                      |  |
-|  +-------------------------------------+---------------------------------------+  |
-+----------------------------------------|------------------------------------------+
-                                         v
-+-----------------------------------------------------------------------------------+
-|                               DATA & STORAGE TIER                                 |
-|                                                                                   |
-|  +--------------------------------------+   +----------------------------------+  |
-|  |      MongoDB / MongoDB Atlas         |   |    Private Object Storage        |  |
-|  |  (Organizations, Users, Leads,       |   | (Local Dev Path / AWS S3 / R2)   |  |
-|  |   CallAttempts, Devices, Audits...)  |   | (Private Binary Audio Files)     |  |
-|  +--------------------------------------+   +----------------------------------+  |
-+-----------------------------------------------------------------------------------+
+Callyzer Biz/Cloud --signed webhook + reconciliation--> durable Mongo jobs
+                                                          |
+                                                          +--> B2 primary
+                                                          +--> VPS backup
+                                                          +--> delete Callyzer recording after both verify
 ```
 
----
+No client-provided phone number is trusted. The server resolves lead and employee numbers, normalizes them to E.164, enforces assignment/team access, checks `callingEnabled`, and applies the redial gap.
 
-## Core Subsystems
+## Async processing
 
-### 1. High-Throughput Calling Subsystem
-- **300 Leads/Day/Caller**: Prioritized daily call queue, automatic next-lead progression, quick one-click dispositions.
-- **Calling Provider Abstraction**: `CallingProvider` interface decoupling telephony driver from lead state machines.
-- **SIM Readiness & Device Capabilities**: Real-time heartbeat validation ensuring the paired Android device is online, capable of placing calls, and has an active SIM card.
-- **4-Attempt Business Rule**: Genuine customer-side unsuccessful attempts (e.g. `NOT_CONNECTED`, `BUSY`, `NO_ANSWER`) increment `attemptCount`. At 4 attempts, lead automatically moves to `NOT_PICKED_UP`. Device/network technical errors (`FAILED`) do NOT increment attempt counter.
+Callyzer webhook bodies are stored before processing. Mongo-backed jobs use leases, retry with backoff, and idempotency keys. A daily reconciliation covers missed webhook events. Archive, retention, and export work is asynchronous.
 
-### 2. Secret Lead Verification QA Subsystem
-- **Non-Mutating Verification**: When a caller marks a lead `NOT_INTERESTED`, a `LeadVerification` QA record is spawned without mutating the original lead's assignment.
-- **Sanitized Projection**: The secondary verifier (Employee B) accesses a completely sanitized lead view with prior call logs, notes, and employee identity stripped at the API layer.
-- **Automated Mismatch Engine**: Detects divergence if Employee B marks the lead `INTERESTED`/`HOT`, creating an alert for Managers/Admins.
+## Recording lifecycle
 
-### 3. Geofenced Attendance Subsystem
-- **Server-side Haversine Distance**: Evaluates browser GPS coordinates against organization office coordinates.
-- **Accuracy Gates**: Checks GPS radius (<100m) and accuracy (<50m). Rejects spoofed or low-precision check-ins.
-- **Break Session Engine**: Real-time tracking of active break sessions, daily working hours, and status.
+1. Callyzer call is matched by provider ID or employee/customer/time window.
+2. Recording is downloaded with size limits.
+3. A deterministic object key and SHA-256 hash are produced.
+4. B2 and VPS copies are written and verified.
+5. Only then is the Callyzer recording deleted.
+6. User purge removes the B2 copy but preserves the VPS recovery copy.
+7. Retention removes both copies after the organization retention period.
 
-### 4. Multi-Tenant Architecture
-- Every entity is strictly scoped by `organizationId`.
-- Database indexes enforce compound isolation `(organizationId, ...)`.
+## Security invariants
+
+- Every database/API query is scoped by `organizationId`.
+- Employees see only their assigned leads and their own calls.
+- Managers see their team; admins see their organization.
+- Recording storage keys are excluded from API serialization.
+- Employees cannot call the signed-recording endpoint.
+- Device credentials are hashed server-side and encrypted at rest on Android.
+- FCM commands contain a server-resolved E.164 number, command/attempt IDs, and a 60-second expiry.
+- Callyzer webhook authentication uses a timing-safe secret comparison.

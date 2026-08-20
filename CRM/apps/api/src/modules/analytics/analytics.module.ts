@@ -15,10 +15,6 @@ import {
   AttendanceRecord,
   AttendanceRecordSchema,
 } from '../../database/schemas/attendance-record.schema';
-import {
-  LeadVerification,
-  LeadVerificationSchema,
-} from '../../database/schemas/lead-verification.schema';
 import { User, UserSchema } from '../../database/schemas/user.schema';
 
 @Module({
@@ -28,7 +24,6 @@ import { User, UserSchema } from '../../database/schemas/user.schema';
       { name: CallAttempt.name, schema: CallAttemptSchema },
       { name: AndroidDevice.name, schema: AndroidDeviceSchema },
       { name: AttendanceRecord.name, schema: AttendanceRecordSchema },
-      { name: LeadVerification.name, schema: LeadVerificationSchema },
       { name: User.name, schema: UserSchema },
     ]),
   ],

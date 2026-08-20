@@ -27,6 +27,9 @@ export class OrganizationsService {
       maxAllowedGpsAccuracyMeters?: number;
       maxUnsuccessfulAttempts?: number;
       dailyCallTarget?: number;
+      callingSeatLimit?: number;
+      recordingRetentionMonths?: number;
+      timezone?: string;
     },
   ) {
     const org = await this.orgModel.findByIdAndUpdate(id, { $set: updates }, { new: true });

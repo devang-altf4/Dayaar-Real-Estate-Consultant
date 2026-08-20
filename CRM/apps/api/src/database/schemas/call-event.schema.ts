@@ -12,8 +12,8 @@ export class CallEvent {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'CallAttempt', required: true, index: true })
   callAttemptId: MongooseSchema.Types.ObjectId;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
-  employeeId: MongooseSchema.Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
+  employeeId: MongooseSchema.Types.ObjectId | null;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'AndroidDevice', default: null })
   deviceId: MongooseSchema.Types.ObjectId | null;

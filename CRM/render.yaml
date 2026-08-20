@@ -1,0 +1,69 @@
+# CRM-only Render blueprint. This file intentionally does not modify the parent repository blueprint.
+services:
+  - type: web
+    name: dayaar-crm-api
+    runtime: node
+    rootDir: CRM
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @dayaar/shared build && pnpm --filter @dayaar/api build
+    startCommand: pnpm --filter @dayaar/api start:prod
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
+      - key: BACKGROUND_JOBS_ENABLED
+        value: "true"
+      - key: CALLYZER_INTEGRATION_ENABLED
+        value: "false"
+      - key: RECORDING_STORAGE_ENABLED
+        value: "true"
+      - key: CALLYZER_API_TOKEN
+        sync: false
+      - key: CALLYZER_WEBHOOK_SECRET
+        sync: false
+      - key: CALLYZER_ORGANIZATION_ID
+        sync: false
+      - key: FCM_PROJECT_ID
+        sync: false
+      - key: FCM_CLIENT_EMAIL
+        sync: false
+      - key: FCM_PRIVATE_KEY
+        sync: false
+      # Backblaze B2's S3-compatible API; objects are stored in B2, not AWS.
+      - key: B2_S3_ENDPOINT
+        value: https://s3.us-east-005.backblazeb2.com
+      - key: B2_S3_REGION
+        value: us-east-005
+      - key: B2_BUCKET
+        value: dayyar
+      - key: B2_APPLICATION_KEY_ID
+        sync: false
+      - key: B2_APPLICATION_KEY
+        sync: false
+      - key: VPS_RECORDING_BACKUP_PATH
+        value: /var/data/dayaar-recordings
+    disk:
+      name: dayaar-recording-backup
+      mountPath: /var/data
+      sizeGB: 10
+
+  - type: web
+    name: dayaar-crm-web
+    runtime: node
+    rootDir: CRM
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @dayaar/shared build && pnpm --filter @dayaar/web build
+    startCommand: pnpm --filter @dayaar/web start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: NEXT_PUBLIC_WS_URL
+        sync: false

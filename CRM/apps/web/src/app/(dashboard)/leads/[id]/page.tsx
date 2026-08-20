@@ -17,30 +17,27 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  ShieldAlert,
-  ShieldCheck,
   ChevronLeft,
   Flame,
   Volume2,
   CalendarPlus,
 } from 'lucide-react';
 import Link from 'next/link';
-import { LeadStatus, Temperature, DeviceStatus, Role } from '@dayaar/shared';
+import { CallOrigin, DeviceStatus, RecordingStatus, Temperature } from '@dayaar/shared';
 import { formatDate, formatIndianCurrency } from '@/lib/utils';
 
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user, isAdmin, isManager } = useAuth();
-  const { deviceStatus, setActiveCall } = useSocket();
+  const { isAdmin, isManager } = useAuth();
+  const { activeCall, deviceStatus, setActiveCall } = useSocket();
 
   const [activeTab, setActiveTab] = useState<'qualification' | 'calls' | 'followup'>('qualification');
   const [followUpDate, setFollowUpDate] = useState('');
   const [followUpReason, setFollowUpReason] = useState('Callback');
   const [followUpNotes, setFollowUpNotes] = useState('');
   const [callError, setCallError] = useState('');
-  const [qaMessage, setQaMessage] = useState('');
 
   // Fetch Lead
   const { data: lead, isLoading, refetch } = useQuery({
@@ -57,10 +54,13 @@ export default function LeadDetailPage() {
   const isDeviceOnline = deviceStatus.status === DeviceStatus.ONLINE;
   const isSimReady = deviceStatus.isSimReady ?? true;
   const isCallReady = isDeviceOnline && isSimReady;
+  const currentCallAttemptId = activeCall && activeCall.leadId === id
+    ? activeCall.callAttemptId
+    : undefined;
 
   // Call Initiation Mutation
   const callMutation = useMutation({
-    mutationFn: () => api.post<any>('/calls/initiate', { leadId: id }),
+    mutationFn: () => api.post<any>('/calls/initiate', { leadId: id, origin: CallOrigin.WEB }),
     onSuccess: (data) => {
       setCallError('');
       setActiveCall({
@@ -91,15 +91,6 @@ export default function LeadDetailPage() {
     onSuccess: () => {
       setFollowUpDate('');
       setFollowUpNotes('');
-      refetch();
-    },
-  });
-
-  // Spawn Secret QA Verification (for Admins / Managers)
-  const spawnQaMutation = useMutation({
-    mutationFn: () => api.post('/verifications/tasks', { leadId: id }),
-    onSuccess: () => {
-      setQaMessage('Secret QA Verification task created and queued for secondary caller.');
       refetch();
     },
   });
@@ -177,13 +168,6 @@ export default function LeadDetailPage() {
           </div>
         )}
 
-        {qaMessage && (
-          <div className="p-3 bg-purple-50 text-purple-800 text-xs rounded-xl border border-purple-200 flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-purple-600 flex-shrink-0" />
-            <span>{qaMessage}</span>
-          </div>
-        )}
-
         {/* Large CALL Trigger Section */}
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -217,35 +201,12 @@ export default function LeadDetailPage() {
 
         {/* 1-Click Quick Dispositions */}
         <QuickDispositionBar
-          leadId={lead._id}
+          callAttemptId={currentCallAttemptId}
           onDispositionComplete={() => {
             refetch();
             refetchCalls();
           }}
         />
-
-        {/* Secret QA Trigger for Managers/Admins */}
-        {(isAdmin || isManager) && lead.status === LeadStatus.NOT_INTERESTED && (
-          <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="h-4 w-4 text-purple-700" />
-              <span className="text-xs font-bold text-purple-900">
-                Secret QA Lead Verification
-              </span>
-              <span className="text-[11px] text-purple-700">
-                (Assign to Verifier B without revealing Employee A notes/history)
-              </span>
-            </div>
-            <button
-              type="button"
-              disabled={spawnQaMutation.isPending}
-              onClick={() => spawnQaMutation.mutate()}
-              className="px-3 py-1.5 bg-purple-700 hover:bg-purple-800 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
-            >
-              {spawnQaMutation.isPending ? 'Spawning...' : 'Spawn Secret QA Task'}
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Tabs */}
@@ -320,10 +281,10 @@ export default function LeadDetailPage() {
                     </div>
                     <div>
                       <span className="text-xs font-bold text-slate-800">
-                        {call.status} ({call.durationSeconds}s)
+                        {call.status} ({call.duration || 0}s)
                       </span>
                       <span className="block text-[11px] text-slate-400 font-mono">
-                        {formatDate(call.startedAt)} • Called by {call.employeeId?.name}
+                        {formatDate(call.callDate || call.dialedAt)} • Called by {call.employeeId?.name}
                       </span>
                     </div>
                   </div>
@@ -340,11 +301,11 @@ export default function LeadDetailPage() {
                 </div>
 
                 {/* Audio Recording Player */}
-                {call.recordingStatus === 'AVAILABLE' && call.recordingObjectKey && (
+                {(isAdmin || isManager) && call.recordingStatus === RecordingStatus.ARCHIVED && (
                   <div className="pt-2 border-t border-slate-100">
                     <AudioPlayer
                       callAttemptId={call._id}
-                      durationSeconds={call.durationSeconds}
+                      durationSeconds={call.duration}
                     />
                   </div>
                 )}

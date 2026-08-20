@@ -133,7 +133,7 @@ export default function LoginPage() {
                 onClick={() => handleQuickFill('sneha.p@dayaar.com')}
                 className="p-2 text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs transition-colors"
               >
-                <span className="block font-bold text-emerald-700">Verifier QA</span>
+                <span className="block font-bold text-emerald-700">Employee</span>
                 <span className="text-[10px] text-slate-500 truncate block">Sneha Patel</span>
               </button>
             </div>

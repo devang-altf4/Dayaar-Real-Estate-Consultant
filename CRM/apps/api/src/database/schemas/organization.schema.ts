@@ -29,9 +29,17 @@ export class Organization {
   @Prop({ required: true, default: 300 })
   dailyCallTarget: number;
 
+  @Prop({ required: true, default: 10, min: 1 })
+  callingSeatLimit: number;
+
+  @Prop({ required: true, default: 9, min: 6, max: 12 })
+  recordingRetentionMonths: number;
+
+  @Prop({ required: true, default: 'Asia/Kolkata' })
+  timezone: string;
+
   @Prop({ default: true })
   isActive: boolean;
 }
 
 export const OrganizationSchema = SchemaFactory.createForClass(Organization);
-OrganizationSchema.index({ slug: 1 });

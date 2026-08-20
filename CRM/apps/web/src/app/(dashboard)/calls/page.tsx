@@ -7,13 +7,16 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import { PhoneCall, Phone, Clock, User, Calendar, Volume2 } from 'lucide-react';
 import { formatDate, formatSecondsToTime } from '@/lib/utils';
 import Link from 'next/link';
+import { RecordingStatus } from '@dayaar/shared';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CallHistoryPage() {
   const [page, setPage] = useState(1);
+  const { isAdmin, isManager } = useAuth();
 
   const { data: callData, isLoading } = useQuery({
     queryKey: ['recent-calls', page],
-    queryFn: () => api.get<any>('/calls/recent', { page, limit: 25 }),
+    queryFn: () => api.get<any>('/calls', { page, limit: 25 }),
   });
 
   const calls = callData?.data || [];
@@ -70,7 +73,7 @@ export default function CallHistoryPage() {
                         <span className="font-bold text-slate-900">Lead Contact</span>
                       )}
                       <span className="font-mono text-[11px] text-slate-500">
-                        {call.phoneNumberDialed}
+                        {call.phoneNumber}
                       </span>
                     </td>
                     <td className="p-4">
@@ -87,7 +90,7 @@ export default function CallHistoryPage() {
                       </span>
                     </td>
                     <td className="p-4 font-mono font-bold text-slate-700">
-                      {formatSecondsToTime(call.durationSeconds || 0)}
+                      {formatSecondsToTime(call.duration || 0)}
                     </td>
                     <td className="p-4">
                       <span
@@ -101,17 +104,17 @@ export default function CallHistoryPage() {
                       </span>
                     </td>
                     <td className="p-4">
-                      {call.recordingStatus === 'AVAILABLE' ? (
+                      {(isAdmin || isManager) && call.recordingStatus === RecordingStatus.ARCHIVED ? (
                         <AudioPlayer
                           callAttemptId={call._id}
-                          durationSeconds={call.durationSeconds}
+                          durationSeconds={call.duration}
                         />
                       ) : (
                         <span className="text-slate-400 italic text-[11px]">No Recording</span>
                       )}
                     </td>
                     <td className="p-4 text-slate-400 text-[11px]">
-                      {formatDate(call.startedAt)}
+                      {formatDate(call.callDate || call.dialedAt)}
                     </td>
                   </tr>
                 ))

@@ -17,19 +17,15 @@ import { AuditModule } from './modules/audit/audit.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { DevicesModule } from './modules/devices/devices.module';
 import { CallingModule } from './modules/calling/calling.module';
-import { SimulatorModule } from './modules/simulator/simulator.module';
+import { CallyzerModule } from './modules/callyzer/callyzer.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { LeadQueueModule } from './modules/lead-queue/lead-queue.module';
 import { LeadImportModule } from './modules/lead-import/lead-import.module';
-import { VerificationsModule } from './modules/verifications/verifications.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { FollowupsModule } from './modules/followups/followups.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { SeedModule } from './modules/seed/seed.module';
-
-const simulatorEnabled =
-  process.env.NODE_ENV !== 'production' &&
-  process.env.DEV_CALL_SIMULATOR === 'true';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -44,16 +40,16 @@ const simulatorEnabled =
     StorageModule,
     DevicesModule,
     CallingModule,
-    ...(simulatorEnabled ? [SimulatorModule] : []),
+    CallyzerModule,
     LeadsModule,
     LeadQueueModule,
     LeadImportModule,
-    VerificationsModule,
     AttendanceModule,
     FollowupsModule,
     AnalyticsModule,
     SeedModule,
   ],
+  controllers: [HealthController],
   providers: [
     {
       provide: APP_GUARD,

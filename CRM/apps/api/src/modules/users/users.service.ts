@@ -9,12 +9,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { User, UserDocument } from '../../database/schemas/user.schema';
+import { Organization, OrganizationDocument } from '../../database/schemas/organization.schema';
 import { Role, CreateUserDto, IAuthUser, UpdateUserDto } from '@dayaar/shared';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Organization.name) private orgModel: Model<OrganizationDocument>,
   ) {}
 
   async findAll(organizationId: string, role?: Role, managerId?: string) {
@@ -97,6 +99,10 @@ export class UsersService {
       await this.assertValidManager(dto.managerId, organizationId);
     }
 
+    if (dto.callingEnabled) {
+      await this.assertCallingSeatAvailable(organizationId);
+    }
+
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(dto.password, salt);
 
@@ -110,6 +116,7 @@ export class UsersService {
       role: dto.role,
       managerId: dto.managerId ? new Types.ObjectId(dto.managerId) : null,
       isActive: true,
+      callingEnabled: dto.callingEnabled,
     });
 
     await user.save();
@@ -132,6 +139,18 @@ export class UsersService {
       updatePayload.managerId = updates.managerId ? new Types.ObjectId(updates.managerId) : null;
     }
     if (updates.isActive !== undefined) updatePayload.isActive = updates.isActive;
+    if (updates.callingEnabled !== undefined) {
+      if (updates.callingEnabled) {
+        const existingUser = await this.userModel.findOne({
+          _id: new Types.ObjectId(id),
+          organizationId: new Types.ObjectId(organizationId),
+        });
+        if (!existingUser?.callingEnabled) {
+          await this.assertCallingSeatAvailable(organizationId);
+        }
+      }
+      updatePayload.callingEnabled = updates.callingEnabled;
+    }
     if (updates.password) {
       const salt = await bcrypt.genSalt(10);
       updatePayload.passwordHash = await bcrypt.hash(updates.password, salt);
@@ -160,6 +179,26 @@ export class UsersService {
       throw new BadRequestException(
         'Manager must be an active manager in the same organization.',
       );
+    }
+  }
+
+  private async assertCallingSeatAvailable(organizationId: string) {
+    const [organization, activeSeats] = await Promise.all([
+      this.orgModel.findById(organizationId).select('callingSeatLimit'),
+      this.userModel.countDocuments({
+        organizationId: new Types.ObjectId(organizationId),
+        callingEnabled: true,
+        isActive: true,
+      }),
+    ]);
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+    if (activeSeats >= organization.callingSeatLimit) {
+      throw new ConflictException({
+        code: 'CALLING_SEAT_LIMIT_REACHED',
+        message: `All ${organization.callingSeatLimit} calling seats are in use.`,
+      });
     }
   }
 }

@@ -23,6 +23,7 @@ export const CreateUserSchema = z.object({
   role: z.nativeEnum(Role),
   managerId: MongoIdSchema.optional().nullable(),
   employeeCode: z.string().min(2, 'Employee code required').toUpperCase().trim(),
+  callingEnabled: z.boolean().default(false),
 }).strict();
 
 export type CreateUserDto = z.infer<typeof CreateUserSchema>;
@@ -35,6 +36,7 @@ export const UpdateUserSchema = z
     role: z.nativeEnum(Role).optional(),
     managerId: MongoIdSchema.optional().nullable(),
     isActive: z.boolean().optional(),
+    callingEnabled: z.boolean().optional(),
   })
   .strict();
 

@@ -110,19 +110,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
   }, [user]);
 
-  // Duration timer for active connected call
-  useEffect(() => {
-    let interval: any = null;
-    if (activeCall?.isActive && activeCall?.status === CallAttemptStatus.CONNECTED) {
-      interval = setInterval(() => {
-        setActiveCall((prev) => (prev ? { ...prev, durationSeconds: prev.durationSeconds + 1 } : null));
-      }, 1000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [activeCall?.isActive, activeCall?.status]);
-
   const updateDeviceStatus = (status: any) => {
     setDeviceStatus((prev) => ({ ...prev, ...status }));
   };

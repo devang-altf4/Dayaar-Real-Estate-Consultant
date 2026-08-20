@@ -7,7 +7,7 @@ import { CallingModal } from '@/components/CallingModal';
 
 export const metadata: Metadata = {
   title: 'Dayaar Real Estate Sales CRM',
-  description: 'Enterprise Real Estate Sales CRM with Company Android Calling Bridge & Secret QA',
+  description: 'Real estate CRM with employee SIM calling and Callyzer call capture',
 };
 
 export default function RootLayout({

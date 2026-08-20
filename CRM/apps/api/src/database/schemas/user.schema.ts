@@ -32,9 +32,13 @@ export class User {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ default: false, index: true })
+  callingEnabled: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.index({ organizationId: 1, employeeCode: 1 }, { unique: true });
 UserSchema.index({ organizationId: 1, role: 1 });
 UserSchema.index({ organizationId: 1, managerId: 1 });
+UserSchema.index({ organizationId: 1, callingEnabled: 1, isActive: 1 });
