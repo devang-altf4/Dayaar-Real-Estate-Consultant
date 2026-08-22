@@ -23,6 +23,14 @@ import {
   FollowUp,
   FollowUpSchema,
 } from '../../database/schemas/follow-up.schema';
+import {
+  AuditLog,
+  AuditLogSchema,
+} from '../../database/schemas/audit-log.schema';
+import {
+  CallEvent,
+  CallEventSchema,
+} from '../../database/schemas/call-event.schema';
 
 @Module({
   imports: [
@@ -34,6 +42,8 @@ import {
       { name: CallAttempt.name, schema: CallAttemptSchema },
       { name: AttendanceRecord.name, schema: AttendanceRecordSchema },
       { name: FollowUp.name, schema: FollowUpSchema },
+      { name: AuditLog.name, schema: AuditLogSchema },
+      { name: CallEvent.name, schema: CallEventSchema },
     ]),
   ],
   providers: [SeedService],

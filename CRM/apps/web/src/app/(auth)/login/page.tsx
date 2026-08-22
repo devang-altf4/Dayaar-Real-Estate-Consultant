@@ -6,8 +6,8 @@ import { Building2, KeyRound, Mail, AlertCircle, ArrowRight, ShieldCheck } from 
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [email, setEmail] = useState('admin@dayaar.com');
-  const [password, setPassword] = useState('Password@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,11 +22,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickFill = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('Password@123');
   };
 
   return (
@@ -94,50 +89,6 @@ export default function LoginPage() {
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
-
-          {/* Quick Demo Autofill */}
-          <div className="pt-4 border-t border-slate-100 space-y-2">
-            <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
-              Quick Autofill Demo Accounts
-            </span>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleQuickFill('admin@dayaar.com')}
-                className="p-2 text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs transition-colors"
-              >
-                <span className="block font-bold text-purple-700">Admin</span>
-                <span className="text-[10px] text-slate-500 truncate block">Rajesh Sharma</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill('manager.amit@dayaar.com')}
-                className="p-2 text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs transition-colors"
-              >
-                <span className="block font-bold text-blue-700">Manager</span>
-                <span className="text-[10px] text-slate-500 truncate block">Amit Verma</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill('rahul.k@dayaar.com')}
-                className="p-2 text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs transition-colors"
-              >
-                <span className="block font-bold text-emerald-700">Employee</span>
-                <span className="text-[10px] text-slate-500 truncate block">Rahul Kapoor</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill('sneha.p@dayaar.com')}
-                className="p-2 text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs transition-colors"
-              >
-                <span className="block font-bold text-emerald-700">Employee</span>
-                <span className="text-[10px] text-slate-500 truncate block">Sneha Patel</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -45,6 +45,8 @@ describe('Phase 1 security hardening', () => {
       null as any,
       null as any,
       null as any,
+      null as any,
+      null as any,
     );
 
     await expect(service.runSeed()).rejects.toBeInstanceOf(ForbiddenException);

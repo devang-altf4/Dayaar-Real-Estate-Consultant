@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { CsvImportModal } from '@/components/CsvImportModal';
+import { LeadImportModal } from '@/components/LeadImportModal';
 import {
   Users,
   Search,
@@ -134,7 +134,7 @@ export default function LeadsPage() {
                 className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 transition-colors shadow-xs"
               >
                 <Upload className="h-4 w-4" />
-                <span>Bulk CSV Import</span>
+                <span>Import Leads</span>
               </button>
 
               {selectedLeadIds.length > 0 && (
@@ -347,8 +347,8 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      {/* CSV Import Modal */}
-      <CsvImportModal
+      {/* Lead Import Modal */}
+      <LeadImportModal
         isOpen={isCsvModalOpen}
         onClose={() => setIsCsvModalOpen(false)}
         onImportComplete={() => refetch()}

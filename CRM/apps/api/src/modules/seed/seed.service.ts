@@ -9,6 +9,8 @@ import { AndroidDevice, AndroidDeviceDocument } from '../../database/schemas/and
 import { CallAttempt, CallAttemptDocument } from '../../database/schemas/call-attempt.schema';
 import { AttendanceRecord, AttendanceRecordDocument } from '../../database/schemas/attendance-record.schema';
 import { FollowUp, FollowUpDocument } from '../../database/schemas/follow-up.schema';
+import { AuditLog, AuditLogDocument } from '../../database/schemas/audit-log.schema';
+import { CallEvent, CallEventDocument } from '../../database/schemas/call-event.schema';
 import {
   Role,
   LeadStatus,
@@ -28,6 +30,7 @@ import {
   RecordingStatus,
   AttendanceStatus,
   FollowUpStatus,
+  CallEventType,
 } from '@dayaar/shared';
 
 @Injectable()
@@ -42,6 +45,8 @@ export class SeedService {
     @InjectModel(CallAttempt.name) private callAttemptModel: Model<CallAttemptDocument>,
     @InjectModel(AttendanceRecord.name) private attendanceModel: Model<AttendanceRecordDocument>,
     @InjectModel(FollowUp.name) private followUpModel: Model<FollowUpDocument>,
+    @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>,
+    @InjectModel(CallEvent.name) private callEventModel: Model<CallEventDocument>,
   ) {}
 
   async runSeed() {
@@ -65,16 +70,43 @@ export class SeedService {
       this.callAttemptModel.deleteMany({}),
       this.attendanceModel.deleteMany({}),
       this.followUpModel.deleteMany({}),
+      this.auditLogModel.deleteMany({}),
+      this.callEventModel.deleteMany({}),
     ]);
+
+    // Drop legacy non-sparse indexes and sync schema indexes
+    await Promise.all([
+      this.orgModel.collection.dropIndexes().catch(() => {}),
+      this.userModel.collection.dropIndexes().catch(() => {}),
+      this.leadModel.collection.dropIndexes().catch(() => {}),
+      this.deviceModel.collection.dropIndexes().catch(() => {}),
+      this.callAttemptModel.collection.dropIndexes().catch(() => {}),
+      this.attendanceModel.collection.dropIndexes().catch(() => {}),
+      this.followUpModel.collection.dropIndexes().catch(() => {}),
+      this.auditLogModel.collection.dropIndexes().catch(() => {}),
+      this.callEventModel.collection.dropIndexes().catch(() => {}),
+    ]);
+
+    await Promise.all([
+      this.orgModel.syncIndexes(),
+      this.userModel.syncIndexes(),
+      this.leadModel.syncIndexes(),
+      this.deviceModel.syncIndexes(),
+      this.callAttemptModel.syncIndexes(),
+      this.attendanceModel.syncIndexes(),
+      this.followUpModel.syncIndexes(),
+      this.auditLogModel.syncIndexes(),
+      this.callEventModel.syncIndexes(),
+    ]).catch(() => {});
 
     // 2. Create Organization
     const organization = new this.orgModel({
       name: 'Dayaar Real Estate Consultant Pvt Ltd',
       slug: 'dayaar-consultants',
-      officeLatitude: 28.4595, // Sector 29, Gurgaon HQ
-      officeLongitude: 77.0266,
-      allowedRadiusMeters: 150,
-      maxAllowedGpsAccuracyMeters: 60,
+      officeLatitude: 19.296201, // Oswal Garden, Kanakia Rd, near Park View Hotel, Mira Road East, Thane 401107
+      officeLongitude: 72.876082,
+      allowedRadiusMeters: 10,
+      maxAllowedGpsAccuracyMeters: 20,
       maxUnsuccessfulAttempts: 4,
       dailyCallTarget: 300,
       isActive: true,
@@ -84,15 +116,15 @@ export class SeedService {
     this.logger.log(`Created Organization: ${organization.name}`);
 
     // 3. Password Hash for Demo Accounts
-    const defaultPassword = 'Password@123';
+    const defaultPassword = '123456789';
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(defaultPassword, salt);
 
     // 4. Create Admin
     const admin = new this.userModel({
       organizationId: orgId,
-      name: 'Rajesh Sharma',
-      email: 'admin@dayaar.com',
+      name: 'Salman',
+      email: 'admin29@dayyar.com',
       phone: '9811001122',
       employeeCode: 'ADM001',
       passwordHash,
@@ -104,8 +136,8 @@ export class SeedService {
     // 5. Create 2 Managers
     const managerA = new this.userModel({
       organizationId: orgId,
-      name: 'Amit Verma',
-      email: 'manager.amit@dayaar.com',
+      name: 'Gazala',
+      email: 'manager1@dayyar.com',
       phone: '9822002233',
       employeeCode: 'MGR001',
       passwordHash,
@@ -117,7 +149,7 @@ export class SeedService {
     const managerB = new this.userModel({
       organizationId: orgId,
       name: 'Priya Nair',
-      email: 'manager.priya@dayaar.com',
+      email: 'manager2@dayyar.com',
       phone: '9833003344',
       employeeCode: 'MGR002',
       passwordHash,
@@ -128,14 +160,14 @@ export class SeedService {
 
     // 6. Create 8 Employees
     const employeeData = [
-      { name: 'Rahul Kapoor', email: 'rahul.k@dayaar.com', phone: '9844004401', code: 'EMP101', mgr: managerA._id },
-      { name: 'Sneha Patel', email: 'sneha.p@dayaar.com', phone: '9844004402', code: 'EMP102', mgr: managerA._id },
-      { name: 'Vikram Singh', email: 'vikram.s@dayaar.com', phone: '9844004403', code: 'EMP103', mgr: managerA._id },
-      { name: 'Ananya Joshi', email: 'ananya.j@dayaar.com', phone: '9844004404', code: 'EMP104', mgr: managerA._id },
-      { name: 'Rohit Mehta', email: 'rohit.m@dayaar.com', phone: '9844004405', code: 'EMP105', mgr: managerB._id },
-      { name: 'Pooja Rao', email: 'pooja.r@dayaar.com', phone: '9844004406', code: 'EMP106', mgr: managerB._id },
-      { name: 'Karan Malhotra', email: 'karan.m@dayaar.com', phone: '9844004407', code: 'EMP107', mgr: managerB._id },
-      { name: 'Neha Verma', email: 'neha.v@dayaar.com', phone: '9844004408', code: 'EMP108', mgr: managerB._id },
+      { name: 'Devang', email: 'employee1@dayyar.com', phone: '9844004401', code: 'EMP101', mgr: managerA._id },
+      { name: 'Devang2', email: 'employee2@dayyar.com', phone: '9844004402', code: 'EMP102', mgr: managerA._id },
+      { name: 'Vikram Singh', email: 'employee3@dayyar.com', phone: '9844004403', code: 'EMP103', mgr: managerA._id },
+      { name: 'Ananya Joshi', email: 'employee4@dayyar.com', phone: '9844004404', code: 'EMP104', mgr: managerA._id },
+      { name: 'Rohit Mehta', email: 'employee5@dayyar.com', phone: '9844004405', code: 'EMP105', mgr: managerB._id },
+      { name: 'Pooja Rao', email: 'employee6@dayyar.com', phone: '9844004406', code: 'EMP106', mgr: managerB._id },
+      { name: 'Karan Malhotra', email: 'employee7@dayyar.com', phone: '9844004407', code: 'EMP107', mgr: managerB._id },
+      { name: 'Neha Verma', email: 'employee8@dayyar.com', phone: '9844004408', code: 'EMP108', mgr: managerB._id },
     ];
 
     const employees: UserDocument[] = [];
@@ -274,14 +306,17 @@ export class SeedService {
     }
     this.logger.log(`Created ${createdLeads.length} real estate leads`);
 
-    // 9. Seed Sample Calls & Historical Attempts
-    for (let i = 0; i < 20; i++) {
-      const lead = createdLeads[i];
+    // 9. Seed Sample Calls & Historical Attempts + Call Events
+    for (let i = 0; i < 25; i++) {
+      const lead = createdLeads[i % createdLeads.length];
       const emp = employees[i % employees.length];
       const device = devices[i % devices.length];
 
       const isConnected = i % 3 !== 0;
       const duration = isConnected ? 45 + (i * 12) : 0;
+      const dialedAt = new Date(Date.now() - (i + 1) * 35 * 60 * 1000);
+      const connectedAt = isConnected ? new Date(dialedAt.getTime() + 6000) : null;
+      const endedAt = new Date(dialedAt.getTime() + (duration + 6) * 1000);
 
       const call = new this.callAttemptModel({
         organizationId: orgId,
@@ -289,13 +324,13 @@ export class SeedService {
         employeeId: emp._id,
         deviceId: device._id,
         provider: CallProviderType.CALLYZER_SIM,
-        origin: CallOrigin.ANDROID,
+        origin: i % 2 === 0 ? CallOrigin.WEB : CallOrigin.ANDROID,
         syncStatus: CallSyncStatus.MATCHED,
         status: isConnected ? CallAttemptStatus.COMPLETED : CallAttemptStatus.NOT_CONNECTED,
         countsAsAttempt: true,
-        dialedAt: new Date(Date.now() - (i + 1) * 35 * 60 * 1000),
-        connectedAt: isConnected ? new Date(Date.now() - (i + 1) * 35 * 60 * 1000 + 6000) : null,
-        endedAt: new Date(Date.now() - (i + 1) * 35 * 60 * 1000 + duration * 1000),
+        dialedAt,
+        connectedAt,
+        endedAt,
         duration,
         phoneNumber: `+91${lead.phone}`,
         employeePhoneNumber: `+91${emp.phone}`,
@@ -307,7 +342,39 @@ export class SeedService {
         recordingMimeType: isConnected ? 'audio/wav' : null,
       });
       await call.save();
+
+      // Create Call Lifecycle Events
+      await this.callEventModel.create([
+        {
+          organizationId: orgId,
+          callAttemptId: call._id,
+          employeeId: emp._id,
+          deviceId: device._id,
+          type: CallEventType.CALL_ATTEMPT_CREATED,
+          metadata: { origin: call.origin },
+          timestamp: dialedAt,
+        },
+        {
+          organizationId: orgId,
+          callAttemptId: call._id,
+          employeeId: emp._id,
+          deviceId: device._id,
+          type: CallEventType.DIALING_STARTED,
+          metadata: { dialedAt },
+          timestamp: dialedAt,
+        },
+        {
+          organizationId: orgId,
+          callAttemptId: call._id,
+          employeeId: emp._id,
+          deviceId: device._id,
+          type: CallEventType.CALL_ENDED,
+          metadata: { duration, isConnected },
+          timestamp: endedAt,
+        },
+      ]);
     }
+    this.logger.log('Created 25 call attempts and lifecycle events');
 
     // 10. Seed Today Attendance for all Employees
     const todayStr = new Date().toISOString().split('T')[0];
@@ -317,7 +384,7 @@ export class SeedService {
         organizationId: orgId,
         employeeId: emp._id,
         date: todayStr,
-        checkInAt: new Date(Date.now() - (4 + (i % 3)) * 60 * 60 * 1000),
+        checkInAt: new Date(Date.now() - (5 + (i % 3)) * 60 * 60 * 1000),
         checkInLocation: {
           latitude: 28.45952,
           longitude: 77.02661,
@@ -325,16 +392,68 @@ export class SeedService {
           distanceFromOfficeMeters: 8,
         },
         status: AttendanceStatus.PRESENT,
-        totalWorkingSeconds: 14400 + i * 600,
+        totalWorkingSeconds: 16000 + i * 600,
         totalBreakSeconds: 1800,
       });
       await att.save();
     }
+    this.logger.log(`Created attendance records for ${employees.length} employees`);
 
-    this.logger.log('Database seeding successfully completed!');
+    // 11. Seed Realistic Follow-Ups
+    const followUpReasons = [
+      'Site Visit Discussion',
+      'Price Negotiation & Discount',
+      'Share Floor Plan on WhatsApp',
+      'Follow-up after Home Loan Approval',
+      'Unit Booking Advance Payment',
+    ];
+    for (let i = 0; i < 20; i++) {
+      const lead = createdLeads[i];
+      const emp = employees[i % employees.length];
+      const isCompleted = i % 2 === 0;
+
+      const followUp = new this.followUpModel({
+        organizationId: orgId,
+        leadId: lead._id,
+        employeeId: emp._id,
+        scheduledAt: new Date(Date.now() + (i - 5) * 4 * 60 * 60 * 1000),
+        reason: followUpReasons[i % followUpReasons.length],
+        notes: `Customer requested a callback regarding payment plans for ${lead.project}.`,
+        status: isCompleted ? FollowUpStatus.COMPLETED : FollowUpStatus.PENDING,
+        completedAt: isCompleted ? new Date() : null,
+      });
+      await followUp.save();
+    }
+    this.logger.log('Created 20 scheduled & completed follow-ups');
+
+    // 12. Seed System Audit Logs
+    const auditActions = [
+      { action: 'USER_LOGIN', entityType: 'USER', entityId: admin._id.toString(), actorName: admin.name, actorRole: admin.role },
+      { action: 'LEAD_IMPORTED', entityType: 'LEAD', entityId: createdLeads[0]._id.toString(), actorName: admin.name, actorRole: admin.role },
+      { action: 'DEVICE_PAIRED', entityType: 'DEVICE', entityId: devices[0]._id.toString(), actorName: employees[0].name, actorRole: employees[0].role },
+      { action: 'ORGANIZATION_SETTINGS_UPDATED', entityType: 'ORGANIZATION', entityId: orgId.toString(), actorName: admin.name, actorRole: admin.role },
+      { action: 'LEADS_BULK_ASSIGNED', entityType: 'LEAD_ASSIGNMENT', entityId: orgId.toString(), actorName: managerA.name, actorRole: managerA.role },
+    ];
+    for (const item of auditActions) {
+      await this.auditLogModel.create({
+        organizationId: orgId,
+        actorId: admin._id,
+        actorName: item.actorName,
+        actorRole: item.actorRole,
+        action: item.action,
+        entityType: item.entityType,
+        entityId: item.entityId,
+        metadata: { source: 'seed_initialization' },
+        ip: '127.0.0.1',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      });
+    }
+    this.logger.log('Created system audit logs');
+
+    this.logger.log('Database seeding successfully completed with all collections!');
     return {
       success: true,
-      message: 'Seeding completed',
+      message: 'Full seeding completed',
       organization: { id: orgId, name: organization.name },
       accounts: {
         admin: admin.email,

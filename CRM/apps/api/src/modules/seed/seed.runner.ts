@@ -1,8 +1,13 @@
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../../app.module';
 import { SeedService } from './seed.service';
-import * as dotenv from 'dotenv';
-dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);

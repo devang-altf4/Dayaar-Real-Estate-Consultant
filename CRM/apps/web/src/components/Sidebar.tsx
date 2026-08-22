@@ -30,7 +30,11 @@ export function Sidebar() {
     { label: 'Pipeline Kanban', href: '/pipeline', icon: Kanban },
     { label: 'Call History', href: '/calls', icon: PhoneCall },
     { label: 'Follow-ups', href: '/follow-ups', icon: CalendarClock },
-    { label: 'Attendance & Breaks', href: '/attendance', icon: Clock },
+    // Self-service shift clock — employees and managers only. Admins manage
+    // attendance org-wide under Administration > Org Attendance Logs.
+    ...(isAdmin
+      ? []
+      : [{ label: 'Attendance & Breaks', href: '/attendance', icon: Clock }]),
     { label: 'Performance', href: '/performance', icon: BarChart3 },
     { label: 'Calling Device', href: '/devices', icon: Smartphone },
   ];

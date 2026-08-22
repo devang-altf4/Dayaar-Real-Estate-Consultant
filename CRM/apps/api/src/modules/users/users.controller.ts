@@ -32,8 +32,13 @@ export class UsersController {
     @CurrentUser() user: IAuthUser,
     @Query('role') role?: Role,
     @Query('managerId') managerId?: string,
+    @Query('scope') scope?: string,
   ) {
     if (user.role === Role.MANAGER) {
+      // Minimal cross-team employee list used by the import distribution picker.
+      if (scope === 'organization' && role === Role.EMPLOYEE) {
+        return this.usersService.findOrgEmployeesMinimal(user.organizationId);
+      }
       // Managers only see their own team or subordinate employees
       return this.usersService.findAll(user.organizationId, role, user.id);
     }

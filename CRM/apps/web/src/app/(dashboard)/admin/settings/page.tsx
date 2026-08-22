@@ -10,6 +10,7 @@ interface SettingsForm {
   officeLatitude: number;
   officeLongitude: number;
   allowedRadiusMeters: number;
+  maxAllowedGpsAccuracyMeters: number;
   dailyCallTarget: number;
   maxUnsuccessfulAttempts: number;
   callingSeatLimit: number;
@@ -19,9 +20,10 @@ interface SettingsForm {
 
 const DEFAULTS: SettingsForm = {
   name: 'Dayaar Real Estate Consultant Pvt Ltd',
-  officeLatitude: 28.4595,
-  officeLongitude: 77.0266,
-  allowedRadiusMeters: 100,
+  officeLatitude: 19.296201,
+  officeLongitude: 72.876082,
+  allowedRadiusMeters: 10,
+  maxAllowedGpsAccuracyMeters: 20,
   dailyCallTarget: 300,
   maxUnsuccessfulAttempts: 4,
   callingSeatLimit: 10,
@@ -92,11 +94,10 @@ export default function AdminSettingsPage() {
           <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
             <MapPin className="h-4 w-4 text-sky-700" /> Office attendance geofence
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {([
-              ['officeLatitude', 'Latitude', '0.0001'],
-              ['officeLongitude', 'Longitude', '0.0001'],
-              ['allowedRadiusMeters', 'Radius in metres', '1'],
+              ['officeLatitude', 'Latitude', '0.000001'],
+              ['officeLongitude', 'Longitude', '0.000001'],
             ] as const).map(([key, label, step]) => (
               <label key={key} className="text-xs font-semibold text-slate-600">
                 {label}
@@ -110,6 +111,28 @@ export default function AdminSettingsPage() {
               </label>
             ))}
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {([
+              ['allowedRadiusMeters', 'Check-in radius in metres', '1'],
+              ['maxAllowedGpsAccuracyMeters', 'Max GPS accuracy error in metres', '1'],
+            ] as const).map(([key, label, step]) => (
+              <label key={key} className="text-xs font-semibold text-slate-600">
+                {label}
+                <input
+                  type="number"
+                  step={step}
+                  min="1"
+                  value={form[key]}
+                  onChange={(event) => numberField(key, event.target.value)}
+                  className="mt-1 w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-mono"
+                />
+              </label>
+            ))}
+          </div>
+          <p className="text-[11px] text-slate-500">
+            Employees can check in only while their device GPS places them within the radius of the
+            office pin. GPS readings less accurate than the max-error value are rejected.
+          </p>
         </section>
 
         <section className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">

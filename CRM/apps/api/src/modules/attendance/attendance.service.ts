@@ -18,7 +18,6 @@ import {
   Organization,
   OrganizationDocument,
 } from '../../database/schemas/organization.schema';
-import { User, UserDocument } from '../../database/schemas/user.schema';
 import { AuditService } from '../audit/audit.service';
 import {
   AttendanceStatus,
@@ -28,7 +27,6 @@ import {
   StartBreakDto,
   calculateHaversineDistance,
   isWithinGeofence,
-  Role,
 } from '@dayaar/shared';
 
 @Injectable()
@@ -42,7 +40,6 @@ export class AttendanceService {
     private breakModel: Model<BreakSessionDocument>,
     @InjectModel(Organization.name)
     private orgModel: Model<OrganizationDocument>,
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly auditService: AuditService,
   ) {}
 
@@ -324,27 +321,48 @@ export class AttendanceService {
     };
   }
 
+  /**
+   * Own shift history only. Admins must use getDailyReport via
+   * GET /attendance/daily-report instead of hitting this endpoint.
+   */
   async getAttendanceHistory(organizationId: string, user: IAuthUser, limit = 30) {
-    const filter: any = { organizationId: new Types.ObjectId(organizationId) };
-    if (user.role === Role.EMPLOYEE) {
-      filter.employeeId = new Types.ObjectId(user.id);
-    } else if (user.role === Role.MANAGER) {
-      const team = await this.userModel
-        .find({
-          organizationId: new Types.ObjectId(organizationId),
-          managerId: new Types.ObjectId(user.id),
-          role: Role.EMPLOYEE,
-          isActive: true,
-        })
-        .select('_id');
-      filter.employeeId = { $in: team.map((employee) => employee._id) };
-    }
+    const filter: any = {
+      organizationId: new Types.ObjectId(organizationId),
+      employeeId: new Types.ObjectId(user.id),
+    };
     limit = Math.min(100, Math.max(1, Number.isFinite(limit) ? limit : 30));
 
     return this.attendanceModel
       .find(filter)
-      .populate('employeeId', 'name email employeeCode')
       .sort({ date: -1 })
       .limit(limit);
+  }
+
+  /**
+   * Org-wide attendance report for one date (admin only).
+   * Returns every record for the date with employee identity and
+   * check-in/check-out GPS locations so the boss can audit presence.
+   */
+  async getDailyReport(organizationId: string, date?: string) {
+    const targetDate =
+      date && /^\d{4}-\d{2}-\d{2}$/.test(date)
+        ? date
+        : this.getTodayDateString();
+
+    const records = await this.attendanceModel
+      .find({
+        organizationId: new Types.ObjectId(organizationId),
+        date: targetDate,
+      })
+      .populate('employeeId', 'name email employeeCode role')
+      .sort({ 'checkInLocation.distanceFromOfficeMeters': 1, createdAt: 1 })
+      .limit(500)
+      .lean();
+
+    return {
+      date: targetDate,
+      totalRecords: records.length,
+      records,
+    };
   }
 }

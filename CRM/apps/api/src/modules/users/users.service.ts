@@ -81,6 +81,20 @@ export class UsersService {
       .sort({ name: 1 });
   }
 
+  /**
+   * Minimal cross-team employee list (id/name/active/manager only) for the
+   * lead-import distribution picker. Deliberately excludes contact details.
+   */
+  async findOrgEmployeesMinimal(organizationId: string) {
+    return this.userModel
+      .find({
+        organizationId: new Types.ObjectId(organizationId),
+        role: Role.EMPLOYEE,
+      })
+      .select('_id name isActive managerId')
+      .sort({ name: 1 });
+  }
+
   async create(dto: CreateUserDto, organizationId: string) {
     const existing = await this.userModel.findOne({ email: dto.email.toLowerCase() });
     if (existing) {
