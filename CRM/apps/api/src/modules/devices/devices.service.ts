@@ -104,6 +104,17 @@ export class DevicesService {
 
     const deviceAuthToken = crypto.randomBytes(32).toString('base64url');
     const authTokenHash = this.hashSecret(deviceAuthToken);
+    const rollbackClaim = async (error: unknown): Promise<never> => {
+      try {
+        await this.pairingModel.updateOne(
+          { _id: session._id, isClaimed: true },
+          { $set: { isClaimed: false } },
+        );
+      } catch (rollbackError) {
+        this.logger.error('Failed to release pairing session after device persistence failed.', rollbackError);
+      }
+      throw error;
+    };
 
     await this.deviceModel.updateMany(
       {
@@ -113,12 +124,12 @@ export class DevicesService {
         deviceId: { $ne: dto.deviceId },
       },
       { $set: { isPrimaryCallingDevice: false } },
-    );
+    ).catch(rollbackClaim);
 
     // Create or update device record
     let device = await this.deviceModel.findOne({
       deviceId: dto.deviceId,
-    }).select('+authTokenHash');
+    }).select('+authTokenHash').catch(rollbackClaim);
 
     if (device) {
       device.organizationId = session.organizationId;
@@ -137,7 +148,7 @@ export class DevicesService {
       device.pairedAt = new Date();
       device.revokedAt = null;
       device.isPrimaryCallingDevice = true;
-      await device.save();
+      await device.save().catch(rollbackClaim);
     } else {
       device = new this.deviceModel({
         organizationId: session.organizationId,
@@ -157,7 +168,7 @@ export class DevicesService {
         lastSeenAt: new Date(),
         pairedAt: new Date(),
       });
-      await device.save();
+      await device.save().catch(rollbackClaim);
     }
 
     return {
@@ -168,6 +179,8 @@ export class DevicesService {
       deviceName: device.deviceName,
       status: device.status,
       simState: device.simState,
+      pairedAt: device.pairedAt,
+      lastSeenAt: device.lastSeenAt,
       capabilities: device.capabilities,
     };
   }

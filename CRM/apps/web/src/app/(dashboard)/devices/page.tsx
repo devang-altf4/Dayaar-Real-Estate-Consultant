@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { PairingModal } from '@/components/PairingModal';
+import { useSocket } from '@/context/SocketContext';
 import {
   Smartphone,
   Plus,
@@ -17,12 +18,43 @@ import { DeviceStatus, SimState } from '@dayaar/shared';
 
 export default function DevicesPage() {
   const queryClient = useQueryClient();
+  const { socket } = useSocket();
   const [isPairingModalOpen, setIsPairingModalOpen] = useState(false);
+  const [pairingStartedAt, setPairingStartedAt] = useState<number | null>(null);
 
   const { data: primaryDevice, isLoading, refetch } = useQuery({
     queryKey: ['my-primary-device'],
     queryFn: () => api.get<any>('/devices/my-device'),
+    refetchInterval: isPairingModalOpen ? 2_000 : false,
   });
+
+  const openPairingModal = () => {
+    setPairingStartedAt(Date.now());
+    setIsPairingModalOpen(true);
+  };
+
+  useEffect(() => {
+    if (!socket) return;
+    const handlePairingUpdate = (device: any) => {
+      if (!device?.pairedAt) return;
+      setIsPairingModalOpen(false);
+      setPairingStartedAt(null);
+      void queryClient.invalidateQueries({ queryKey: ['my-primary-device'] });
+    };
+    socket.on('DEVICE_STATUS_CHANGED', handlePairingUpdate);
+    return () => {
+      socket.off('DEVICE_STATUS_CHANGED', handlePairingUpdate);
+    };
+  }, [queryClient, socket]);
+
+  useEffect(() => {
+    if (!isPairingModalOpen || !pairingStartedAt || !primaryDevice?.pairedAt) return;
+    const pairedAt = new Date(primaryDevice.pairedAt).getTime();
+    if (Number.isFinite(pairedAt) && pairedAt >= pairingStartedAt - 1_000) {
+      setIsPairingModalOpen(false);
+      setPairingStartedAt(null);
+    }
+  }, [isPairingModalOpen, pairingStartedAt, primaryDevice?.pairedAt]);
 
   const unpairMutation = useMutation({
     mutationFn: (deviceId: string) => api.delete(`/devices/${deviceId}`),
@@ -43,7 +75,7 @@ export default function DevicesPage() {
 
         <button
           type="button"
-          onClick={() => setIsPairingModalOpen(true)}
+          onClick={openPairingModal}
           className="flex items-center gap-2 px-4 py-2.5 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold shadow-sm transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -67,7 +99,7 @@ export default function DevicesPage() {
           <div className="pt-2">
             <button
               type="button"
-              onClick={() => setIsPairingModalOpen(true)}
+              onClick={openPairingModal}
               className="px-5 py-2.5 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold shadow transition-colors"
             >
               Pair Android Device Now (6-Digit PIN)
@@ -184,6 +216,7 @@ export default function DevicesPage() {
         isOpen={isPairingModalOpen}
         onClose={() => {
           setIsPairingModalOpen(false);
+          setPairingStartedAt(null);
           refetch();
         }}
       />

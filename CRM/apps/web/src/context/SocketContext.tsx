@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { api } from '@/lib/api';
 import { CallAttemptStatus, DeviceStatus } from '@dayaar/shared';
 
 interface ActiveCallState {
@@ -57,6 +58,19 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:4000';
     const token = localStorage.getItem('dayaar_access_token');
     if (!token) return;
+
+    void api.get<any>('/devices/my-device').then((device) => {
+      if (!device) return;
+      setDeviceStatus({
+        status: device.status || DeviceStatus.OFFLINE,
+        deviceName: device.deviceName,
+        isSimReady: device.isSimReady ?? device.simState === 'READY',
+        lastSeenAt: device.lastSeenAt,
+      });
+    }).catch(() => {
+      // Socket events will continue to provide live status if initial hydration fails.
+    });
+
     const s = io(wsUrl, {
       auth: { token },
       transports: ['websocket', 'polling'],

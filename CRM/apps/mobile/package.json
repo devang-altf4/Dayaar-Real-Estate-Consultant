@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "android": "node scripts/prepare-local-api.cjs && react-native run-android",
     "start": "react-native start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@babel/runtime": "7.29.7",
     "react": "19.1.0",
     "react-native": "0.81.1"
   },
