@@ -57,6 +57,8 @@ interface MobileLead {
   status: string;
   temperature?: string;
   attemptCount?: number;
+  employeeNotes?: string;
+  nextFollowUpAt?: string;
 }
 
 interface MobileQueue {
@@ -206,6 +208,20 @@ const formatLabel = (value: string) =>
     .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
     .join(' ');
 
+const formatFollowUpText = (dateStr?: string) => {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow = d.toDateString() === tomorrow.toDateString();
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (isToday) return `Today at ${timeStr}`;
+  if (isTomorrow) return `Tomorrow at ${timeStr}`;
+  return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} at ${timeStr}`;
+};
 
 function App(): React.JSX.Element {
   const [apiBaseUrl, setApiBaseUrl] = useState('https://dayaar-real-estate-consultant-2.onrender.com/api');
@@ -222,6 +238,7 @@ function App(): React.JSX.Element {
   const [busy, setBusy] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [status, setStatus] = useState('Initializing handset...');
+  const [leadTab, setLeadTab] = useState<'QUEUE' | 'ALL'>('QUEUE');
   const [dispositionModalVisible, setDispositionModalVisible] = useState(false);
   const [activeLeadForDisposition, setActiveLeadForDisposition] = useState<MobileLead | null>(null);
   const [selectedDisposition, setSelectedDisposition] = useState<string>('HOT');
@@ -688,24 +705,50 @@ function App(): React.JSX.Element {
                   </View>
                 ) : null}
 
-                <View style={styles.sectionHeader}>
-                  <View>
-                    <Text style={styles.sectionTitle}>Assigned leads</Text>
-                    <Text style={styles.sectionSubtitle}>All {dashboard.leads.length} leads assigned to you</Text>
-                  </View>
+                <View style={styles.segmentContainer}>
+                  <TouchableOpacity
+                    style={[styles.segmentButton, leadTab === 'QUEUE' && styles.segmentButtonActive]}
+                    onPress={() => setLeadTab('QUEUE')}
+                  >
+                    <Text style={[styles.segmentButtonText, leadTab === 'QUEUE' && styles.segmentButtonTextActive]}>
+                      🎯 Today's Queue ({dashboard.queue.queue.length})
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.segmentButton, leadTab === 'ALL' && styles.segmentButtonActive]}
+                    onPress={() => setLeadTab('ALL')}
+                  >
+                    <Text style={[styles.segmentButtonText, leadTab === 'ALL' && styles.segmentButtonTextActive]}>
+                      📋 All Leads ({dashboard.leads.length})
+                    </Text>
+                  </TouchableOpacity>
                 </View>
 
-                {dashboard.leads.length === 0 ? (
-                  <View style={styles.card}>
-                    <Text style={styles.cardTitle}>No assigned leads</Text>
-                    <Text style={styles.help}>There are currently no leads assigned to this employee.</Text>
-                  </View>
-                ) : (
-                  dashboard.leads.map((lead, index) => {
+                {(() => {
+                  const displayLeads = leadTab === 'QUEUE' ? dashboard.queue.queue : dashboard.leads;
+                  if (displayLeads.length === 0) {
+                    return (
+                      <View style={styles.card}>
+                        <Text style={styles.cardTitle}>
+                          {leadTab === 'QUEUE' ? '🎉 All Calls Completed!' : 'No assigned leads'}
+                        </Text>
+                        <Text style={styles.help}>
+                          {leadTab === 'QUEUE'
+                            ? 'There are no pending calls waiting in your queue right now. Any scheduled follow-ups will automatically reappear here when their due time arrives!'
+                            : 'There are currently no leads assigned to this employee.'}
+                        </Text>
+                      </View>
+                    );
+                  }
+
+                  return displayLeads.map((lead, index) => {
                     const leadId = getLeadId(lead);
                     const inQueue = dashboard.queue.queue.some((queueLead) => getLeadId(queueLead) === leadId);
                     const callable = dashboard.employee.callingEnabled && !NON_CALLABLE_STATUSES.has(lead.status);
                     const callBusy = callingLeadId !== null;
+                    const followUpText = formatFollowUpText(lead.nextFollowUpAt);
+
                     return (
                       <View style={styles.leadCard} key={leadId || `${lead.phone}-${index}`}>
                         <View style={styles.leadHeader}>
@@ -715,12 +758,13 @@ function App(): React.JSX.Element {
                           </View>
                           <View style={inQueue ? styles.inQueueBadge : styles.outOfQueueBadge}>
                             <Text style={inQueue ? styles.inQueueText : styles.outOfQueueText}>
-                              {inQueue ? 'In current queue' : 'Not in queue'}
+                              {inQueue ? '🟢 Ready in queue' : '✅ Handled'}
                             </Text>
                           </View>
                         </View>
 
                         <Text style={styles.projectText}>{lead.project || 'Project not specified'}</Text>
+
                         <View style={styles.leadMetaRow}>
                           <View style={styles.metaPill}>
                             <Text style={styles.metaText}>{formatLabel(lead.status)}</Text>
@@ -731,7 +775,23 @@ function App(): React.JSX.Element {
                           <Text style={styles.attemptText}>Attempts: {lead.attemptCount ?? 0}</Text>
                         </View>
 
-                        {callable ? (
+                        {lead.employeeNotes ? (
+                          <View style={styles.notePreviewBox}>
+                            <Text style={styles.notePreviewText} numberOfLines={2}>
+                              💬 {lead.employeeNotes}
+                            </Text>
+                          </View>
+                        ) : null}
+
+                        {followUpText ? (
+                          <View style={styles.followUpPreviewBox}>
+                            <Text style={styles.followUpPreviewText}>
+                              ⏰ Follow-up: {followUpText}
+                            </Text>
+                          </View>
+                        ) : null}
+
+                        {inQueue && callable ? (
                           <TouchableOpacity
                             style={[styles.primaryButton, (callBusy || dashboardLoading) && styles.disabledButton]}
                             disabled={callBusy || dashboardLoading}
@@ -743,6 +803,16 @@ function App(): React.JSX.Element {
                                 : callBusy
                                   ? 'Another call is starting...'
                                   : 'Call through company SIM'}
+                            </Text>
+                          </TouchableOpacity>
+                        ) : !inQueue && callable ? (
+                          <TouchableOpacity
+                            style={[styles.callAgainButton, (callBusy || dashboardLoading) && styles.disabledButton]}
+                            disabled={callBusy || dashboardLoading}
+                            onPress={() => void callLead(lead)}
+                          >
+                            <Text style={styles.callAgainButtonText}>
+                              {callingLeadId === leadId ? 'Calling...' : '📞 Call Again'}
                             </Text>
                           </TouchableOpacity>
                         ) : (
@@ -757,12 +827,14 @@ function App(): React.JSX.Element {
                           style={styles.outcomeButton}
                           onPress={() => openDispositionModal(lead)}
                         >
-                          <Text style={styles.outcomeButtonText}>📝 Log Outcome / Update Status</Text>
+                          <Text style={styles.outcomeButtonText}>
+                            {inQueue ? '📝 Log Outcome / Update Status' : '📝 Edit Outcome & Status'}
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     );
-                  })
-                )}
+                  });
+                })()}
               </>
             ) : null}
 
@@ -957,6 +1029,21 @@ const styles = StyleSheet.create({
   outcomeButtonText: { color: '#0f172a', fontWeight: '700', fontSize: 13, textAlign: 'center' },
   dangerText: { color: '#be123c', fontWeight: '700', textAlign: 'center', padding: 12 },
   disabledText: { opacity: 0.5 },
+
+  // Tabs & Segment Control
+  segmentContainer: { flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 12, padding: 4, gap: 6 },
+  segmentButton: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  segmentButtonActive: { backgroundColor: '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  segmentButtonText: { color: '#64748b', fontSize: 12, fontWeight: '700' },
+  segmentButtonTextActive: { color: '#0f172a', fontWeight: '900' },
+
+  // Preview boxes
+  notePreviewBox: { backgroundColor: '#f1f5f9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, borderLeftWidth: 3, borderLeftColor: '#0284c7' },
+  notePreviewText: { color: '#334155', fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  followUpPreviewBox: { backgroundColor: '#fef3c7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, borderLeftWidth: 3, borderLeftColor: '#f59e0b' },
+  followUpPreviewText: { color: '#92400e', fontSize: 12, fontWeight: '700' },
+  callAgainButton: { backgroundColor: '#f8fafc', borderColor: '#cbd5e1', borderWidth: 1, borderRadius: 10, padding: 12, alignItems: 'center' },
+  callAgainButtonText: { color: '#0284c7', fontWeight: '800', fontSize: 13, textAlign: 'center' },
 
   // Modal styles
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' },
