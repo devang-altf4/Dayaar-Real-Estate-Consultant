@@ -3,6 +3,7 @@ import {
   Alert,
   Image,
   Linking,
+  Modal,
   NativeModules,
   PermissionsAndroid,
   Platform,
@@ -99,6 +100,7 @@ const { DayaarDevice } = NativeModules as {
     getMobileDashboard(): Promise<string>;
     initiateMobileCall(leadId: string): Promise<string>;
     placeCall(phoneNumber: string): Promise<boolean>;
+    recordDisposition(payloadJson: string): Promise<string>;
   };
 };
 
@@ -220,6 +222,12 @@ function App(): React.JSX.Element {
   const [busy, setBusy] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [status, setStatus] = useState('Initializing handset...');
+  const [dispositionModalVisible, setDispositionModalVisible] = useState(false);
+  const [activeLeadForDisposition, setActiveLeadForDisposition] = useState<MobileLead | null>(null);
+  const [selectedDisposition, setSelectedDisposition] = useState<string>('HOT');
+  const [dispositionNotes, setDispositionNotes] = useState<string>('');
+  const [followUpDays, setFollowUpDays] = useState<number>(0);
+  const [submittingDisposition, setSubmittingDisposition] = useState(false);
   const dashboardRequestId = useRef(0);
   const callInFlight = useRef(false);
   const lastRefreshTime = useRef(0);
@@ -435,6 +443,9 @@ function App(): React.JSX.Element {
       const message = `Dialing ${callResult.leadName} through the company SIM.`;
       setCallFeedback({ kind: 'status', message });
       setStatus(message);
+      setTimeout(() => {
+        openDispositionModal(lead);
+      }, 1000);
     } catch (error) {
       const message = getErrorMessage(error, 'Unable to initiate the call.');
       setCallFeedback({ kind: 'error', message: `Call failed: ${message}` });
@@ -444,6 +455,45 @@ function App(): React.JSX.Element {
       callInFlight.current = false;
       setCallingLeadId(null);
       await loadDashboard(false);
+    }
+  };
+
+  const openDispositionModal = (lead: MobileLead) => {
+    setActiveLeadForDisposition(lead);
+    setSelectedDisposition(lead.status === 'NEW' ? 'HOT' : lead.status);
+    setDispositionNotes(lead.employeeNotes || '');
+    setFollowUpDays(lead.status === 'FOLLOW_UP' ? 1 : 0);
+    setDispositionModalVisible(true);
+  };
+
+  const submitDisposition = async () => {
+    if (!activeLeadForDisposition) return;
+    setSubmittingDisposition(true);
+    try {
+      const leadId = getLeadId(activeLeadForDisposition);
+      let followUpAt: string | undefined = undefined;
+      if (followUpDays > 0) {
+        const d = new Date(Date.now() + followUpDays * 24 * 60 * 60 * 1000);
+        d.setHours(11, 0, 0, 0); // 11:00 AM
+        followUpAt = d.toISOString();
+      }
+      const payload = {
+        leadId,
+        disposition: selectedDisposition,
+        status: selectedDisposition,
+        notes: dispositionNotes.trim() || undefined,
+        reason: dispositionNotes.trim() || `Status marked as ${selectedDisposition}`,
+        followUpAt,
+      };
+      await DayaarDevice.recordDisposition(JSON.stringify(payload));
+      setStatus(`Saved & synced outcome for ${activeLeadForDisposition.name}!`);
+      setDispositionModalVisible(false);
+      await loadDashboard(false);
+    } catch (error) {
+      const msg = getErrorMessage(error, 'Failed to update disposition.');
+      Alert.alert('Disposition Error', msg);
+    } finally {
+      setSubmittingDisposition(false);
     }
   };
 
@@ -702,6 +752,13 @@ function App(): React.JSX.Element {
                               : `Calling is unavailable while this lead is ${formatLabel(lead.status).toLowerCase()}.`}
                           </Text>
                         )}
+
+                        <TouchableOpacity
+                          style={styles.outcomeButton}
+                          onPress={() => openDispositionModal(lead)}
+                        >
+                          <Text style={styles.outcomeButtonText}>📝 Log Outcome / Update Status</Text>
+                        </TouchableOpacity>
                       </View>
                     );
                   })
@@ -730,6 +787,104 @@ function App(): React.JSX.Element {
           </>
         )}
       </ScrollView>
+
+      <Modal
+        visible={dispositionModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setDispositionModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalTitle}>Log Call Outcome & Status</Text>
+                <Text style={styles.modalSubtitle}>
+                  {activeLeadForDisposition ? `${activeLeadForDisposition.name} (${activeLeadForDisposition.phone})` : ''}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setDispositionModalVisible(false)} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.modalBody}>
+              <Text style={styles.modalSectionLabel}>LEAD STATUS & OUTCOME</Text>
+              <View style={styles.dispositionGrid}>
+                {[
+                  { id: 'HOT', label: '🔥 Hot Prospect', bg: '#fee2e2', border: '#fca5a5', text: '#991b1b' },
+                  { id: 'WARM', label: '👍 Interested / Warm', bg: '#dcfce7', border: '#86efac', text: '#166534' },
+                  { id: 'FOLLOW_UP', label: '⏰ Follow-Up Required', bg: '#fef3c7', border: '#fde047', text: '#854d0e' },
+                  { id: 'SITE_VISIT', label: '📍 Site Visit Scheduled', bg: '#f3e8ff', border: '#d8b4fe', text: '#6b21a8' },
+                  { id: 'NEGOTIATION', label: '💬 In Negotiation', bg: '#e0e7ff', border: '#a5b4fc', text: '#3730a3' },
+                  { id: 'BOOKED', label: '🏆 Deal Booked / Won', bg: '#ecfdf5', border: '#6ee7b7', text: '#065f46' },
+                  { id: 'NOT_INTERESTED', label: '❄️ Cold / Not Interested', bg: '#f1f5f9', border: '#cbd5e1', text: '#475569' },
+                ].map((item) => {
+                  const selected = selectedDisposition === item.id;
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.dispositionChip,
+                        { backgroundColor: selected ? item.bg : '#f8fafc', borderColor: selected ? item.border : '#cbd5e1', borderWidth: selected ? 2 : 1 },
+                      ]}
+                      onPress={() => setSelectedDisposition(item.id)}
+                    >
+                      <Text style={[styles.dispositionChipText, { color: selected ? item.text : '#334155', fontWeight: selected ? '800' : '600' }]}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.modalSectionLabel}>SCHEDULE NEXT FOLLOW-UP</Text>
+              <View style={styles.timingRow}>
+                {[
+                  { days: 0, label: 'None' },
+                  { days: 1, label: 'Tomorrow' },
+                  { days: 2, label: 'In 2 Days' },
+                  { days: 7, label: 'In 1 Week' },
+                ].map((timing) => {
+                  const selected = followUpDays === timing.days;
+                  return (
+                    <TouchableOpacity
+                      key={timing.days}
+                      style={[styles.timingChip, selected && styles.timingChipActive]}
+                      onPress={() => setFollowUpDays(timing.days)}
+                    >
+                      <Text style={[styles.timingChipText, selected && styles.timingChipTextActive]}>
+                        {timing.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.modalSectionLabel}>CALL NOTES & SUMMARY</Text>
+              <TextInput
+                style={styles.notesInput}
+                value={dispositionNotes}
+                onChangeText={setDispositionNotes}
+                multiline
+                numberOfLines={3}
+                placeholder="E.g. Discussed budget, preferred location, shared floor plan..."
+                placeholderTextColor="#94a3b8"
+              />
+
+              <TouchableOpacity
+                style={[styles.saveButton, submittingDisposition && styles.disabledButton]}
+                disabled={submittingDisposition}
+                onPress={() => void submitDisposition()}
+              >
+                <Text style={styles.saveButtonText}>
+                  {submittingDisposition ? 'Syncing with CRM...' : '💾 Save & Sync to Web CRM'}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -798,8 +953,32 @@ const styles = StyleSheet.create({
   metaText: { color: '#334155', fontSize: 10, fontWeight: '800' },
   attemptText: { color: '#64748b', fontSize: 11, fontWeight: '700' },
   unavailableText: { color: '#64748b', backgroundColor: '#f8fafc', borderRadius: 10, padding: 11, fontSize: 11, lineHeight: 16, textAlign: 'center' },
+  outcomeButton: { backgroundColor: '#f1f5f9', borderColor: '#cbd5e1', borderWidth: 1, borderRadius: 10, padding: 11, alignItems: 'center' },
+  outcomeButtonText: { color: '#0f172a', fontWeight: '700', fontSize: 13, textAlign: 'center' },
   dangerText: { color: '#be123c', fontWeight: '700', textAlign: 'center', padding: 12 },
   disabledText: { opacity: 0.5 },
+
+  // Modal styles
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' },
+  modalContainer: { backgroundColor: '#ffffff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32 },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' },
+  modalTitle: { color: '#0f172a', fontSize: 18, fontWeight: '900' },
+  modalSubtitle: { color: '#64748b', fontSize: 12, marginTop: 2, fontWeight: '600' },
+  closeButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' },
+  closeButtonText: { color: '#475569', fontSize: 16, fontWeight: '800' },
+  modalBody: { paddingTop: 14, paddingBottom: 20, gap: 10 },
+  modalSectionLabel: { color: '#475569', fontSize: 11, fontWeight: '800', marginTop: 6, letterSpacing: 0.5 },
+  dispositionGrid: { gap: 7 },
+  dispositionChip: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10 },
+  dispositionChipText: { fontSize: 13 },
+  timingRow: { flexDirection: 'row', gap: 8 },
+  timingChip: { flex: 1, paddingVertical: 9, paddingHorizontal: 4, borderRadius: 8, backgroundColor: '#f8fafc', borderColor: '#cbd5e1', borderWidth: 1, alignItems: 'center' },
+  timingChipActive: { backgroundColor: '#0284c7', borderColor: '#0284c7' },
+  timingChipText: { color: '#475569', fontSize: 11, fontWeight: '700' },
+  timingChipTextActive: { color: '#ffffff', fontWeight: '800' },
+  notesInput: { backgroundColor: '#f8fafc', borderColor: '#cbd5e1', borderWidth: 1, borderRadius: 10, color: '#0f172a', padding: 12, textAlignVertical: 'top', minHeight: 70 },
+  saveButton: { backgroundColor: '#0284c7', borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 10 },
+  saveButtonText: { color: '#ffffff', fontWeight: '900', fontSize: 15 },
 });
 
 export default App;

@@ -28,21 +28,53 @@ export const LeadQualificationSchema = z.object({
 
 export type LeadQualificationDto = z.infer<typeof LeadQualificationSchema>;
 
+import { normalizePhoneNumber } from '../utils/phone';
+
 export const CreateLeadSchema = z.object({
-  name: z.string().min(2, 'Lead name is required').trim(),
-  phone: z.string().min(10, 'Valid phone number is required').trim(),
-  alternatePhone: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
-  source: z.string().min(1, 'Source is required').trim(),
-  campaign: z.string().optional(),
-  project: z.string().min(1, 'Project is required').trim(),
-  assignedEmployeeId: MongoIdSchema.optional().nullable(),
+  name: z
+    .string()
+    .optional()
+    .transform((val) => (val && val.trim() ? val.trim() : 'Inquiry Contact')),
+  phone: z
+    .string()
+    .min(10, 'Valid phone number is required')
+    .trim()
+    .transform((val) => normalizePhoneNumber(val)),
+  alternatePhone: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val && val.trim() ? normalizePhoneNumber(val) : undefined)),
+  email: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => {
+      if (!val || typeof val !== 'string') return undefined;
+      const clean = val.trim().toLowerCase();
+      return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(clean) ? clean : undefined;
+    }),
+  source: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val && val.trim() ? val.trim() : 'Manual Entry')),
+  campaign: z.string().optional().nullable(),
+  project: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val && val.trim() ? val.trim() : 'General Inquiry')),
+  assignedEmployeeId: z
+    .union([MongoIdSchema, z.literal(''), z.null(), z.undefined()])
+    .optional()
+    .transform((val) => (val && typeof val === 'string' && val.trim() ? val.trim() : undefined)),
   temperature: z.nativeEnum(Temperature).default(Temperature.UNQUALIFIED),
   qualification: LeadQualificationSchema.optional(),
-  employeeNotes: z.string().optional(),
-  notes: z.string().optional(),
-  budgetMin: z.number().optional(),
-  budgetMax: z.number().optional(),
+  employeeNotes: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  budgetMin: z.number().optional().nullable(),
+  budgetMax: z.number().optional().nullable(),
 });
 
 export type CreateLeadDto = z.infer<typeof CreateLeadSchema>;

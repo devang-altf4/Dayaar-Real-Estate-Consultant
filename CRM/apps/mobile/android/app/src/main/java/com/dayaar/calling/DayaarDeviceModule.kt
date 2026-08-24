@@ -79,6 +79,27 @@ class DayaarDeviceModule(private val context: ReactApplicationContext) : ReactCo
     }
 
     @ReactMethod
+    fun recordDisposition(payloadJson: String, promise: Promise) {
+        val json = try {
+            JSONObject(payloadJson)
+        } catch (e: Exception) {
+            promise.reject("INVALID_JSON", e)
+            return
+        }
+        DeviceApi.request(
+            context,
+            "POST",
+            "/mobile/disposition",
+            json,
+        ) { result ->
+            result.fold(
+                onSuccess = { promise.resolve(it) },
+                onFailure = { promise.reject("DISPOSITION_FAILED", it) },
+            )
+        }
+    }
+
+    @ReactMethod
     fun getDeviceInfo(promise: Promise) {
         try {
             val telephony = context.getSystemService(TelephonyManager::class.java)

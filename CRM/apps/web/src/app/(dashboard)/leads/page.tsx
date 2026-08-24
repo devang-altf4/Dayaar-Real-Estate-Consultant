@@ -99,11 +99,12 @@ export default function LeadsPage() {
 
   const createLeadMutation = useMutation({
     mutationFn: (form: typeof newLeadForm) => {
+      const emailVal = form.email?.trim() || '';
       const payload: any = {
-        name: form.name.trim(),
-        phone: form.phone.trim(),
+        name: form.name?.trim() || 'Inquiry Contact',
+        phone: form.phone?.trim() || '',
         alternatePhone: form.alternatePhone?.trim() || undefined,
-        email: form.email?.trim() || undefined,
+        email: emailVal && /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(emailVal) ? emailVal : undefined,
         project: form.project?.trim() || 'General Inquiry',
         source: form.source?.trim() || 'Manual Entry',
         assignedEmployeeId: form.assignedEmployeeId?.trim() || undefined,
@@ -717,10 +718,25 @@ export default function LeadsPage() {
             </div>
 
             {createLeadMutation.isError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium animate-in fade-in">
-                {(createLeadMutation.error as any)?.response?.data?.message ||
-                  (createLeadMutation.error as any)?.message ||
-                  'Failed to create lead. Please check the details.'}
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium animate-in fade-in space-y-1">
+                {(() => {
+                  const errData = (createLeadMutation.error as any)?.response?.data;
+                  if (Array.isArray(errData?.details) && errData.details.length > 0) {
+                    return errData.details.map((d: any, i: number) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                        <span><strong className="capitalize">{d.path || 'field'}</strong>: {d.message}</span>
+                      </div>
+                    ));
+                  }
+                  return (
+                    <div>
+                      {errData?.message ||
+                        (createLeadMutation.error as any)?.message ||
+                        'Failed to create lead. Please check the details.'}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
