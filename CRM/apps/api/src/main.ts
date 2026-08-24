@@ -22,12 +22,15 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // CORS configuration
-  const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter((origin) => origin && origin !== '*');
+  const corsOriginsRaw = process.env.CORS_ORIGIN || '*';
+  const allowAll = corsOriginsRaw === '*' || corsOriginsRaw.includes('*');
   app.enableCors({
-    origin: corsOrigins,
+    origin: allowAll
+      ? true
+      : corsOriginsRaw
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

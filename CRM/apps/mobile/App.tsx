@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Image,
   Linking,
   NativeModules,
   PermissionsAndroid,
@@ -482,8 +483,13 @@ function App(): React.JSX.Element {
           ) : undefined
         }
       >
-        <Text style={styles.title}>Dayaar Calling</Text>
-        <Text style={styles.subtitle}>Employee company-SIM dial companion</Text>
+        <View style={styles.brandRow}>
+          <Image source={require('./assets/dayaar-logo.png')} style={styles.brandLogo} resizeMode="contain" />
+          <View style={styles.brandTextContainer}>
+            <Text style={styles.title}>Dayaar Calling</Text>
+            <Text style={styles.subtitle}>Employee company-SIM dial companion</Text>
+          </View>
+        </View>
         <View style={styles.statusBox}><Text style={styles.statusText}>{status}</Text></View>
 
         {!pairingState.paired ? (
@@ -731,8 +737,11 @@ function App(): React.JSX.Element {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f8fafc' },
   container: { padding: 20, paddingBottom: 36, gap: 14 },
-  title: { color: '#0f172a', fontSize: 28, fontWeight: '900' },
-  subtitle: { color: '#64748b', marginTop: -10 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 2 },
+  brandLogo: { width: 44, height: 44, borderRadius: 8 },
+  brandTextContainer: { flex: 1 },
+  title: { color: '#0f172a', fontSize: 24, fontWeight: '900' },
+  subtitle: { color: '#64748b', fontSize: 13, marginTop: 1 },
   statusBox: { backgroundColor: '#e0f2fe', borderColor: '#7dd3fc', borderWidth: 1, borderRadius: 12, padding: 12 },
   statusText: { color: '#075985', fontSize: 13, fontWeight: '600' },
   card: { backgroundColor: '#fff', borderColor: '#e2e8f0', borderWidth: 1, borderRadius: 16, padding: 16, gap: 10 },
