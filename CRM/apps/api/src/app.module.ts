@@ -24,6 +24,7 @@ import { LeadImportModule } from './modules/lead-import/lead-import.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { FollowupsModule } from './modules/followups/followups.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { MobileModule } from './modules/mobile/mobile.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { HealthController } from './health.controller';
 
@@ -57,6 +58,7 @@ import { HealthController } from './health.controller';
     AttendanceModule,
     FollowupsModule,
     AnalyticsModule,
+    MobileModule,
     SeedModule,
   ],
   controllers: [HealthController],

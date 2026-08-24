@@ -54,34 +54,51 @@ class DayaarDeviceModule(private val context: ReactApplicationContext) : ReactCo
     }
 
     @ReactMethod
+    fun getMobileDashboard(promise: Promise) {
+        DeviceApi.request(context, "GET", "/mobile/dashboard") { result ->
+            result.fold(
+                onSuccess = { promise.resolve(it) },
+                onFailure = { promise.reject("MOBILE_DASHBOARD_FAILED", it) },
+            )
+        }
+    }
+
+    @ReactMethod
+    fun initiateMobileCall(leadId: String, promise: Promise) {
+        DeviceApi.request(
+            context,
+            "POST",
+            "/mobile/calls",
+            JSONObject().put("leadId", leadId),
+        ) { result ->
+            result.fold(
+                onSuccess = { promise.resolve(it) },
+                onFailure = { promise.reject("MOBILE_CALL_FAILED", it) },
+            )
+        }
+    }
+
+    @ReactMethod
     fun getDeviceInfo(promise: Promise) {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful || task.result.isNullOrBlank()) {
-                promise.reject("FCM_UNAVAILABLE", task.exception ?: IllegalStateException("FCM token unavailable. Add google-services.json."))
-                return@addOnCompleteListener
-            }
+        try {
             val telephony = context.getSystemService(TelephonyManager::class.java)
-            val simState = when (telephony?.simState) {
-                TelephonyManager.SIM_STATE_READY -> "READY"
-                TelephonyManager.SIM_STATE_ABSENT -> "ABSENT"
-                TelephonyManager.SIM_STATE_PIN_REQUIRED,
-                TelephonyManager.SIM_STATE_PUK_REQUIRED,
-                TelephonyManager.SIM_STATE_NETWORK_LOCKED -> "LOCKED"
-                else -> "UNKNOWN"
-            }
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-            SecurePrefs.get(context).edit().putString(SecurePrefs.FCM_TOKEN, task.result).apply()
+            if (deviceId.isNullOrBlank()) {
+                promise.reject("DEVICE_ID_UNAVAILABLE", "Android device ID is unavailable.")
+                return
+            }
             promise.resolve(Arguments.createMap().apply {
                 putString("deviceId", deviceId)
                 putString("deviceName", "${Build.MANUFACTURER} ${Build.MODEL}")
                 putString("manufacturer", Build.MANUFACTURER)
                 putString("model", Build.MODEL)
                 putString("appVersion", packageInfo.versionName ?: "1.0.0")
-                putString("fcmToken", task.result)
-                putString("simState", simState)
+                putString("simState", getSimState(telephony))
                 putString("simOperator", telephony?.simOperatorName.orEmpty())
             })
+        } catch (error: Exception) {
+            promise.reject("DEVICE_INFO_FAILED", error)
         }
     }
 
@@ -102,16 +119,63 @@ class DayaarDeviceModule(private val context: ReactApplicationContext) : ReactCo
     }
 
     @ReactMethod
-    fun saveDeviceCredentials(apiBaseUrl: String, deviceId: String, deviceToken: String, promise: Promise) {
-        try {
-            SecurePrefs.get(context).edit()
-                .putString(SecurePrefs.API_BASE_URL, apiBaseUrl.trimEnd('/'))
-                .putString(SecurePrefs.DEVICE_ID, deviceId)
-                .putString(SecurePrefs.DEVICE_TOKEN, deviceToken)
-                .apply()
-            promise.resolve(true)
-        } catch (error: Exception) {
-            promise.reject("SECURE_STORAGE_FAILED", error)
+    fun pairDevice(apiBaseUrl: String, pairingCode: String, pairingToken: String, promise: Promise) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful || task.result.isNullOrBlank()) {
+                promise.reject(
+                    "FCM_UNAVAILABLE",
+                    task.exception ?: IllegalStateException("FCM token unavailable. Add google-services.json.")
+                )
+                return@addOnCompleteListener
+            }
+
+            try {
+                val telephony = context.getSystemService(TelephonyManager::class.java)
+                val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+                if (deviceId.isNullOrBlank()) {
+                    promise.reject("DEVICE_ID_UNAVAILABLE", "Android device ID is unavailable.")
+                    return@addOnCompleteListener
+                }
+                val body = JSONObject()
+                    .put("pairingCode", pairingCode)
+                    .put("pairingToken", pairingToken)
+                    .put("deviceId", deviceId)
+                    .put("deviceName", "${Build.MANUFACTURER} ${Build.MODEL}")
+                    .put("manufacturer", Build.MANUFACTURER)
+                    .put("model", Build.MODEL)
+                    .put("appVersion", packageInfo.versionName ?: "1.0.0")
+                    .put("fcmToken", task.result)
+                    .put("simState", getSimState(telephony))
+                    .put("simOperator", telephony?.simOperatorName.orEmpty())
+                    .put(
+                        "capabilities", JSONObject()
+                            .put(
+                                "canPlaceCalls",
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.CALL_PHONE
+                                ) == PackageManager.PERMISSION_GRANTED
+                            )
+                            .put("canReadCallLogs", false)
+                            .put("canSyncRecordings", false)
+                    )
+
+                DeviceApi.claimPairing(context, apiBaseUrl, body) { result ->
+                    result.fold(
+                        onSuccess = { savedDeviceId ->
+                            promise.resolve(Arguments.createMap().apply {
+                                putBoolean("paired", true)
+                                putString("deviceId", savedDeviceId)
+                                putString("apiBaseUrl", apiBaseUrl.trimEnd('/'))
+                            })
+                        },
+                        onFailure = { promise.reject("PAIRING_FAILED", it) },
+                    )
+                }
+            } catch (error: Exception) {
+                promise.reject("PAIRING_FAILED", error)
+            }
         }
     }
 
@@ -149,6 +213,15 @@ class DayaarDeviceModule(private val context: ReactApplicationContext) : ReactCo
         ) { result ->
             result.fold(onSuccess = { promise.resolve(true) }, onFailure = { promise.reject("HEARTBEAT_FAILED", it) })
         }
+    }
+
+    private fun getSimState(telephony: TelephonyManager?): String = when (telephony?.simState) {
+        TelephonyManager.SIM_STATE_READY -> "READY"
+        TelephonyManager.SIM_STATE_ABSENT -> "ABSENT"
+        TelephonyManager.SIM_STATE_PIN_REQUIRED,
+        TelephonyManager.SIM_STATE_PUK_REQUIRED,
+        TelephonyManager.SIM_STATE_NETWORK_LOCKED -> "LOCKED"
+        else -> "UNKNOWN"
     }
 
     @ReactMethod

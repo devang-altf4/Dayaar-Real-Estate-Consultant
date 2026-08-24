@@ -306,75 +306,8 @@ export class SeedService {
     }
     this.logger.log(`Created ${createdLeads.length} real estate leads`);
 
-    // 9. Seed Sample Calls & Historical Attempts + Call Events
-    for (let i = 0; i < 25; i++) {
-      const lead = createdLeads[i % createdLeads.length];
-      const emp = employees[i % employees.length];
-      const device = devices[i % devices.length];
-
-      const isConnected = i % 3 !== 0;
-      const duration = isConnected ? 45 + (i * 12) : 0;
-      const dialedAt = new Date(Date.now() - (i + 1) * 35 * 60 * 1000);
-      const connectedAt = isConnected ? new Date(dialedAt.getTime() + 6000) : null;
-      const endedAt = new Date(dialedAt.getTime() + (duration + 6) * 1000);
-
-      const call = new this.callAttemptModel({
-        organizationId: orgId,
-        leadId: lead._id,
-        employeeId: emp._id,
-        deviceId: device._id,
-        provider: CallProviderType.CALLYZER_SIM,
-        origin: i % 2 === 0 ? CallOrigin.WEB : CallOrigin.ANDROID,
-        syncStatus: CallSyncStatus.MATCHED,
-        status: isConnected ? CallAttemptStatus.COMPLETED : CallAttemptStatus.NOT_CONNECTED,
-        countsAsAttempt: true,
-        dialedAt,
-        connectedAt,
-        endedAt,
-        duration,
-        phoneNumber: `+91${lead.phone}`,
-        employeePhoneNumber: `+91${emp.phone}`,
-        providerCallId: `demo-callyzer-${i + 1}`,
-        connected: isConnected,
-        recordingStatus: isConnected ? RecordingStatus.ARCHIVED : RecordingStatus.NO_RECORDING,
-        recordingB2Key: isConnected ? `recordings/${orgId.toString()}/sample_${i + 1}.wav` : null,
-        recordingBytes: isConnected ? 1048576 : null,
-        recordingMimeType: isConnected ? 'audio/wav' : null,
-      });
-      await call.save();
-
-      // Create Call Lifecycle Events
-      await this.callEventModel.create([
-        {
-          organizationId: orgId,
-          callAttemptId: call._id,
-          employeeId: emp._id,
-          deviceId: device._id,
-          type: CallEventType.CALL_ATTEMPT_CREATED,
-          metadata: { origin: call.origin },
-          timestamp: dialedAt,
-        },
-        {
-          organizationId: orgId,
-          callAttemptId: call._id,
-          employeeId: emp._id,
-          deviceId: device._id,
-          type: CallEventType.DIALING_STARTED,
-          metadata: { dialedAt },
-          timestamp: dialedAt,
-        },
-        {
-          organizationId: orgId,
-          callAttemptId: call._id,
-          employeeId: emp._id,
-          deviceId: device._id,
-          type: CallEventType.CALL_ENDED,
-          metadata: { duration, isConnected },
-          timestamp: endedAt,
-        },
-      ]);
-    }
-    this.logger.log('Created 25 call attempts and lifecycle events');
+    // 9. Real calls are captured dynamically via Callyzer integration
+    this.logger.log('Skipping mock call attempts (live Callyzer integration active)');
 
     // 10. Seed Today Attendance for all Employees
     const todayStr = new Date().toISOString().split('T')[0];

@@ -14,7 +14,7 @@ export default function PipelineKanbanPage() {
     queryFn: () => api.get<any>('/leads', { limit: 100 }),
   });
 
-  const leads = leadsData?.data || [];
+  const leads = Array.isArray(leadsData) ? leadsData : leadsData?.data || [];
 
   const columns = [
     { id: LeadStatus.NEW, title: 'Fresh Leads', color: 'bg-sky-50 border-sky-200' },

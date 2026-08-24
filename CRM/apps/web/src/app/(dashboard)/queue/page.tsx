@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useSocket } from '@/context/SocketContext';
@@ -28,17 +28,35 @@ export default function DailyCallQueuePage() {
   const { activeCall, deviceStatus, setActiveCall } = useSocket();
   const [activeTab, setActiveTab] = useState<'quick' | 'full'>('quick');
   const [callError, setCallError] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const lastRefreshRef = useRef(0);
 
-  // Fetch daily queue
-  const { data: queueData, isLoading, refetch } = useQuery({
+  // Fetch daily queue with auto background sync (8s)
+  const { data: queueData, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['daily-queue'],
     queryFn: () => api.get<any>('/queue'),
+    refetchInterval: 8000,
   });
 
-  const { data: progressData } = useQuery({
+  const { data: progressData, refetch: refetchProgress } = useQuery({
     queryKey: ['queue-progress'],
     queryFn: () => api.get<any>('/queue/progress'),
+    refetchInterval: 8000,
   });
+
+  const handleManualRefresh = async () => {
+    const now = Date.now();
+    if (now - lastRefreshRef.current < 3000) return; // 3-second cooldown rate limit
+    lastRefreshRef.current = now;
+    setIsRefreshing(true);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['daily-queue'] }),
+      queryClient.invalidateQueries({ queryKey: ['queue-progress'] }),
+      refetch(),
+      refetchProgress(),
+    ]);
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   const queue = queueData?.queue || [];
   const currentLead = queue[0] || null;
@@ -95,24 +113,37 @@ export default function DailyCallQueuePage() {
           </p>
         </div>
 
-        {progressData && (
-          <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
-            <div className="text-center">
-              <span className="text-[10px] uppercase font-bold text-slate-400">Calls Today</span>
-              <div className="text-lg font-black text-slate-900">{progressData.totalCallsMadeToday}</div>
+        <div className="flex items-center gap-3">
+          {progressData && (
+            <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="text-center">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Calls Today</span>
+                <div className="text-lg font-black text-slate-900">{progressData.totalCallsMadeToday}</div>
+              </div>
+              <div className="h-8 w-px bg-slate-200" />
+              <div className="text-center">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Remaining</span>
+                <div className="text-lg font-black text-amber-600">{progressData.remainingCalls}</div>
+              </div>
+              <div className="h-8 w-px bg-slate-200" />
+              <div className="text-center">
+                <span className="text-[10px] uppercase font-bold text-slate-400">In Queue</span>
+                <div className="text-lg font-black text-sky-700">{queue.length}</div>
+              </div>
             </div>
-            <div className="h-8 w-px bg-slate-200" />
-            <div className="text-center">
-              <span className="text-[10px] uppercase font-bold text-slate-400">Remaining</span>
-              <div className="text-lg font-black text-amber-600">{progressData.remainingCalls}</div>
-            </div>
-            <div className="h-8 w-px bg-slate-200" />
-            <div className="text-center">
-              <span className="text-[10px] uppercase font-bold text-slate-400">In Queue</span>
-              <div className="text-lg font-black text-sky-700">{queue.length}</div>
-            </div>
-          </div>
-        )}
+          )}
+
+          <button
+            type="button"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing || isLoading}
+            title="Sync Call Queue (3s cooldown)"
+            className="flex items-center gap-1.5 px-3.5 py-3 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition-all shadow-xs disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing || isRefetching ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
+            <span className="hidden sm:inline">{isRefreshing || isRefetching ? 'Syncing...' : 'Sync'}</span>
+          </button>
+        </div>
       </div>
 
       {callError && (

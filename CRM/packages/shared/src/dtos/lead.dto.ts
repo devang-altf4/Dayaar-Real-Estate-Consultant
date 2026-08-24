@@ -40,7 +40,10 @@ export const CreateLeadSchema = z.object({
   temperature: z.nativeEnum(Temperature).default(Temperature.UNQUALIFIED),
   qualification: LeadQualificationSchema.optional(),
   employeeNotes: z.string().optional(),
-}).strict();
+  notes: z.string().optional(),
+  budgetMin: z.number().optional(),
+  budgetMax: z.number().optional(),
+});
 
 export type CreateLeadDto = z.infer<typeof CreateLeadSchema>;
 

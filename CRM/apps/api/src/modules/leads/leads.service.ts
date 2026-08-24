@@ -318,8 +318,21 @@ export class LeadsService {
       assignedManagerId,
       status: LeadStatus.NEW,
       temperature: dto.temperature || Temperature.UNQUALIFIED,
-      qualification: dto.qualification || {},
-      employeeNotes: dto.employeeNotes,
+      qualification: {
+        budgetMin: dto.qualification?.budgetMin ?? dto.budgetMin,
+        budgetMax: dto.qualification?.budgetMax ?? dto.budgetMax,
+        propertyType: dto.qualification?.propertyType,
+        bhk: dto.qualification?.bhk,
+        preferredLocations: dto.qualification?.preferredLocations,
+        purpose: dto.qualification?.purpose,
+        purchaseTimeline: dto.qualification?.purchaseTimeline,
+        financing: dto.qualification?.financing,
+        loanStatus: dto.qualification?.loanStatus,
+        siteVisitInterested: dto.qualification?.siteVisitInterested,
+        siteVisitDate: dto.qualification?.siteVisitDate,
+        notes: dto.qualification?.notes ?? dto.notes,
+      },
+      employeeNotes: dto.employeeNotes || dto.notes,
       attemptCount: 0,
     });
 

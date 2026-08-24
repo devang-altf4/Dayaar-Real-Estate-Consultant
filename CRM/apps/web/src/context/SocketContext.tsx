@@ -47,11 +47,15 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [activeCall, setActiveCall] = useState<ActiveCallState | null>(null);
 
   useEffect(() => {
+    setIsConnected(false);
+    setDeviceStatus({ status: DeviceStatus.OFFLINE });
+    setActiveCall(null);
+
     if (!user) {
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-      }
+      setSocket((current) => {
+        current?.disconnect();
+        return null;
+      });
       return;
     }
 
@@ -59,8 +63,13 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('dayaar_access_token');
     if (!token) return;
 
+    let cancelled = false;
     void api.get<any>('/devices/my-device').then((device) => {
-      if (!device) return;
+      if (cancelled) return;
+      if (!device) {
+        setDeviceStatus({ status: DeviceStatus.OFFLINE });
+        return;
+      }
       setDeviceStatus({
         status: device.status || DeviceStatus.OFFLINE,
         deviceName: device.deviceName,
@@ -120,7 +129,10 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     setSocket(s);
 
     return () => {
+      cancelled = true;
       s.disconnect();
+      setSocket((current) => (current === s ? null : current));
+      setIsConnected(false);
     };
   }, [user]);
 

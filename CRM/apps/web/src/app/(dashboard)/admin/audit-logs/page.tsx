@@ -14,8 +14,10 @@ export default function AdminAuditLogsPage() {
     queryFn: () => api.get<any>('/audit', { page, limit: 30 }),
   });
 
-  const logs = auditData?.data || [];
-  const meta = auditData?.meta || { total: 0, totalPages: 1 };
+  const logs = Array.isArray(auditData) ? auditData : auditData?.data || [];
+  const meta = Array.isArray(auditData)
+    ? { total: logs.length, totalPages: 1 }
+    : auditData?.meta || { total: 0, totalPages: 1 };
 
   return (
     <div className="space-y-6">
