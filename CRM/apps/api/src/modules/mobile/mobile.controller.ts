@@ -27,4 +27,14 @@ export class MobileController {
   ) {
     return this.mobileService.initiateCall(dto.leadId, device);
   }
+
+  @Public()
+  @UseGuards(DeviceAuthGuard)
+  @Post('disposition')
+  recordDisposition(
+    @Body() dto: any,
+    @CurrentDevice() device: DevicePrincipal,
+  ) {
+    return this.mobileService.recordDisposition(dto, device);
+  }
 }

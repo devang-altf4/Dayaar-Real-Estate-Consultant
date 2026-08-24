@@ -75,7 +75,27 @@ export class CallyzerIngestionService {
       organizationId: new Types.ObjectId(organizationId),
       providerCallId: call.providerCallId,
     });
-    if (duplicate) return duplicate;
+    if (duplicate) {
+      let changed = false;
+      if (call.recordingUrl && (!duplicate.recordingStatus || duplicate.recordingStatus === RecordingStatus.NO_RECORDING)) {
+        duplicate.recordingStatus = RecordingStatus.PENDING;
+        changed = true;
+        await this.jobs.enqueue({
+          key: `archive:${call.providerCallId}`,
+          organizationId,
+          type: 'ARCHIVE_RECORDING',
+          payload: { callAttemptId: duplicate._id.toString(), recordingUrl: call.recordingUrl },
+        });
+      }
+      if (call.duration && duplicate.duration !== call.duration) {
+        duplicate.duration = call.duration;
+        duplicate.connected = call.duration > 2;
+        duplicate.status = this.status(call.callType, duplicate.connected);
+        changed = true;
+      }
+      if (changed) await duplicate.save();
+      return duplicate;
+    }
 
     const employee = await this.resolveEmployee(organizationId, call.employeePhoneNumber);
     const candidates = employee

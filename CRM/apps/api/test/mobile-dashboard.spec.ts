@@ -48,9 +48,18 @@ describe('MobileService', () => {
     const callingService = {
       initiateCall: jest.fn().mockResolvedValue({ callAttemptId: 'attempt-1' }),
     };
+    const attemptModel = {
+      findOne: jest.fn().mockReturnValue({ sort: jest.fn().mockResolvedValue(null) }),
+      create: jest.fn(),
+    };
+    const followUpModel = {
+      create: jest.fn(),
+    };
     const service = new MobileService(
       leadModel as any,
       userModel as any,
+      attemptModel as any,
+      followUpModel as any,
       analyticsService as any,
       leadQueueService as any,
       callingService as any,

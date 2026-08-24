@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CallAttempt, CallAttemptSchema } from '../../database/schemas/call-attempt.schema';
+import { FollowUp, FollowUpSchema } from '../../database/schemas/follow-up.schema';
 import { Lead, LeadSchema } from '../../database/schemas/lead.schema';
 import { User, UserSchema } from '../../database/schemas/user.schema';
 import { AnalyticsModule } from '../analytics/analytics.module';
@@ -18,6 +20,8 @@ import { MobileService } from './mobile.service';
     MongooseModule.forFeature([
       { name: Lead.name, schema: LeadSchema },
       { name: User.name, schema: UserSchema },
+      { name: CallAttempt.name, schema: CallAttemptSchema },
+      { name: FollowUp.name, schema: FollowUpSchema },
     ]),
   ],
   controllers: [MobileController],
