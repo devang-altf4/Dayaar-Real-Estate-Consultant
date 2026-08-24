@@ -205,7 +205,7 @@ const formatLabel = (value: string) =>
 
 
 function App(): React.JSX.Element {
-  const [apiBaseUrl, setApiBaseUrl] = useState('http://127.0.0.1:4000/api');
+  const [apiBaseUrl, setApiBaseUrl] = useState('https://dayaar-real-estate-consultant-2.onrender.com/api');
   const [pairingCode, setPairingCode] = useState('');
   const [pairingToken, setPairingToken] = useState('');
   const [manualPairingValue, setManualPairingValue] = useState('');
@@ -506,7 +506,7 @@ function App(): React.JSX.Element {
               onChangeText={setApiBaseUrl}
               autoCapitalize="none"
               autoCorrect={false}
-              placeholder="http://192.168.x.x:4000/api"
+              placeholder="https://dayaar-real-estate-consultant-2.onrender.com/api"
               placeholderTextColor="#94a3b8"
             />
             <Text style={styles.fieldHint}>Emulator: use 10.0.2.2. Physical phone: use the API's LAN or deployed URL.</Text>
