@@ -47,7 +47,7 @@ export function PairingModal({ isOpen, onClose }: PairingModalProps) {
     return () => clearInterval(timer);
   }, [isOpen, timeLeft]);
 
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://dayaar-real-estate-consultant-2.onrender.com/api';
   const pairingLink = pairingData
     ? `dayaarcrm://pair?code=${encodeURIComponent(pairingData.pairingCode)}&token=${encodeURIComponent(pairingData.pairingToken)}&api=${encodeURIComponent(apiBaseUrl)}`
     : '';
