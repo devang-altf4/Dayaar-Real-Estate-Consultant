@@ -551,7 +551,9 @@ function App(): React.JSX.Element {
         }
       >
         <View style={styles.brandRow}>
-          <Image source={require('./assets/dayaar-logo.png')} style={styles.brandLogo} resizeMode="contain" />
+          <View style={styles.brandLogoContainer}>
+            <Image source={require('./assets/dayaar-logo.png')} style={styles.brandLogo} resizeMode="contain" />
+          </View>
           <View style={styles.brandTextContainer}>
             <Text style={styles.title}>Dayaar Calling</Text>
             <Text style={styles.subtitle}>Employee company-SIM dial companion</Text>
@@ -965,7 +967,8 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f8fafc' },
   container: { padding: 20, paddingBottom: 36, gap: 14 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 2 },
-  brandLogo: { width: 44, height: 44, borderRadius: 8 },
+  brandLogoContainer: { width: 44, height: 44, borderRadius: 10, backgroundColor: '#0B1727', alignItems: 'center', justifyContent: 'center', padding: 4 },
+  brandLogo: { width: 34, height: 34 },
   brandTextContainer: { flex: 1 },
   title: { color: '#0f172a', fontSize: 24, fontWeight: '900' },
   subtitle: { color: '#64748b', fontSize: 13, marginTop: 1 },
