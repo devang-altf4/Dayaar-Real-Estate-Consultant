@@ -43,18 +43,27 @@ object CallLauncher {
     }
 
     fun placeManual(context: Context, phoneNumber: String) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-            throw SecurityException("Phone-call permission has not been granted.")
-        }
-        require(phoneNumber.matches(Regex("^\\+[1-9]\\d{7,14}$"))) { "Server returned an invalid E.164 phone number." }
         launchCallIntent(context, phoneNumber)
     }
 
     private fun launchCallIntent(context: Context, phoneNumber: String) {
-        val intent = Intent(Intent.ACTION_CALL, Uri.parse("tel:$phoneNumber")).apply {
+        val clean = phoneNumber.trim().replace(" ", "").replace("-", "")
+        val uri = if (clean.startsWith("tel:")) Uri.parse(clean) else Uri.parse("tel:$clean")
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+            try {
+                val callIntent = Intent(Intent.ACTION_CALL, uri).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(callIntent)
+                return
+            } catch (_: Exception) {
+                // fallback to dialer
+            }
+        }
+        val dialIntent = Intent(Intent.ACTION_DIAL, uri).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        context.startActivity(intent)
+        context.startActivity(dialIntent)
     }
 
     private fun showDialNotification(context: Context, phoneNumber: String, commandId: String, callAttemptId: String) {

@@ -61,15 +61,6 @@ export class AttendanceService {
       throw new NotFoundException('Organization not found');
     }
 
-    const maxAccuracy = org.maxAllowedGpsAccuracyMeters || 50;
-    if (accuracy > maxAccuracy) {
-      throw new BadRequestException({
-        success: false,
-        code: 'GPS_ACCURACY_TOO_LOW',
-        message: `GPS accuracy is too low (${Math.round(accuracy)}m). Maximum allowed is ${maxAccuracy}m. Please ensure GPS/Location is enabled with High Accuracy mode.`,
-      });
-    }
-
     const { isWithin, distanceMeters } = isWithinGeofence(
       latitude,
       longitude,
@@ -78,11 +69,40 @@ export class AttendanceService {
       org.allowedRadiusMeters,
     );
 
+    // Human-readable distance for messages.
+    const prettyDistance =
+      distanceMeters >= 1000
+        ? `${(distanceMeters / 1000).toFixed(1)} km`
+        : `${Math.round(distanceMeters)} m`;
+
+    // Case 1: position is unambiguously far from the office (even accounting
+    // for GPS error, it cannot be inside the radius) — say so plainly.
+    if (distanceMeters > org.allowedRadiusMeters + accuracy) {
+      throw new BadRequestException({
+        success: false,
+        code: 'OUTSIDE_GEOFENCE',
+        message: `You are about ${prettyDistance} away from the office. Check-in works only when you are at the office (within ${org.allowedRadiusMeters} m).`,
+        distanceMeters,
+        allowedRadiusMeters: org.allowedRadiusMeters,
+      });
+    }
+
+    // Case 2: position is ambiguous — GPS too weak to decide. Ask for a better fix.
+    const maxAccuracy = org.maxAllowedGpsAccuracyMeters || 50;
+    if (accuracy > maxAccuracy) {
+      throw new BadRequestException({
+        success: false,
+        code: 'GPS_ACCURACY_TOO_LOW',
+        message: `GPS signal is too weak to confirm you are at the office (±${Math.round(accuracy)} m). Step near a window or outdoors, make sure Location is on, and try again.`,
+      });
+    }
+
+    // Case 3: good GPS, but outside the radius.
     if (!isWithin) {
       throw new BadRequestException({
         success: false,
         code: 'OUTSIDE_GEOFENCE',
-        message: `You are ${Math.round(distanceMeters)} meters away from the office. Check-in is permitted only within ${org.allowedRadiusMeters} meters of the office location.`,
+        message: `You are ${prettyDistance} from the office. Check-in works only within ${org.allowedRadiusMeters} m of the office.`,
         distanceMeters,
         allowedRadiusMeters: org.allowedRadiusMeters,
       });

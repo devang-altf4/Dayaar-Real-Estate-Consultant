@@ -75,9 +75,12 @@ export class CallingService {
     }
     await this.assertLeadAccess(lead, authUser);
     const phoneNumber = normalizePhoneToE164(lead.phone);
-    const employeePhoneNumber = normalizePhoneToE164(employee.phone);
-    if (!phoneNumber || !employeePhoneNumber) {
-      throw new BadRequestException('Lead and employee calling numbers must be valid.');
+    const employeePhoneNumber = normalizePhoneToE164(employee.phone) || (origin === CallOrigin.ANDROID ? '+910000000000' : null);
+    if (!phoneNumber) {
+      throw new BadRequestException('Lead phone number must be valid.');
+    }
+    if (!employeePhoneNumber && origin === CallOrigin.WEB) {
+      throw new BadRequestException('Employee calling number must be configured for web dialing.');
     }
 
     const redialGapSeconds = Math.max(0, Number(process.env.MIN_REDIAL_GAP_SECONDS || 180));
@@ -366,8 +369,13 @@ export class CallingService {
 
   async getRecordingUrl(callAttemptId: string, user: IAuthUser) {
     const attempt = await this.assertRecordingAccess(callAttemptId, user);
-    // Signed URLs need a bucket. Without durable storage, hand back the
-    // authenticated stream route instead of exposing any raw path.
+    if (attempt.recordingUrl) {
+      return {
+        url: attempt.recordingUrl,
+        streamPath: `/calls/${callAttemptId}/recording-stream`,
+        expiresInSeconds: null,
+      };
+    }
     if (!attempt.recordingB2Key || !this.storage.primaryIsDurable()) {
       return {
         url: null,
@@ -380,6 +388,30 @@ export class CallingService {
       streamPath: null,
       expiresInSeconds: 300,
     };
+  }
+
+  /**
+   * Resolves an active staff user from a paired-device principal so
+   * header-less native players (Android MediaPlayer) can stream recordings.
+   */
+  async resolveUserForDevice(device: {
+    userId: string;
+    organizationId: string;
+  }): Promise<IAuthUser | null> {
+    const employee = await this.userModel
+      .findOne({
+        _id: new Types.ObjectId(device.userId),
+        organizationId: new Types.ObjectId(device.organizationId),
+        isActive: true,
+      })
+      .select('_id organizationId role name');
+    if (!employee) return null;
+    return {
+      id: employee._id.toString(),
+      organizationId: employee.organizationId.toString(),
+      role: employee.role,
+      name: employee.name,
+    } as IAuthUser;
   }
 
   async getRecordingStream(callAttemptId: string, user: IAuthUser) {

@@ -18,10 +18,14 @@ import { DeviceAuthGuard } from '../../common/guards/device-auth.guard';
 import { DevicePrincipal } from '../../common/interfaces/device-principal.interface';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { CallingService } from './calling.service';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('calls')
 export class CallingController {
-  constructor(private readonly callingService: CallingService) {}
+  constructor(
+    private readonly callingService: CallingService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('initiate')
   initiateCall(
@@ -64,13 +68,33 @@ export class CallingController {
     return this.callingService.getRecordingUrl(id, user);
   }
 
+  @Public()
   @Get(':id/recording-stream')
   async recordingStream(
     @Param('id', new ZodValidationPipe(MongoIdSchema)) id: string,
     @CurrentUser() user: IAuthUser,
+    @Req() req: Request,
     @Res() res: Response,
   ) {
-    const { buffer, mimeType } = await this.callingService.getRecordingStream(id, user);
+    let principalUser: IAuthUser = user;
+    if (!principalUser) {
+      const queryToken = (req.query as any)?.token as string;
+      const authHeader = req.headers['authorization'];
+      const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : undefined;
+      const token = queryToken || bearerToken;
+      if (token) {
+        try {
+          principalUser = await this.authService.authenticateAccessToken(token);
+        } catch {
+          // ignore
+        }
+      }
+    }
+    if (!principalUser) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+    const { buffer, mimeType } = await this.callingService.getRecordingStream(id, principalUser);
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Content-Length', buffer.length);
     res.setHeader('Cache-Control', 'private, no-store');

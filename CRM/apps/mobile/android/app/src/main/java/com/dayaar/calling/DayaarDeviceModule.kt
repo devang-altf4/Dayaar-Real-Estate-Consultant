@@ -11,11 +11,16 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.UiThreadUtil
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 class DayaarDeviceModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
     override fun getName(): String = "DayaarDevice"
@@ -252,6 +257,172 @@ class DayaarDeviceModule(private val context: ReactApplicationContext) : ReactCo
             promise.resolve(true)
         } catch (error: Exception) {
             promise.reject("CALL_FAILED", error)
+        }
+    }
+
+    @ReactMethod
+    fun saveUserSession(token: String, userJson: String, promise: Promise) {
+        try {
+            SecurePrefs.get(context).edit()
+                .putString(SecurePrefs.USER_AUTH_TOKEN, token)
+                .putString(SecurePrefs.USER_AUTH_DATA, userJson)
+                .apply()
+            promise.resolve(true)
+        } catch (error: Exception) {
+            promise.reject("SESSION_SAVE_FAILED", error)
+        }
+    }
+
+    @ReactMethod
+    fun getUserSession(promise: Promise) {
+        try {
+            val prefs = SecurePrefs.get(context)
+            val token = prefs.getString(SecurePrefs.USER_AUTH_TOKEN, null)
+            val userJson = prefs.getString(SecurePrefs.USER_AUTH_DATA, null)
+            val map = Arguments.createMap().apply {
+                if (token != null) putString("token", token)
+                if (userJson != null) putString("user", userJson)
+            }
+            promise.resolve(map)
+        } catch (error: Exception) {
+            promise.reject("SESSION_GET_FAILED", error)
+        }
+    }
+
+    @ReactMethod
+    fun clearUserSession(promise: Promise) {
+        try {
+            SecurePrefs.get(context).edit()
+                .remove(SecurePrefs.USER_AUTH_TOKEN)
+                .remove(SecurePrefs.USER_AUTH_DATA)
+                .apply()
+            promise.resolve(true)
+        } catch (error: Exception) {
+            promise.reject("SESSION_CLEAR_FAILED", error)
+        }
+    }
+
+    private var mediaPlayer: android.media.MediaPlayer? = null
+
+    @ReactMethod
+    fun playAudio(url: String, promise: Promise) {
+        Thread {
+            try {
+                mediaPlayer?.release()
+                mediaPlayer = null
+
+                val prefs = SecurePrefs.get(context)
+                val token = prefs.getString(SecurePrefs.USER_AUTH_TOKEN, null)
+
+                val audioFile = if (url.startsWith("http://") || url.startsWith("https://")) {
+                    val hash = Math.abs(url.hashCode()).toString()
+                    val cacheFile = File(context.cacheDir, "rec_$hash.mp3")
+                    if (!cacheFile.exists() || cacheFile.length() == 0L) {
+                        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                            requestMethod = "GET"
+                            connectTimeout = 15000
+                            readTimeout = 30000
+                            if (!token.isNullOrBlank() && !url.contains("token=")) {
+                                setRequestProperty("Authorization", "Bearer $token")
+                            }
+                            instanceFollowRedirects = true
+                        }
+                        val responseCode = connection.responseCode
+                        if (responseCode in 200..299) {
+                            connection.inputStream.use { input ->
+                                FileOutputStream(cacheFile).use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                        } else {
+                            throw IllegalStateException("Server returned HTTP $responseCode while loading audio")
+                        }
+                    }
+                    cacheFile
+                } else {
+                    File(url)
+                }
+
+                val mp = android.media.MediaPlayer().apply {
+                    setAudioAttributes(
+                        android.media.AudioAttributes.Builder()
+                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                            .build()
+                    )
+                    setDataSource(audioFile.absolutePath)
+                    prepare()
+                }
+
+                mediaPlayer = mp
+
+                UiThreadUtil.runOnUiThread {
+                    try {
+                        mp.start()
+                        promise.resolve(Arguments.createMap().apply {
+                            putInt("duration", mp.duration)
+                        })
+                    } catch (e: Exception) {
+                        promise.reject("AUDIO_START_FAILED", e)
+                    }
+                }
+            } catch (error: Exception) {
+                UiThreadUtil.runOnUiThread {
+                    promise.reject("PLAYBACK_ERROR", error.message ?: "Audio playback failed")
+                }
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun pauseAudio(promise: Promise) {
+        try {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.pause()
+            }
+            promise.resolve(true)
+        } catch (error: Exception) {
+            promise.reject("AUDIO_PAUSE_FAILED", error)
+        }
+    }
+
+    @ReactMethod
+    fun resumeAudio(promise: Promise) {
+        try {
+            if (mediaPlayer != null && !mediaPlayer!!.isPlaying) {
+                mediaPlayer?.start()
+            }
+            promise.resolve(true)
+        } catch (error: Exception) {
+            promise.reject("AUDIO_RESUME_FAILED", error)
+        }
+    }
+
+    @ReactMethod
+    fun stopAudio(promise: Promise) {
+        try {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+            promise.resolve(true)
+        } catch (error: Exception) {
+            promise.reject("AUDIO_STOP_FAILED", error)
+        }
+    }
+
+    @ReactMethod
+    fun getAudioPosition(promise: Promise) {
+        try {
+            val pos = mediaPlayer?.currentPosition ?: 0
+            val dur = mediaPlayer?.duration ?: 0
+            val isPlaying = mediaPlayer?.isPlaying ?: false
+            promise.resolve(Arguments.createMap().apply {
+                putInt("position", pos)
+                putInt("duration", dur)
+                putBoolean("isPlaying", isPlaying)
+            })
+        } catch (error: Exception) {
+            promise.reject("AUDIO_POS_FAILED", error)
         }
     }
 }

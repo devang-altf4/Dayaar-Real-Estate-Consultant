@@ -14,6 +14,8 @@ object SecurePrefs {
     const val ACTIVE_ATTEMPT_ID = "activeAttemptId"
     const val ACTIVE_SAW_OFFHOOK = "activeSawOffhook"
     const val PROCESSED_COMMANDS = "processedCommands"
+    const val USER_AUTH_TOKEN = "userAuthToken"
+    const val USER_AUTH_DATA = "userAuthData"
 
     fun get(context: Context): SharedPreferences {
         val masterKey = MasterKey.Builder(context)

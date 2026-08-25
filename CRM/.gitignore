@@ -38,3 +38,8 @@ Thumbs.db
 # Test Coverage
 coverage/
 .nyc_output/
+
+# Binaries & Tooling
+*.apk
+.antigravitycli/
+

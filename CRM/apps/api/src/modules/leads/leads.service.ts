@@ -600,13 +600,10 @@ export class LeadsService {
       role: Role.EMPLOYEE,
       isActive: true,
     };
-    if (user.role === Role.MANAGER) {
-      filter.managerId = new Types.ObjectId(user.id);
-    }
     const employee = await this.userModel.findOne(filter);
     if (!employee) {
       throw new ForbiddenException(
-        'Target employee is outside your organization or team.',
+        'Target employee is outside your organization.',
       );
     }
     return employee;
