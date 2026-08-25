@@ -10,6 +10,7 @@ import {
   RefreshControl,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -537,6 +538,7 @@ function App(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" translucent={false} />
       <ScrollView
         contentContainerStyle={styles.container}
         refreshControl={
@@ -964,9 +966,18 @@ function App(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8fafc' },
-  container: { padding: 20, paddingBottom: 36, gap: 14 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 2 },
+  safe: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 6 : 0,
+  },
+  container: {
+    padding: 20,
+    paddingTop: 8,
+    paddingBottom: Platform.OS === 'android' ? 64 : 36,
+    gap: 14,
+  },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4, marginBottom: 2 },
   brandLogoContainer: { width: 44, height: 44, borderRadius: 10, backgroundColor: '#0B1727', alignItems: 'center', justifyContent: 'center', padding: 4 },
   brandLogo: { width: 34, height: 34 },
   brandTextContainer: { flex: 1 },
@@ -1050,7 +1061,7 @@ const styles = StyleSheet.create({
 
   // Modal styles
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.65)', justifyContent: 'flex-end' },
-  modalContainer: { backgroundColor: '#ffffff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32 },
+  modalContainer: { backgroundColor: '#ffffff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%', paddingHorizontal: 20, paddingTop: 18, paddingBottom: Platform.OS === 'android' ? 44 : 32 },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' },
   modalTitle: { color: '#0f172a', fontSize: 18, fontWeight: '900' },
   modalSubtitle: { color: '#64748b', fontSize: 12, marginTop: 2, fontWeight: '600' },
