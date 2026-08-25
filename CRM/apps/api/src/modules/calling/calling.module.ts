@@ -8,6 +8,7 @@ import { FollowUp, FollowUpSchema } from '../../database/schemas/follow-up.schem
 import { Lead, LeadSchema } from '../../database/schemas/lead.schema';
 import { User, UserSchema } from '../../database/schemas/user.schema';
 import { DevicesModule } from '../devices/devices.module';
+import { CallyzerModule } from '../callyzer/callyzer.module';
 import { AndroidDialProvider } from './android-dial.provider';
 import { CallingController } from './calling.controller';
 import { CallingService } from './calling.service';
@@ -16,6 +17,7 @@ import { FcmService } from './fcm.service';
 @Module({
   imports: [
     DevicesModule,
+    CallyzerModule,
     MongooseModule.forFeature([
       { name: AndroidDevice.name, schema: AndroidDeviceSchema },
       { name: CallAttempt.name, schema: CallAttemptSchema },

@@ -34,6 +34,7 @@ import { User, UserDocument } from '../../database/schemas/user.schema';
 import { DevicePrincipal } from '../../common/interfaces/device-principal.interface';
 import { StorageService } from '../storage/storage.service';
 import { DevicesGateway } from '../devices/devices.gateway';
+import { CallyzerClient } from '../callyzer/callyzer.client';
 import { AndroidDialProvider } from './android-dial.provider';
 
 @Injectable()
@@ -49,6 +50,7 @@ export class CallingService {
     private readonly dialProvider: AndroidDialProvider,
     private readonly storage: StorageService,
     private readonly devicesGateway: DevicesGateway,
+    private readonly callyzerClient: CallyzerClient,
   ) {}
 
   async initiateCall(leadId: string, origin: CallOrigin, authUser: IAuthUser) {
@@ -350,7 +352,7 @@ export class CallingService {
         recordingStatus: RecordingStatus.ARCHIVED,
       })
       .select('+recordingB2Key +recordingVpsPath +recordingUrl');
-    if (!attempt || (!attempt.recordingB2Key && !attempt.recordingVpsPath && !attempt.recordingUrl)) {
+    if (!attempt) {
       throw new NotFoundException('Archived recording not found.');
     }
     if (user.role === Role.MANAGER) {
@@ -386,9 +388,31 @@ export class CallingService {
     try {
       buffer = await this.storage.getArchivedBuffer(attempt.recordingB2Key, attempt.recordingVpsPath);
     } catch (error) {
-      // If local backup was lost on ephemeral host (e.g. after a Render restart/redeploy), stream directly from provider recording URL
-      if (attempt.recordingUrl) {
-        const response = await fetch(attempt.recordingUrl, {
+      let recUrl = attempt.recordingUrl;
+      // If recordingUrl was not saved on this attempt (e.g. from prior schema versions), look up Callyzer dynamically
+      if (!recUrl && (attempt.dialedAt || attempt.callDate)) {
+        try {
+          const callTime = (attempt.callDate || attempt.dialedAt).getTime();
+          const from = new Date(callTime - 48 * 60 * 60 * 1000);
+          const to = new Date(callTime + 48 * 60 * 60 * 1000);
+          const history = await this.callyzerClient.fetchHistory(from, to, 1);
+          const matched = history.calls.find(
+            (c) =>
+              (attempt.providerCallId && c.providerCallId === attempt.providerCallId) ||
+              (c.clientPhoneNumber && c.clientPhoneNumber.includes(attempt.phoneNumber.slice(-10))),
+          );
+          if (matched?.recordingUrl) {
+            recUrl = matched.recordingUrl;
+            attempt.recordingUrl = recUrl;
+            await attempt.save();
+          }
+        } catch (callyzerErr) {
+          // fallback continues
+        }
+      }
+
+      if (recUrl) {
+        const response = await fetch(recUrl, {
           headers: { Accept: 'audio/*,application/octet-stream' },
           signal: AbortSignal.timeout(60_000),
         });

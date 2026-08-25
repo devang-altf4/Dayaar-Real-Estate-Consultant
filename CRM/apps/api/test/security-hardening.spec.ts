@@ -177,6 +177,7 @@ describe('Phase 1 security hardening', () => {
       null as any,
       null as any,
       null as any,
+      null as any,
     );
     const source = {
       _id: new Types.ObjectId(),
