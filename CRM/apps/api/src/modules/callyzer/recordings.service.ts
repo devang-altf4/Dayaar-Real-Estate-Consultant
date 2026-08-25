@@ -49,6 +49,7 @@ export class RecordingsService {
           url: recordingUrl,
         });
         // Persist verified archive locations before deleting the provider copy.
+        attempt.recordingUrl = recordingUrl;
         attempt.recordingB2Key = archived.b2Key;
         attempt.recordingVpsPath = archived.vpsPath;
         attempt.recordingBytes = archived.byteSize;

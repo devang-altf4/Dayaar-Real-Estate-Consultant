@@ -107,6 +107,9 @@ export class CallAttempt {
   @Prop({ type: String, default: null, select: false })
   recordingVpsPath: string | null;
 
+  @Prop({ type: String, default: null, select: false })
+  recordingUrl: string | null;
+
   @Prop({ type: Number, default: null })
   recordingBytes: number | null;
 

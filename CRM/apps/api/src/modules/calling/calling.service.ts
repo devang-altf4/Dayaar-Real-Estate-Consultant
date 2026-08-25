@@ -349,8 +349,8 @@ export class CallingService {
         organizationId: new Types.ObjectId(user.organizationId),
         recordingStatus: RecordingStatus.ARCHIVED,
       })
-      .select('+recordingB2Key +recordingVpsPath');
-    if (!attempt || (!attempt.recordingB2Key && !attempt.recordingVpsPath)) {
+      .select('+recordingB2Key +recordingVpsPath +recordingUrl');
+    if (!attempt || (!attempt.recordingB2Key && !attempt.recordingVpsPath && !attempt.recordingUrl)) {
       throw new NotFoundException('Archived recording not found.');
     }
     if (user.role === Role.MANAGER) {
@@ -382,8 +382,24 @@ export class CallingService {
 
   async getRecordingStream(callAttemptId: string, user: IAuthUser) {
     const attempt = await this.assertRecordingAccess(callAttemptId, user);
+    let buffer: Buffer;
+    try {
+      buffer = await this.storage.getArchivedBuffer(attempt.recordingB2Key, attempt.recordingVpsPath);
+    } catch (error) {
+      // If local backup was lost on ephemeral host (e.g. after a Render restart/redeploy), stream directly from provider recording URL
+      if (attempt.recordingUrl) {
+        const response = await fetch(attempt.recordingUrl, {
+          headers: { Accept: 'audio/*,application/octet-stream' },
+          signal: AbortSignal.timeout(60_000),
+        });
+        if (!response.ok) throw new NotFoundException('Recording could not be retrieved from provider.');
+        buffer = Buffer.from(await response.arrayBuffer());
+      } else {
+        throw error;
+      }
+    }
     return {
-      buffer: await this.storage.getArchivedBuffer(attempt.recordingB2Key, attempt.recordingVpsPath),
+      buffer,
       mimeType: attempt.recordingMimeType || 'audio/mpeg',
     };
   }

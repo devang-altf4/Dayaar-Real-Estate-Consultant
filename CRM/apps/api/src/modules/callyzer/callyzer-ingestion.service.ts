@@ -77,15 +77,18 @@ export class CallyzerIngestionService {
     });
     if (duplicate) {
       let changed = false;
-      if (call.recordingUrl && (!duplicate.recordingStatus || duplicate.recordingStatus === RecordingStatus.NO_RECORDING)) {
-        duplicate.recordingStatus = RecordingStatus.PENDING;
-        changed = true;
-        await this.jobs.enqueue({
-          key: `archive:${call.providerCallId}`,
-          organizationId,
-          type: 'ARCHIVE_RECORDING',
-          payload: { callAttemptId: duplicate._id.toString(), recordingUrl: call.recordingUrl },
-        });
+      if (call.recordingUrl) {
+        duplicate.recordingUrl = call.recordingUrl;
+        if (!duplicate.recordingStatus || duplicate.recordingStatus === RecordingStatus.NO_RECORDING) {
+          duplicate.recordingStatus = RecordingStatus.PENDING;
+          changed = true;
+          await this.jobs.enqueue({
+            key: `archive:${call.providerCallId}`,
+            organizationId,
+            type: 'ARCHIVE_RECORDING',
+            payload: { callAttemptId: duplicate._id.toString(), recordingUrl: call.recordingUrl },
+          });
+        }
       }
       if (call.duration && duplicate.duration !== call.duration) {
         duplicate.duration = call.duration;
@@ -177,6 +180,8 @@ export class CallyzerIngestionService {
 
     if (countsAsAttempt && attempt.leadId) await this.incrementLeadAttempt(attempt);
     if (call.recordingUrl) {
+      attempt.recordingUrl = call.recordingUrl;
+      await attempt.save();
       await this.jobs.enqueue({
         key: `archive:${call.providerCallId}`,
         organizationId,
