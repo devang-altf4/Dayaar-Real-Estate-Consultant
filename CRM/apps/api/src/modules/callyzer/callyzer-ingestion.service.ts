@@ -229,10 +229,15 @@ export class CallyzerIngestionService {
 
   private async resolveLead(organizationId: string, phone: string) {
     const digits = phone.replace(/\D/g, '');
+    if (!digits) return null;
     const local = digits.slice(-10);
+    const variants = Array.from(new Set([phone, digits, local, `91${local}`, `+91${local}`]));
+    // An imported lead's alternate number is normalised and stored alongside the
+    // primary one, so a call to it is still a lead call. Matching only `phone`
+    // would let the lead-only gate delete that recording.
     return this.leadModel.findOne({
       organizationId: new Types.ObjectId(organizationId),
-      phone: { $in: [phone, digits, local, `91${local}`, `+91${local}`] },
+      $or: [{ phone: { $in: variants } }, { alternatePhone: { $in: variants } }],
     });
   }
 

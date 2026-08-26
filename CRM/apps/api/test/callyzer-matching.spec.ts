@@ -106,4 +106,22 @@ describe('Callyzer call matching', () => {
     expect(result.providerCallId).toBe('provider-call-1');
     expect(events[0].type).toBe(CallEventType.CALLYZER_CALL_UNMATCHED);
   });
+
+  it('queries both phone and alternatePhone with deduplicated number variants', async () => {
+    const filters: any[] = [];
+    const created: any[] = [];
+    const { service } = buildService([], created);
+    (service as any).leadModel.findOne = jest.fn().mockImplementation(async (filter: any) => {
+      filters.push(filter);
+      return { _id: new Types.ObjectId() };
+    });
+
+    await service.ingest(organizationId, buildCall() as any);
+
+    const variants = ['+919812345678', '919812345678', '9812345678'];
+    expect(filters[0].$or).toEqual([
+      { phone: { $in: variants } },
+      { alternatePhone: { $in: variants } },
+    ]);
+  });
 });
