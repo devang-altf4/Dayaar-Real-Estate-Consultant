@@ -69,7 +69,7 @@ export class CallyzerIngestionService {
     } while (page <= 1000);
   }
 
-  async ingest(organizationId: string, call: NormalizedProviderCall): Promise<CallAttemptDocument> {
+  async ingest(organizationId: string, call: NormalizedProviderCall): Promise<CallAttemptDocument | null> {
     if (!call.providerCallId) throw new Error('Callyzer call is missing its unique id.');
     const duplicate = await this.attemptModel.findOne({
       organizationId: new Types.ObjectId(organizationId),
@@ -125,11 +125,25 @@ export class CallyzerIngestionService {
     // disposition away from the call record.
     const collision = candidates.length > 1;
     let attempt = candidates[0] || null;
+
+    // Lead-only tracking: Callyzer reports every call the handset makes,
+    // including the telecaller's personal ones. Only a number that exists in
+    // this organisation's lead book may be tracked or recorded — assignment is
+    // deliberately not consulted, so covering a colleague's lead or dialling an
+    // unassigned one still counts. A dialled attempt that already carries a lead
+    // is trusted even when the number no longer resolves, so editing a lead's
+    // phone after dialling cannot discard a call the CRM itself placed.
+    const lead = await this.resolveLead(organizationId, call.clientPhoneNumber);
+    const trackedLeadId = lead?._id || attempt?.leadId || null;
+    if (!trackedLeadId) {
+      await this.discardNonLeadCall(organizationId, call);
+      return null;
+    }
+
     if (!attempt) {
-      const lead = await this.resolveLead(organizationId, call.clientPhoneNumber);
       attempt = await this.attemptModel.create({
         organizationId: new Types.ObjectId(organizationId),
-        leadId: lead?._id || null,
+        leadId: trackedLeadId,
         employeeId: employee?._id || null,
         provider: CallProviderType.CALLYZER_SIM,
         origin: CallOrigin.ANDROID,
@@ -238,6 +252,38 @@ export class CallyzerIngestionService {
     return this.leadModel.findOne({
       organizationId: new Types.ObjectId(organizationId),
       $or: [{ phone: { $in: variants } }, { alternatePhone: { $in: variants } }],
+    });
+  }
+
+  /**
+   * Drops a call that belongs to no lead. Nothing is written to the CRM, and the
+   * provider's copy of the audio is queued for deletion so personal call
+   * recordings do not linger on Callyzer. Deletion goes through the queue rather
+   * than a direct call because removeRecording sits behind Callyzer's global
+   * request throttle and can rate-limit; failing inline would abort ingestion for
+   * every other call in the same webhook batch.
+   */
+  private async discardNonLeadCall(organizationId: string, call: NormalizedProviderCall): Promise<void> {
+    if (!call.recordingUrl) return;
+    // A wrong CALLYZER_ORGANIZATION_ID points at an organisation with an empty
+    // lead book, which would classify every call as personal and delete every
+    // recording the provider holds. Withhold the purge until a lead exists;
+    // dropping the call is recoverable, deleting the audio is not.
+    const hasLeads = await this.leadModel.exists({
+      organizationId: new Types.ObjectId(organizationId),
+    });
+    if (!hasLeads) {
+      this.logger.warn(
+        `Skipped the provider recording purge for call ${call.providerCallId}: organisation ` +
+          `${organizationId} has no leads, which usually means CALLYZER_ORGANIZATION_ID is wrong.`,
+      );
+      return;
+    }
+    await this.jobs.enqueue({
+      key: `purge-provider:${call.providerCallId}`,
+      organizationId,
+      type: 'PURGE_PROVIDER_RECORDING',
+      payload: { providerCallId: call.providerCallId },
     });
   }
 
