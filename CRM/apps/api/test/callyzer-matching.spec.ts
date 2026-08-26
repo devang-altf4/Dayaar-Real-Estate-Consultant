@@ -7,6 +7,7 @@ import {
   RecordingStatus,
 } from '@dayaar/shared';
 import { CallyzerIngestionService } from '../src/modules/callyzer/callyzer-ingestion.service';
+import { LeadSchema } from '../src/database/schemas/lead.schema';
 
 /**
  * Spec 5.6: a provider call must attach to the closest dialled attempt, and an
@@ -310,5 +311,23 @@ describe('Callyzer lead-only tracking', () => {
       expect.objectContaining({ type: 'ARCHIVE_RECORDING' }),
     );
     expect(duplicate.recordingStatus).toBe(RecordingStatus.PENDING);
+  });
+});
+
+/**
+ * The lead-only gate resolves a lead on every ingested call using an $or across
+ * phone and alternatePhone. MongoDB only builds an index-union plan when every
+ * $or branch is indexed; drop either index and each ingested call degrades into
+ * a fetch of the organisation's entire lead book.
+ */
+describe('Lead phone indexes', () => {
+  const declared = LeadSchema.indexes().map((entry: any) => JSON.stringify(entry[0]));
+
+  it('indexes phone within the organisation', () => {
+    expect(declared).toContain(JSON.stringify({ organizationId: 1, phone: 1 }));
+  });
+
+  it('indexes alternatePhone within the organisation', () => {
+    expect(declared).toContain(JSON.stringify({ organizationId: 1, alternatePhone: 1 }));
   });
 });
