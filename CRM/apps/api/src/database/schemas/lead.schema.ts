@@ -117,6 +117,11 @@ export class Lead {
 
 export const LeadSchema = SchemaFactory.createForClass(Lead);
 LeadSchema.index({ organizationId: 1, phone: 1 });
+// Lead-only call tracking resolves every ingested Callyzer call with an $or over
+// phone and alternatePhone. MongoDB only builds an index-union plan when every
+// $or branch is indexed, so without this index each call scans the whole lead
+// book for the organisation.
+LeadSchema.index({ organizationId: 1, alternatePhone: 1 });
 LeadSchema.index({ organizationId: 1, assignedEmployeeId: 1, status: 1 });
 LeadSchema.index({ organizationId: 1, status: 1, temperature: 1 });
 LeadSchema.index({ organizationId: 1, nextFollowUpAt: 1 });
