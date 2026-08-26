@@ -12,7 +12,13 @@ export class IntegrationJob {
   organizationId: MongooseSchema.Types.ObjectId | null;
 
   @Prop({ required: true, index: true })
-  type: 'PROCESS_WEBHOOK' | 'CALLYZER_RECONCILE' | 'ARCHIVE_RECORDING' | 'RETENTION' | 'RECORDING_EXPORT';
+  type:
+    | 'PROCESS_WEBHOOK'
+    | 'CALLYZER_RECONCILE'
+    | 'ARCHIVE_RECORDING'
+    | 'PURGE_PROVIDER_RECORDING'
+    | 'RETENTION'
+    | 'RECORDING_EXPORT';
 
   @Prop({ type: MongooseSchema.Types.Mixed, default: () => ({}) })
   payload: Record<string, unknown>;

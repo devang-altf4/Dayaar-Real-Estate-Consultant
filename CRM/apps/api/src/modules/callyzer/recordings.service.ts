@@ -92,6 +92,18 @@ export class RecordingsService {
     }
   }
 
+  /**
+   * Deletes a recording that exists only at the provider. Used for calls the
+   * lead-only policy discards: nothing was archived, so the provider copy is
+   * the sole copy and removing it is the entire cleanup. Failures propagate so
+   * the queue retries behind Callyzer's global request throttle.
+   */
+  async purgeProviderRecording(providerCallId: string): Promise<void> {
+    if (!providerCallId) return;
+    await this.callyzer.removeRecording(providerCallId);
+    this.logger.log(`Deleted the provider recording for non-lead call ${providerCallId}.`);
+  }
+
   async createExport(user: IAuthUser, from: Date, to: Date) {
     const record = await this.exportModel.create({
       organizationId: new Types.ObjectId(user.organizationId),

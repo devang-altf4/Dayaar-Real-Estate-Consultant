@@ -68,6 +68,9 @@ export class IntegrationWorkerService implements OnModuleInit, OnModuleDestroy {
           case 'ARCHIVE_RECORDING':
             await this.recordings.archive(String(payload.callAttemptId), String(payload.recordingUrl));
             break;
+          case 'PURGE_PROVIDER_RECORDING':
+            await this.recordings.purgeProviderRecording(String(payload.providerCallId));
+            break;
           case 'RETENTION':
             if (job.organizationId) await this.recordings.runRetention(job.organizationId.toString());
             break;
