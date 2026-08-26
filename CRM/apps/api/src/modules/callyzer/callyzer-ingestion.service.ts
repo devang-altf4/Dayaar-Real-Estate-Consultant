@@ -77,7 +77,9 @@ export class CallyzerIngestionService {
     });
     if (duplicate) {
       let changed = false;
-      if (call.recordingUrl) {
+      // Rows created before lead-only tracking can have no lead. They are left in
+      // place deliberately, but must not pull further audio into durable storage.
+      if (call.recordingUrl && duplicate.leadId) {
         duplicate.recordingUrl = call.recordingUrl;
         if (!duplicate.recordingStatus || duplicate.recordingStatus === RecordingStatus.NO_RECORDING) {
           duplicate.recordingStatus = RecordingStatus.PENDING;

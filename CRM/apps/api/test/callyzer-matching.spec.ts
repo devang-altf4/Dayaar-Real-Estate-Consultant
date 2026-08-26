@@ -1,5 +1,11 @@
 import { Types } from 'mongoose';
-import { CallAttemptStatus, CallEventType, CallSyncStatus, ProviderCallType } from '@dayaar/shared';
+import {
+  CallAttemptStatus,
+  CallEventType,
+  CallSyncStatus,
+  ProviderCallType,
+  RecordingStatus,
+} from '@dayaar/shared';
 import { CallyzerIngestionService } from '../src/modules/callyzer/callyzer-ingestion.service';
 
 /**
@@ -270,5 +276,39 @@ describe('Callyzer lead-only tracking', () => {
 
     expect(result).toBeNull();
     expect(enqueue).not.toHaveBeenCalled();
+  });
+
+  const buildDuplicate = (attemptLeadId: any) => ({
+    _id: new Types.ObjectId(),
+    leadId: attemptLeadId,
+    duration: null,
+    recordingUrl: null,
+    recordingStatus: RecordingStatus.NO_RECORDING,
+    connected: null,
+    status: CallAttemptStatus.UNKNOWN,
+    save: jest.fn().mockResolvedValue(undefined),
+  });
+
+  it('does not archive new audio for a legacy attempt that has no lead', async () => {
+    const duplicate = buildDuplicate(null);
+    const { service, enqueue } = buildService({ duplicate });
+
+    const result = await service.ingest(organizationId, buildCall() as any);
+
+    expect(result).toBe(duplicate);
+    expect(enqueue).not.toHaveBeenCalled();
+    expect(duplicate.recordingStatus).toBe(RecordingStatus.NO_RECORDING);
+  });
+
+  it('still archives new audio for an existing attempt that has a lead', async () => {
+    const duplicate = buildDuplicate(leadId);
+    const { service, enqueue } = buildService({ duplicate });
+
+    await service.ingest(organizationId, buildCall() as any);
+
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'ARCHIVE_RECORDING' }),
+    );
+    expect(duplicate.recordingStatus).toBe(RecordingStatus.PENDING);
   });
 });
