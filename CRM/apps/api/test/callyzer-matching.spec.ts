@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { CallEventType, CallSyncStatus, ProviderCallType } from '@dayaar/shared';
+import { CallAttemptStatus, CallEventType, CallSyncStatus, ProviderCallType } from '@dayaar/shared';
 import { CallyzerIngestionService } from '../src/modules/callyzer/callyzer-ingestion.service';
 
 /**
@@ -9,13 +9,14 @@ import { CallyzerIngestionService } from '../src/modules/callyzer/callyzer-inges
 describe('Callyzer call matching', () => {
   const organizationId = new Types.ObjectId().toString();
   const employeeId = new Types.ObjectId();
+  const leadId = new Types.ObjectId();
   const callDate = new Date('2026-08-20T10:00:00.000Z');
 
   const buildCandidate = (offsetMs: number) => ({
     _id: new Types.ObjectId(),
     organizationId: new Types.ObjectId(organizationId),
     employeeId,
-    leadId: null,
+    leadId,
     deviceId: null,
     dialedAt: new Date(callDate.getTime() + offsetMs),
     providerCallId: null as string | null,
@@ -35,9 +36,14 @@ describe('Callyzer call matching', () => {
     raw: {},
   });
 
-  const buildService = (candidates: any[], created: any[]) => {
+  const buildService = (
+    candidates: any[],
+    created: any[],
+    lead: any = { _id: leadId },
+    duplicate: any = null,
+  ) => {
     const attemptModel: any = {
-      findOne: jest.fn().mockResolvedValue(null),
+      findOne: jest.fn().mockResolvedValue(duplicate),
       find: jest.fn().mockResolvedValue(candidates),
       create: jest.fn().mockImplementation(async (doc: any) => {
         const record = { ...doc, _id: new Types.ObjectId(), save: jest.fn().mockResolvedValue(undefined) };
@@ -46,6 +52,7 @@ describe('Callyzer call matching', () => {
       }),
     };
     const events: any[] = [];
+    const enqueue = jest.fn();
     const service = new CallyzerIngestionService(
       {} as any,
       attemptModel,
@@ -55,12 +62,15 @@ describe('Callyzer call matching', () => {
           { _id: employeeId, phone: '9876543210', callingEnabled: true, isActive: true },
         ]),
       } as any,
-      { findOne: jest.fn().mockResolvedValue(null) } as any,
+      {
+        findOne: jest.fn().mockResolvedValue(lead),
+        exists: jest.fn().mockResolvedValue({ _id: leadId }),
+      } as any,
       { findById: jest.fn().mockReturnValue({ select: jest.fn().mockResolvedValue(null) }) } as any,
       { normalize: (raw: any) => raw } as any,
-      { enqueue: jest.fn() } as any,
+      { enqueue } as any,
     );
-    return { service, attemptModel, events };
+    return { service, attemptModel, events, enqueue };
   };
 
   it('attaches a single match to the dialled attempt', async () => {
@@ -71,6 +81,7 @@ describe('Callyzer call matching', () => {
     const result = await service.ingest(organizationId, buildCall() as any);
 
     expect(attemptModel.create).not.toHaveBeenCalled();
+    expect(created).toHaveLength(0);
     expect(result).toBe(candidate);
     expect(candidate.providerCallId).toBe('provider-call-1');
     expect(candidate.syncStatus).toBe(CallSyncStatus.MATCHED);
@@ -95,7 +106,7 @@ describe('Callyzer call matching', () => {
     expect(events[0].metadata.candidateCount).toBe(2);
   });
 
-  it('records an unmatched call without discarding it', async () => {
+  it('records an unmatched lead call without discarding it', async () => {
     const created: any[] = [];
     const { service, attemptModel, events } = buildService([], created);
 
@@ -104,6 +115,7 @@ describe('Callyzer call matching', () => {
     expect(attemptModel.create).toHaveBeenCalledTimes(1);
     expect(result.syncStatus).toBe(CallSyncStatus.UNMATCHED);
     expect(result.providerCallId).toBe('provider-call-1');
+    expect(result.leadId).toBe(leadId);
     expect(events[0].type).toBe(CallEventType.CALLYZER_CALL_UNMATCHED);
   });
 
@@ -123,5 +135,140 @@ describe('Callyzer call matching', () => {
       { phone: { $in: variants } },
       { alternatePhone: { $in: variants } },
     ]);
+  });
+});
+
+/**
+ * Callyzer reports every call on the handset, including the telecaller's
+ * personal ones. Only a number in the organisation's lead book may be tracked
+ * or recorded; anything else is dropped and its provider audio deleted.
+ */
+describe('Callyzer lead-only tracking', () => {
+  const organizationId = new Types.ObjectId().toString();
+  const employeeId = new Types.ObjectId();
+  const leadId = new Types.ObjectId();
+  const callDate = new Date('2026-08-20T10:00:00.000Z');
+
+  const buildCall = (overrides: Record<string, unknown> = {}) => ({
+    providerCallId: 'provider-call-7',
+    employeePhoneNumber: '+919876543210',
+    clientPhoneNumber: '+919812345678',
+    duration: 42,
+    callType: ProviderCallType.OUTGOING,
+    callDate,
+    syncedAt: callDate,
+    recordingUrl: 'https://callyzer.example/recording-7.mp3',
+    raw: {},
+    ...overrides,
+  });
+
+  const buildService = (options: {
+    lead?: any;
+    candidates?: any[];
+    hasLeads?: boolean;
+    duplicate?: any;
+  } = {}) => {
+    const created: any[] = [];
+    const enqueue = jest.fn();
+    const events: any[] = [];
+    const attemptModel: any = {
+      findOne: jest.fn().mockResolvedValue(options.duplicate ?? null),
+      find: jest.fn().mockResolvedValue(options.candidates ?? []),
+      create: jest.fn().mockImplementation(async (doc: any) => {
+        const record = { ...doc, _id: new Types.ObjectId(), save: jest.fn().mockResolvedValue(undefined) };
+        created.push(record);
+        return record;
+      }),
+    };
+    const service = new CallyzerIngestionService(
+      {} as any,
+      attemptModel,
+      { create: jest.fn().mockImplementation(async (e: any) => events.push(e)) } as any,
+      {
+        find: jest.fn().mockResolvedValue([
+          { _id: employeeId, phone: '9876543210', callingEnabled: true, isActive: true },
+        ]),
+      } as any,
+      {
+        findOne: jest.fn().mockResolvedValue(options.lead ?? null),
+        exists: jest.fn().mockResolvedValue(options.hasLeads === false ? null : { _id: leadId }),
+      } as any,
+      { findById: jest.fn().mockReturnValue({ select: jest.fn().mockResolvedValue(null) }) } as any,
+      { normalize: (raw: any) => raw } as any,
+      { enqueue } as any,
+    );
+    return { service, attemptModel, enqueue, created };
+  };
+
+  it('discards a call that matches no lead and queues the provider recording for deletion', async () => {
+    const { service, attemptModel, enqueue } = buildService();
+
+    const result = await service.ingest(organizationId, buildCall() as any);
+
+    expect(result).toBeNull();
+    expect(attemptModel.create).not.toHaveBeenCalled();
+    expect(enqueue).toHaveBeenCalledTimes(1);
+    expect(enqueue).toHaveBeenCalledWith({
+      key: 'purge-provider:provider-call-7',
+      organizationId,
+      type: 'PURGE_PROVIDER_RECORDING',
+      payload: { providerCallId: 'provider-call-7' },
+    });
+  });
+
+  it('discards a non-lead call with no recording without queueing any job', async () => {
+    const { service, attemptModel, enqueue } = buildService();
+
+    const result = await service.ingest(
+      organizationId,
+      buildCall({ recordingUrl: undefined }) as any,
+    );
+
+    expect(result).toBeNull();
+    expect(attemptModel.create).not.toHaveBeenCalled();
+    expect(enqueue).not.toHaveBeenCalled();
+  });
+
+  it('tracks and archives a call that matches a lead', async () => {
+    const { service, attemptModel, enqueue, created } = buildService({ lead: { _id: leadId } });
+
+    const result = await service.ingest(organizationId, buildCall() as any);
+
+    expect(result).not.toBeNull();
+    expect(attemptModel.create).toHaveBeenCalledTimes(1);
+    expect(created[0].leadId).toBe(leadId);
+    expect(enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'ARCHIVE_RECORDING' }),
+    );
+  });
+
+  it('keeps a dialled attempt that already carries a lead even when the number no longer resolves', async () => {
+    const candidate = {
+      _id: new Types.ObjectId(),
+      organizationId: new Types.ObjectId(organizationId),
+      employeeId,
+      leadId,
+      deviceId: null,
+      dialedAt: new Date(callDate.getTime() + 20_000),
+      providerCallId: null as string | null,
+      syncStatus: CallSyncStatus.PENDING,
+      save: jest.fn().mockResolvedValue(undefined),
+    };
+    const { service, attemptModel } = buildService({ lead: null, candidates: [candidate] });
+
+    const result = await service.ingest(organizationId, buildCall() as any);
+
+    expect(result).toBe(candidate);
+    expect(attemptModel.create).not.toHaveBeenCalled();
+    expect(candidate.providerCallId).toBe('provider-call-7');
+  });
+
+  it('refuses to purge when the organisation has no leads at all', async () => {
+    const { service, enqueue } = buildService({ hasLeads: false });
+
+    const result = await service.ingest(organizationId, buildCall() as any);
+
+    expect(result).toBeNull();
+    expect(enqueue).not.toHaveBeenCalled();
   });
 });
