@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { api } from '../../api/client';
+import { executeDevicePairing } from '../../api/pairing';
 import { useAuth } from '../../context/AuthContext';
 import { CallAttempt } from '../../types';
 
@@ -23,6 +24,25 @@ export const CallLogsScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [playingCallId, setPlayingCallId] = useState<string | null>(null);
   const [audioLoading, setAudioLoading] = useState(false);
+
+  // Handset / Companion Pairing State
+  const [pairingState, setPairingState] = useState<{
+    paired: boolean;
+    deviceId?: string;
+    apiBaseUrl?: string;
+  } | null>(null);
+  const [pairingLoading, setPairingLoading] = useState(false);
+
+  const checkPairingStatus = async () => {
+    try {
+      if (DayaarDevice?.getPairingState) {
+        const state = await DayaarDevice.getPairingState();
+        setPairingState(state);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   const fetchCalls = async () => {
     try {
@@ -39,6 +59,7 @@ export const CallLogsScreen: React.FC = () => {
 
   useEffect(() => {
     void fetchCalls();
+    void checkPairingStatus();
     return () => {
       if (DayaarDevice?.stopAudio) {
         void DayaarDevice.stopAudio();
@@ -49,6 +70,47 @@ export const CallLogsScreen: React.FC = () => {
   const onRefresh = () => {
     setRefreshing(true);
     void fetchCalls();
+    void checkPairingStatus();
+  };
+
+  const handleScanPairing = async () => {
+    setPairingLoading(true);
+    try {
+      const result = await executeDevicePairing();
+      if (result.success) {
+        Alert.alert('Device Paired', result.message || 'Handset paired successfully with Web CRM!');
+        await checkPairingStatus();
+      }
+    } catch (err: any) {
+      Alert.alert('Pairing Error', err.message || 'Failed to scan and pair device.');
+    } finally {
+      setPairingLoading(false);
+    }
+  };
+
+  const handleUnpair = () => {
+    Alert.alert(
+      'Unpair Handset',
+      'Are you sure you want to disconnect this handset from Web CRM calling synchronization?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Unpair Handset',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (DayaarDevice?.clearDeviceCredentials) {
+                await DayaarDevice.clearDeviceCredentials();
+                await checkPairingStatus();
+                Alert.alert('Handset Unpaired', 'Device pairing credentials have been cleared.');
+              }
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to unpair handset.');
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handlePlayAudio = async (attempt: CallAttempt) => {
@@ -110,7 +172,7 @@ export const CallLogsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerBanner}>
-        <Text style={styles.headerTitle}>🎙️ Telecalling Logs & History</Text>
+        <Text style={styles.headerTitle}>🎙️ Telecalling Logs & Handset</Text>
         <Text style={styles.headerSubtitle}>
           Synced with Callyzer and Web CRM
         </Text>
@@ -124,6 +186,50 @@ export const CallLogsScreen: React.FC = () => {
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
+          {/* Handset Pairing Card */}
+          <View style={styles.pairingCard}>
+            <View style={styles.pairingHeader}>
+              <View style={styles.pairingTitleGroup}>
+                <Text style={styles.pairingTitle}>📱 Telecaller Handset Link</Text>
+                <Text style={styles.pairingStatusText}>
+                  {pairingState?.paired
+                    ? '🟢 Paired with Web CRM'
+                    : '⚪ Not Paired with Web CRM'}
+                </Text>
+              </View>
+              {pairingState?.paired ? (
+                <TouchableOpacity
+                  style={styles.unpairButton}
+                  onPress={handleUnpair}
+                >
+                  <Text style={styles.unpairButtonText}>Disconnect</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            <Text style={styles.pairingDescription}>
+              {pairingState?.paired
+                ? `Device ID: ${pairingState.deviceId || 'Linked'}. Web-initiated calls and Callyzer sync are active.`
+                : 'Scan the QR code displayed in Web CRM (Calling > Pair Android Device) to link this handset for web calling.'}
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.pairActionButton, pairingLoading && styles.disabledButton]}
+              disabled={pairingLoading}
+              onPress={() => void handleScanPairing()}
+            >
+              {pairingLoading ? (
+                <ActivityIndicator color="#ffffff" size="small" />
+              ) : (
+                <Text style={styles.pairActionButtonText}>
+                  {pairingState?.paired ? '📷 Re-scan Pairing QR' : '📷 Scan Web CRM Pairing QR'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.sectionHeading}>Recent Call Attempts</Text>
+
           {calls.length === 0 ? (
             <View style={styles.emptyCard}>
               <Text style={styles.emptyIcon}>📞</Text>
@@ -238,6 +344,76 @@ const styles = StyleSheet.create({
     padding: 14,
     paddingBottom: 80,
     gap: 12,
+  },
+  pairingCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    borderColor: '#bae6fd',
+    borderWidth: 1,
+    gap: 10,
+    shadowColor: '#0284c7',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  pairingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  pairingTitleGroup: {
+    gap: 2,
+  },
+  pairingTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  pairingStatusText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0284c7',
+  },
+  unpairButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: '#fee2e2',
+    borderRadius: 8,
+  },
+  unpairButtonText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#dc2626',
+  },
+  pairingDescription: {
+    fontSize: 12,
+    color: '#475569',
+    lineHeight: 18,
+  },
+  pairActionButton: {
+    backgroundColor: '#0284c7',
+    borderRadius: 10,
+    paddingVertical: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pairActionButtonText: {
+    color: '#ffffff',
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  sectionHeading: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 6,
+    marginBottom: -4,
   },
   callCard: {
     backgroundColor: '#ffffff',

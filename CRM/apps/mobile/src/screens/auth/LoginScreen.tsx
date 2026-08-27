@@ -4,7 +4,6 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
-  NativeModules,
   Platform,
   ScrollView,
   StyleSheet,
@@ -15,15 +14,12 @@ import {
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 
-const { DayaarDevice } = NativeModules;
-
 export const LoginScreen: React.FC = () => {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showPairing, setShowPairing] = useState(false);
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
@@ -35,27 +31,6 @@ export const LoginScreen: React.FC = () => {
       await login(email.trim(), password);
     } catch (err: any) {
       Alert.alert('Login Failed', err.message || 'Invalid email or password.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleQrPairing = async () => {
-    if (!DayaarDevice?.scanPairingQr) {
-      Alert.alert('Unavailable', 'QR scanner is only available on physical Android devices.');
-      return;
-    }
-    try {
-      const scanned = await DayaarDevice.scanPairingQr();
-      if (!scanned) return;
-      const parsed = JSON.parse(scanned);
-      if (parsed.pairingCode && parsed.pairingToken && parsed.apiBaseUrl) {
-        setLoading(true);
-        await DayaarDevice.pairDevice(parsed.apiBaseUrl, parsed.pairingCode, parsed.pairingToken);
-        Alert.alert('Device Paired', 'Device paired successfully! Please log in with your credentials.');
-      }
-    } catch (err: any) {
-      Alert.alert('Pairing Error', err.message || 'Failed to scan QR.');
     } finally {
       setLoading(false);
     }
@@ -121,16 +96,6 @@ export const LoginScreen: React.FC = () => {
                 <Text style={styles.loginButtonText}>Sign In to CRM</Text>
               )}
             </TouchableOpacity>
-
-            <View style={styles.divider}>
-              <View style={styles.line} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.line} />
-            </View>
-
-            <TouchableOpacity style={styles.qrButton} onPress={() => void handleQrPairing()}>
-              <Text style={styles.qrButtonText}>📷 Pair Android Telecaller Handset</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -194,7 +159,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   form: {
-    gap: 12,
+    gap: 14,
   },
   inputLabel: {
     fontSize: 12,
@@ -247,35 +212,6 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.6,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#e2e8f0',
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#94a3b8',
-  },
-  qrButton: {
-    backgroundColor: '#f1f5f9',
-    borderColor: '#cbd5e1',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  qrButtonText: {
-    color: '#334155',
-    fontWeight: '800',
-    fontSize: 13,
   },
   footerText: {
     textAlign: 'center',
