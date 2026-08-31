@@ -2,9 +2,9 @@ import { NativeModules } from 'react-native';
 
 const { DayaarDevice } = NativeModules;
 
+export const RENDER_API_BASE_URL = 'https://dayaar-real-estate-consultant-5ahf.onrender.com/api';
 export const AZURE_API_BASE_URL = 'https://devang-server-acf8g4e8hrftbgec.centralindia-01.azurewebsites.net/api';
-export const RENDER_API_BASE_URL = 'https://dayaar-real-estate-consultant-2.onrender.com/api';
-export const DEFAULT_API_BASE_URL = AZURE_API_BASE_URL;
+export const DEFAULT_API_BASE_URL = RENDER_API_BASE_URL;
 
 class ApiClient {
   private baseUrl: string = DEFAULT_API_BASE_URL;
