@@ -36,6 +36,7 @@ jobs:
           pnpm build:api
           pnpm --filter @dayaar/api deploy --prod --legacy ../deploy-package
           cp -r apps/api/dist ../deploy-package/dist
+          cp apps/api/server.js ../deploy-package/server.js
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
