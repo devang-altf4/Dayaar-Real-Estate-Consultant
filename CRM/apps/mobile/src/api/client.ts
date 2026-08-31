@@ -2,7 +2,9 @@ import { NativeModules } from 'react-native';
 
 const { DayaarDevice } = NativeModules;
 
-export const DEFAULT_API_BASE_URL = 'https://dayaar-real-estate-consultant-2.onrender.com/api';
+export const AZURE_API_BASE_URL = 'https://devang-server-acf8g4e8hrftbgec.centralindia-01.azurewebsites.net/api';
+export const RENDER_API_BASE_URL = 'https://dayaar-real-estate-consultant-2.onrender.com/api';
+export const DEFAULT_API_BASE_URL = AZURE_API_BASE_URL;
 
 class ApiClient {
   private baseUrl: string = DEFAULT_API_BASE_URL;
@@ -54,12 +56,32 @@ class ApiClient {
     }
   }
 
+  private getBackupUrl(targetUrl: string): string | null {
+    if (targetUrl.startsWith(AZURE_API_BASE_URL)) {
+      return targetUrl.replace(AZURE_API_BASE_URL, RENDER_API_BASE_URL);
+    }
+    if (targetUrl.startsWith(RENDER_API_BASE_URL)) {
+      return targetUrl.replace(RENDER_API_BASE_URL, AZURE_API_BASE_URL);
+    }
+    return null;
+  }
+
   async request<T>(
     path: string,
     method: 'GET' | 'POST' | 'PATCH' | 'DELETE' = 'GET',
     body?: any,
   ): Promise<T> {
-    const url = `${this.baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+    const primaryUrl = `${this.baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+    return this.executeRequest<T>(primaryUrl, path, method, body, true);
+  }
+
+  private async executeRequest<T>(
+    url: string,
+    path: string,
+    method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+    body: any,
+    allowBackupRetry: boolean,
+  ): Promise<T> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
@@ -70,7 +92,7 @@ class ApiClient {
     }
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 30_000);
+    const timer = setTimeout(() => controller.abort(), 20_000);
 
     const options: RequestInit = {
       method,
@@ -99,6 +121,16 @@ class ApiClient {
         }
       }
 
+      // If service is suspended or unavailable (503), try backup server
+      if ((response.status === 503 || response.status === 502 || response.status === 504) && allowBackupRetry) {
+        const backupUrl = this.getBackupUrl(url);
+        if (backupUrl) {
+          const fallbackBase = backupUrl.startsWith(AZURE_API_BASE_URL) ? AZURE_API_BASE_URL : RENDER_API_BASE_URL;
+          this.baseUrl = fallbackBase;
+          return this.executeRequest<T>(backupUrl, path, method, body, false);
+        }
+      }
+
       if (!response.ok) {
         const errorMsg =
           json?.error?.message ||
@@ -110,8 +142,16 @@ class ApiClient {
 
       // Return data property if standard envelope exists, else return raw
       return (json?.data !== undefined ? json.data : json) as T;
-    } catch (err) {
+    } catch (err: any) {
       clearTimeout(timer);
+      if (allowBackupRetry) {
+        const backupUrl = this.getBackupUrl(url);
+        if (backupUrl) {
+          const fallbackBase = backupUrl.startsWith(AZURE_API_BASE_URL) ? AZURE_API_BASE_URL : RENDER_API_BASE_URL;
+          this.baseUrl = fallbackBase;
+          return this.executeRequest<T>(backupUrl, path, method, body, false);
+        }
+      }
       throw err;
     }
   }
