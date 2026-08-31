@@ -45,12 +45,16 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT || 4000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`=======================================================`);
   logger.log(` Dayaar Real Estate CRM API running on port: ${port}`);
-  logger.log(` API Base URL: http://localhost:${port}/api`);
+  logger.log(` API Base URL: http://0.0.0.0:${port}/api`);
   logger.log(` WebSocket Server listening on port: ${port}`);
   logger.log(`=======================================================`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Fatal Bootstrap Error:', err);
+  process.exit(1);
+});
+
