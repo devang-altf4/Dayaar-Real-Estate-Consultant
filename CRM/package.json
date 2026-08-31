@@ -4,6 +4,7 @@
   "private": true,
   "description": "Real estate CRM with employee SIM calling and Callyzer call capture",
   "scripts": {
+    "start": "node apps/api/dist/src/main.js",
     "dev": "pnpm --parallel --filter @dayaar/api --filter @dayaar/web dev",
     "dev:api": "pnpm --filter @dayaar/api dev",
     "dev:web": "pnpm --filter @dayaar/web dev",
