@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Zap,
   Users,
-  Kanban,
   PhoneCall,
   CalendarClock,
   Clock,
@@ -27,7 +26,6 @@ export function Sidebar() {
     { label: 'Overview', href: '/', icon: LayoutDashboard },
     { label: 'Daily Call Queue', href: '/queue', icon: Zap, badge: '300' },
     { label: 'Leads Directory', href: '/leads', icon: Users },
-    { label: 'Pipeline Kanban', href: '/pipeline', icon: Kanban },
     { label: 'Call History', href: '/calls', icon: PhoneCall },
     { label: 'Follow-ups', href: '/follow-ups', icon: CalendarClock },
     // Self-service shift clock — employees and managers only. Admins manage
