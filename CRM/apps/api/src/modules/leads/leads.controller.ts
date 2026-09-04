@@ -48,8 +48,8 @@ export class LeadsController {
       temperature,
       project,
       assignedEmployeeId,
-      page: parseInt(page, 10),
-      limit: parseInt(limit, 10),
+      page: Number.isFinite(+page) ? +page : 1,
+      limit: Number.isFinite(+limit) ? +limit : 50,
       sortBy,
       sortOrder,
     });

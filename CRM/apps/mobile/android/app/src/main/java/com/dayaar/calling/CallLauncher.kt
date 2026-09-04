@@ -16,7 +16,8 @@ import androidx.core.content.ContextCompat
 object CallLauncher {
     private const val CHANNEL_ID = "dayaar_dial_commands"
 
-    fun placeTracked(context: Context, phoneNumber: String, commandId: String, callAttemptId: String) {
+    fun placeTracked(context: Context, phoneNumber: String, commandId: String, callAttemptId: String, expiresAt: String? = null) {
+        if (expiresAt != null && CallCommandHandler.isExpired(expiresAt)) return
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
             DeviceApi.postCallStatus(context, commandId, callAttemptId, "FAILED")
             showOpenAppNotification(context, "Call permission is required to dial $phoneNumber")
@@ -28,6 +29,10 @@ object CallLauncher {
             .putString(SecurePrefs.ACTIVE_ATTEMPT_ID, callAttemptId)
             .putBoolean(SecurePrefs.ACTIVE_SAW_OFFHOOK, false)
             .apply()
+        // Capture expiry for notification re-dial path
+        val activeExpires = try {
+            SecurePrefs.get(context).getString("LAST_EXPIRES_AT", null)
+        } catch (_: Exception) { null }
         try {
             launchCallIntent(context, phoneNumber)
             DeviceApi.postCallStatus(context, commandId, callAttemptId, "DIALING")
@@ -38,7 +43,7 @@ object CallLauncher {
                 .remove(SecurePrefs.ACTIVE_SAW_OFFHOOK)
                 .apply()
             DeviceApi.postCallStatus(context, commandId, callAttemptId, "FAILED")
-            showDialNotification(context, phoneNumber, commandId, callAttemptId)
+            showDialNotification(context, phoneNumber, commandId, callAttemptId, expiresAt)
         }
     }
 
@@ -66,12 +71,13 @@ object CallLauncher {
         context.startActivity(dialIntent)
     }
 
-    private fun showDialNotification(context: Context, phoneNumber: String, commandId: String, callAttemptId: String) {
+    private fun showDialNotification(context: Context, phoneNumber: String, commandId: String, callAttemptId: String, expiresAt: String? = null) {
         ensureChannel(context)
         val action = Intent(context, DialActionReceiver::class.java).apply {
             putExtra("phoneNumber", phoneNumber)
             putExtra("commandId", commandId)
             putExtra("callAttemptId", callAttemptId)
+            if (expiresAt != null) putExtra("expiresAt", expiresAt)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import {
   Clock,
@@ -24,6 +24,12 @@ export default function AttendancePage() {
   const [gpsError, setGpsError] = useState('');
   const [breakType, setBreakType] = useState<BreakType>(BreakType.LUNCH);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const queryClient = useQueryClient();
+
+  const invalidateAttendance = () => {
+    queryClient.invalidateQueries({ queryKey: ['my-attendance-status'] });
+    queryClient.invalidateQueries({ queryKey: ['my-attendance-history'] });
+  };
 
   // Fetch today's attendance status
   const { data: statusData, isLoading, refetch } = useQuery({
@@ -68,7 +74,7 @@ export default function AttendancePage() {
     },
     onSuccess: (data: any) => {
       setActionMessage({ type: 'success', text: 'Checked in successfully within organization geofence!' });
-      refetch();
+      invalidateAttendance();
     },
     onError: (err: any) => {
       setActionMessage({ type: 'error', text: err.message || 'Check-in rejected' });
@@ -83,7 +89,7 @@ export default function AttendancePage() {
     },
     onSuccess: () => {
       setActionMessage({ type: 'success', text: 'Checked out successfully.' });
-      refetch();
+      invalidateAttendance();
     },
     onError: (err: any) => {
       setActionMessage({ type: 'error', text: err.message || 'Check-out rejected' });
@@ -103,7 +109,7 @@ export default function AttendancePage() {
     },
     onSuccess: () => {
       setActionMessage({ type: 'success', text: `Started ${breakType} break.` });
-      refetch();
+      invalidateAttendance();
     },
     onError: (err: any) => {
       setActionMessage({ type: 'error', text: err.message || 'Could not start break' });
@@ -115,7 +121,7 @@ export default function AttendancePage() {
     mutationFn: () => api.post('/attendance/break/end'),
     onSuccess: () => {
       setActionMessage({ type: 'success', text: 'Resumed work from break.' });
-      refetch();
+      invalidateAttendance();
     },
     onError: (err: any) => {
       setActionMessage({ type: 'error', text: err.message || 'Could not end break' });

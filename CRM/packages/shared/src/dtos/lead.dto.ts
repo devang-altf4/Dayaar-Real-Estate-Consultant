@@ -9,6 +9,7 @@ import {
   PurchaseTimeline,
   FinancingType,
 } from '../enums/lead.enum';
+import { CallDisposition } from '../enums/call.enum';
 import { MongoIdSchema } from './common.dto';
 
 export const LeadQualificationSchema = z.object({
@@ -122,9 +123,23 @@ export const UpdateLeadDispositionSchema = z
 export type UpdateLeadDispositionDto = z.infer<typeof UpdateLeadDispositionSchema>;
 
 export const BulkAssignLeadsSchema = z.object({
-  leadIds: z.array(MongoIdSchema).min(1, 'At least one lead ID is required'),
+  leadIds: z.array(MongoIdSchema).min(1, 'At least one lead ID is required').max(500),
   employeeIds: z.array(MongoIdSchema).min(1, 'At least one employee ID is required'),
   strategy: z.enum(['SINGLE', 'ROUND_ROBIN']).default('ROUND_ROBIN'),
 }).strict();
 
 export type BulkAssignLeadsDto = z.infer<typeof BulkAssignLeadsSchema>;
+
+export const MobileDispositionSchema = z
+  .object({
+    leadId: MongoIdSchema,
+    disposition: z.nativeEnum(CallDisposition).optional(),
+    status: z.nativeEnum(LeadStatus).optional(),
+    temperature: z.nativeEnum(Temperature).optional(),
+    reason: z.string().trim().min(2).max(1000).optional(),
+    notes: z.string().trim().max(5000).optional(),
+    followUpAt: z.string().datetime({ offset: true }).optional().nullable(),
+  })
+  .strict();
+
+export type MobileDispositionDto = z.infer<typeof MobileDispositionSchema>;

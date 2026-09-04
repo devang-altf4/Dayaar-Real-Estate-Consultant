@@ -16,10 +16,12 @@ export class AuditController {
     @Query('limit') limit = '50',
     @Query('entityType') entityType?: string,
   ) {
+    const safeLimit = Number.isFinite(+limit) ? +limit : 50;
+    const safePage = Number.isFinite(+page) ? +page : 1;
     return this.auditService.findAll(
       user.organizationId,
-      parseInt(limit, 10),
-      parseInt(page, 10),
+      safeLimit,
+      safePage,
       entityType,
     );
   }

@@ -50,15 +50,17 @@ export class AnalyticsService {
   async getAdminDashboard(organizationId: string) {
     const orgId = new Types.ObjectId(organizationId);
     const { start, end, todayDateStr } = this.getStartAndEndOfToday();
+    const cutoff = new Date(Date.now() - 45 * 1000);
 
     const [
       totalEmployees,
       checkedInCount,
-      allDevices,
-      todayCalls,
+      onlineDevicesCount,
+      callAgg,
       totalLeads,
       interestedLeads,
       notInterestedLeads,
+      topAgg,
     ] = await Promise.all([
       this.userModel.countDocuments({ organizationId: orgId, isActive: true }),
       this.attendanceModel.countDocuments({
@@ -66,11 +68,25 @@ export class AnalyticsService {
         date: todayDateStr,
         checkOutAt: null,
       }),
-      this.deviceModel.find({ organizationId: orgId }),
-      this.callAttemptModel.find({
+      this.deviceModel.countDocuments({
         organizationId: orgId,
-        dialedAt: { $gte: start, $lte: end },
+        status: { $ne: 'REVOKED' },
+        lastSeenAt: { $gte: cutoff },
       }),
+      this.callAttemptModel
+        .aggregate([
+          { $match: { organizationId: orgId, dialedAt: { $gte: start, $lte: end } } },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: 1 },
+              connected: {
+                $sum: { $cond: [{ $or: ['$connected', { $gt: ['$duration', 2] }] }, 1, 0] },
+              },
+            },
+          },
+        ])
+        .then((r) => r[0] || { total: 0, connected: 0 }),
       this.leadModel.countDocuments({ organizationId: orgId }),
       this.leadModel.countDocuments({
         organizationId: orgId,
@@ -80,51 +96,47 @@ export class AnalyticsService {
         organizationId: orgId,
         status: LeadStatus.NOT_INTERESTED,
       }),
+      this.callAttemptModel.aggregate([
+        { $match: { organizationId: orgId, dialedAt: { $gte: start, $lte: end } } },
+        {
+          $group: {
+            _id: '$employeeId',
+            calls: { $sum: 1 },
+            connected: {
+              $sum: { $cond: [{ $or: ['$connected', { $gt: ['$duration', 2] }] }, 1, 0] },
+            },
+          },
+        },
+        { $sort: { calls: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'emp',
+          },
+        },
+        { $unwind: { path: '$emp', preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            userId: { $toString: '$_id' },
+            userName: '$emp.name',
+            employeeCode: '$emp.employeeCode',
+            callsMade: '$calls',
+            connectedCalls: '$connected',
+          },
+        },
+      ]),
     ]);
 
-    // Count online devices (<45s heartbeat)
-    const now = Date.now();
-    const onlineDevicesCount = allDevices.filter(
-      (d) => now - new Date(d.lastSeenAt).getTime() < 45 * 1000,
-    ).length;
-
-    const todayCallsTotal = todayCalls.length;
-    const todayConnected = todayCalls.filter(
-      (c) => c.connected === true || (c.duration || 0) > 2,
-    ).length;
+    const todayCallsTotal = callAgg.total || 0;
+    const todayConnected = callAgg.connected || 0;
     const todayNotConnected = todayCallsTotal - todayConnected;
     const connectionRate =
       todayCallsTotal > 0 ? Math.round((todayConnected / todayCallsTotal) * 100) : 0;
 
-    // Top performers calculation
-    const callerMap = new Map<string, { calls: number; connected: number }>();
-    todayCalls.forEach((c) => {
-      const empId = c.employeeId.toString();
-      const curr = callerMap.get(empId) || { calls: 0, connected: 0 };
-      curr.calls++;
-      if (c.connected === true || (c.duration || 0) > 2) {
-        curr.connected++;
-      }
-      callerMap.set(empId, curr);
-    });
-
-    const employees = await this.userModel
-      .find({ organizationId: orgId, role: Role.EMPLOYEE })
-      .select('name email employeeCode');
-
-    const topPerformers = employees
-      .map((emp) => {
-        const stats = callerMap.get(emp._id.toString()) || { calls: 0, connected: 0 };
-        return {
-          userId: emp._id.toString(),
-          userName: emp.name,
-          employeeCode: emp.employeeCode,
-          callsMade: stats.calls,
-          connectedCalls: stats.connected,
-        };
-      })
-      .sort((a, b) => b.callsMade - a.callsMade)
-      .slice(0, 5);
+    const topPerformers = topAgg;
 
     return {
       activeEmployeesCount: totalEmployees,
@@ -157,33 +169,53 @@ export class AnalyticsService {
 
     const teamMemberIds = teamMembers.map((m) => m._id);
 
-    const [todayCalls, checkedInRecords, devices] = await Promise.all([
-      this.callAttemptModel.find({
-        organizationId: orgId,
-        employeeId: { $in: teamMemberIds },
-        dialedAt: { $gte: start, $lte: end },
-      }),
-      this.attendanceModel.find({
-        organizationId: orgId,
-        employeeId: { $in: teamMemberIds },
-        date: todayDateStr,
-        checkOutAt: null,
-      }),
-      this.deviceModel.find({
+    const cutoff = new Date(Date.now() - 45 * 1000);
+    const [callAgg, checkedInRecords, devices, onlineDevicesCount] = await Promise.all([
+      this.callAttemptModel
+        .aggregate([
+          { $match: { organizationId: orgId, employeeId: { $in: teamMemberIds }, dialedAt: { $gte: start, $lte: end } } },
+          {
+            $group: {
+              _id: '$employeeId',
+              calls: { $sum: 1 },
+              connected: {
+                $sum: { $cond: [{ $or: ['$connected', { $gt: ['$duration', 2] }] }, 1, 0] },
+              },
+            },
+          },
+        ])
+        .then((rows) => {
+          const byId = new Map(rows.map((r: any) => [r._id.toString(), r]));
+          const total = rows.reduce((a: number, r: any) => a + r.calls, 0);
+          const conn = rows.reduce((a: number, r: any) => a + r.connected, 0);
+          return { byId, total, conn };
+        }),
+      this.attendanceModel
+        .find({
+          organizationId: orgId,
+          employeeId: { $in: teamMemberIds },
+          date: todayDateStr,
+          checkOutAt: null,
+        })
+        .select('employeeId')
+        .lean(),
+      this.deviceModel
+        .find({
+          organizationId: orgId,
+          userId: { $in: teamMemberIds },
+        })
+        .select('userId deviceName status lastSeenAt')
+        .lean(),
+      this.deviceModel.countDocuments({
         organizationId: orgId,
         userId: { $in: teamMemberIds },
+        status: { $ne: 'REVOKED' },
+        lastSeenAt: { $gte: cutoff },
       }),
     ]);
 
-    const now = Date.now();
-    const onlineDevicesCount = devices.filter(
-      (d) => now - new Date(d.lastSeenAt).getTime() < 45 * 1000,
-    ).length;
-
-    const teamCallsTotal = todayCalls.length;
-    const teamConnected = todayCalls.filter(
-      (c) => c.connected === true || (c.duration || 0) > 2,
-    ).length;
+    const teamCallsTotal = (callAgg as any).total;
+    const teamConnected = (callAgg as any).conn;
 
     return {
       teamSize: teamMembers.length,
@@ -192,28 +224,32 @@ export class AnalyticsService {
       teamTodayCalls: teamCallsTotal,
       teamTodayConnected: teamConnected,
       teamMembers: teamMembers.map((m) => {
-        const empCalls = todayCalls.filter((c) => c.employeeId.toString() === m._id.toString());
-        const empConnected = empCalls.filter(
-          (c) => c.connected === true || (c.duration || 0) > 2,
-        ).length;
-        const isCheckedIn = checkedInRecords.some(
+        const stats: any = (callAgg as any).byId.get(m._id.toString()) || { calls: 0, connected: 0 };
+        const isCheckedIn = (checkedInRecords as any[]).some(
           (r) => r.employeeId.toString() === m._id.toString(),
         );
 
-        const empDevice = devices.find((d) => d.userId.toString() === m._id.toString());
+        const empDevice: any = (devices as any[]).find((d) => d.userId.toString() === m._id.toString());
+        const dynamicStatus = empDevice
+          ? Date.now() - new Date(empDevice.lastSeenAt).getTime() < 45 * 1000
+            ? 'ONLINE'
+            : Date.now() - new Date(empDevice.lastSeenAt).getTime() < 120 * 1000
+              ? 'STALE'
+              : 'OFFLINE'
+          : null;
 
         return {
           userId: m._id.toString(),
           userName: m.name,
           email: m.email,
           employeeCode: m.employeeCode,
-          callsToday: empCalls.length,
-          connectedToday: empConnected,
+          callsToday: stats.calls,
+          connectedToday: stats.connected,
           isCheckedIn,
           device: empDevice
             ? {
                 deviceName: empDevice.deviceName,
-                status: empDevice.status,
+                status: dynamicStatus ?? empDevice.status,
                 lastSeenAt: empDevice.lastSeenAt,
               }
             : null,
@@ -230,16 +266,26 @@ export class AnalyticsService {
     const empId = new Types.ObjectId(user.id);
     const { start, end, todayDateStr } = this.getStartAndEndOfToday();
 
-    const [todayCalls, assignedLeads, attendance] = await Promise.all([
-      this.callAttemptModel.find({
-        organizationId: orgId,
-        employeeId: empId,
-        dialedAt: { $gte: start, $lte: end },
-      }),
-      this.leadModel.find({
-        organizationId: orgId,
-        assignedEmployeeId: empId,
-      }),
+    const [callAgg, leadAgg, attendance] = await Promise.all([
+      this.callAttemptModel
+        .aggregate([
+          { $match: { organizationId: orgId, employeeId: empId, dialedAt: { $gte: start, $lte: end } } },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: 1 },
+              connected: {
+                $sum: { $cond: [{ $or: ['$connected', { $gt: ['$duration', 2] }] }, 1, 0] },
+              },
+              dur: { $sum: { $ifNull: ['$duration', 0] } },
+            },
+          },
+        ])
+        .then((r) => r[0] || { total: 0, connected: 0, dur: 0 }),
+      this.leadModel.aggregate([
+        { $match: { organizationId: orgId, assignedEmployeeId: empId } },
+        { $group: { _id: { t: '$temperature', s: '$status' }, n: { $sum: 1 } } },
+      ]),
       this.attendanceModel.findOne({
         organizationId: orgId,
         employeeId: empId,
@@ -247,21 +293,25 @@ export class AnalyticsService {
       }),
     ]);
 
-    const totalCalls = todayCalls.length;
-    const connected = todayCalls.filter(
-      (c) => c.connected === true || (c.duration || 0) > 2,
-    ).length;
-    const totalDuration = todayCalls.reduce((acc, c) => acc + (c.duration || 0), 0);
+    const totalCalls = callAgg.total || 0;
+    const connected = callAgg.connected || 0;
+    const totalDuration = callAgg.dur || 0;
     const avgDuration = connected > 0 ? Math.round(totalDuration / connected) : 0;
 
-    const hotCount = assignedLeads.filter((l) => l.temperature === Temperature.HOT).length;
-    const warmCount = assignedLeads.filter((l) => l.temperature === Temperature.WARM).length;
-    const coldCount = assignedLeads.filter((l) => l.temperature === Temperature.COLD).length;
-    const interestedCount = assignedLeads.filter((l) =>
-      [LeadStatus.INTERESTED, LeadStatus.HOT, LeadStatus.WARM, LeadStatus.SITE_VISIT].includes(
-        l.status,
-      ),
-    ).length;
+    let hotCount = 0;
+    let warmCount = 0;
+    let coldCount = 0;
+    let interestedCount = 0;
+    let assignedTotal = 0;
+    for (const row of leadAgg as any[]) {
+      assignedTotal += row.n;
+      if (row._id?.t === Temperature.HOT) hotCount += row.n;
+      if (row._id?.t === Temperature.WARM) warmCount += row.n;
+      if (row._id?.t === Temperature.COLD) coldCount += row.n;
+      if ([LeadStatus.INTERESTED, LeadStatus.HOT, LeadStatus.WARM, LeadStatus.SITE_VISIT].includes(row._id?.s)) {
+        interestedCount += row.n;
+      }
+    }
 
     return {
       dailyTarget: 300,
@@ -270,7 +320,7 @@ export class AnalyticsService {
       connectionRate: totalCalls > 0 ? Math.round((connected / totalCalls) * 100) : 0,
       totalDurationSeconds: totalDuration,
       avgCallDurationSeconds: avgDuration,
-      assignedLeadsCount: assignedLeads.length,
+      assignedLeadsCount: assignedTotal,
       interestedCount,
       hotCount,
       warmCount,

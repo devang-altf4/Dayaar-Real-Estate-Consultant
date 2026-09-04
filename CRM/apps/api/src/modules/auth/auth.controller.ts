@@ -35,7 +35,20 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout() {
+  async logout(
+    @CurrentUser() user: IAuthUser,
+    @Body() body?: { refreshToken?: string },
+  ) {
+    try {
+      if (user?.id) return this.authService.logout(user.id, body?.refreshToken);
+    } catch {
+      /* fall through */
+    }
     return { success: true, message: 'Logged out successfully' };
+  }
+
+  @Post('logout-all')
+  async logoutAll(@CurrentUser() user: IAuthUser) {
+    return this.authService.logoutAll(user.id);
   }
 }

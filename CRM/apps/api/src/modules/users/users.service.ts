@@ -86,17 +86,23 @@ export class UsersService {
    * lead-import distribution picker. Deliberately excludes contact details.
    */
   async findOrgEmployeesMinimal(organizationId: string) {
+    // Intentionally minimal: no managerId/isActive/contact leakage for enumeration
     return this.userModel
       .find({
         organizationId: new Types.ObjectId(organizationId),
         role: Role.EMPLOYEE,
+        isActive: true,
       })
-      .select('_id name isActive managerId')
-      .sort({ name: 1 });
+      .select('_id name')
+      .sort({ name: 1 })
+      .lean();
   }
 
   async create(dto: CreateUserDto, organizationId: string) {
-    const existing = await this.userModel.findOne({ email: dto.email.toLowerCase() });
+    const existing = await this.userModel.findOne({
+      email: dto.email.toLowerCase(),
+      organizationId: new Types.ObjectId(organizationId),
+    });
     if (existing) {
       throw new ConflictException('User with this email already exists');
     }

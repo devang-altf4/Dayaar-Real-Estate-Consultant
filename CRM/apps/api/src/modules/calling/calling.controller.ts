@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Body, Controller, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import { Response } from 'express';
 import {
   CallDispositionDto,
   CallDispositionSchema,
@@ -8,31 +8,30 @@ import {
   InitiateCallDto,
   InitiateCallSchema,
   MongoIdSchema,
+  Role,
   UpdateCallStatusDto,
   UpdateCallStatusSchema,
 } from '@dayaar/shared';
 import { CurrentDevice } from '../../common/decorators/current-device.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { DeviceAuthGuard } from '../../common/guards/device-auth.guard';
+import { UseGuards } from '@nestjs/common';
 import { DevicePrincipal } from '../../common/interfaces/device-principal.interface';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { CallingService } from './calling.service';
-import { AuthService } from '../auth/auth.service';
 
 @Controller('calls')
 export class CallingController {
-  constructor(
-    private readonly callingService: CallingService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly callingService: CallingService) {}
 
   @Post('initiate')
   initiateCall(
     @Body(new ZodValidationPipe(InitiateCallSchema)) dto: InitiateCallDto,
     @CurrentUser() user: IAuthUser,
   ) {
-    return this.callingService.initiateCall(dto.leadId, dto.origin || CallOrigin.WEB, user);
+    return this.callingService.initiateCall(dto.leadId, dto.origin || CallOrigin.WEB, user, (dto as any).idempotencyKey);
   }
 
   @Public()
@@ -60,6 +59,7 @@ export class CallingController {
     return this.callingService.recordDisposition(id, dto, user);
   }
 
+  @Roles(Role.ADMIN, Role.MANAGER)
   @Get(':id/recording-url')
   recordingUrl(
     @Param('id', new ZodValidationPipe(MongoIdSchema)) id: string,
@@ -68,33 +68,16 @@ export class CallingController {
     return this.callingService.getRecordingUrl(id, user);
   }
 
-  @Public()
+  @Roles(Role.ADMIN, Role.MANAGER)
   @Get(':id/recording-stream')
   async recordingStream(
     @Param('id', new ZodValidationPipe(MongoIdSchema)) id: string,
     @CurrentUser() user: IAuthUser,
-    @Req() req: Request,
     @Res() res: Response,
   ) {
-    let principalUser: IAuthUser = user;
-    if (!principalUser) {
-      const queryToken = (req.query as any)?.token as string;
-      const authHeader = req.headers['authorization'];
-      const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : undefined;
-      const token = queryToken || bearerToken;
-      if (token) {
-        try {
-          principalUser = await this.authService.authenticateAccessToken(token);
-        } catch {
-          // ignore
-        }
-      }
-    }
-    if (!principalUser) {
-      res.status(401).json({ success: false, message: 'Unauthorized' });
-      return;
-    }
-    const { buffer, mimeType } = await this.callingService.getRecordingStream(id, principalUser);
+    // JWT-in-query removed: callers must send Authorization header.
+    // Use api.getBlob() which attaches the bearer token.
+    const { buffer, mimeType } = await this.callingService.getRecordingStream(id, user);
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Content-Length', buffer.length);
     res.setHeader('Cache-Control', 'private, no-store');
@@ -116,6 +99,8 @@ export class CallingController {
     @Query('page') page = '1',
     @Query('limit') limit = '50',
   ) {
-    return this.callingService.getRecentCalls(user, Number(limit), Number(page));
+    const safeLimit = Number.isFinite(+limit) ? +limit : 50;
+    const safePage = Number.isFinite(+page) ? +page : 1;
+    return this.callingService.getRecentCalls(user, safeLimit, safePage);
   }
 }

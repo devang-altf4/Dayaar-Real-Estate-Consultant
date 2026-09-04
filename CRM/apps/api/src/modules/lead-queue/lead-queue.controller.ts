@@ -12,7 +12,9 @@ export class LeadQueueController {
     @CurrentUser() user: IAuthUser,
     @Query('limit') limit = '50',
   ) {
-    return this.queueService.getDailyQueue(user, parseInt(limit, 10));
+    const raw = Number.isFinite(+limit) ? +limit : 50;
+    const safe = Math.min(200, Math.max(1, raw));
+    return this.queueService.getDailyQueue(user, safe);
   }
 
   @Get('next')

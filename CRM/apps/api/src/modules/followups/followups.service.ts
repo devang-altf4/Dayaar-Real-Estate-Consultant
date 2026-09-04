@@ -66,10 +66,18 @@ export class FollowupsService {
     return followUp;
   }
 
-  async getMyFollowUps(user: IAuthUser, type: 'today' | 'overdue' | 'upcoming' | 'all') {
+  async getMyFollowUps(
+    user: IAuthUser,
+    type: 'today' | 'overdue' | 'upcoming' | 'all',
+    page = 1,
+    limit = 50,
+  ) {
     const orgId = new Types.ObjectId(user.organizationId);
     const empId = new Types.ObjectId(user.id);
-    const now = new Date();
+
+    const safeLimit = Math.min(100, Math.max(1, Number.isFinite(+limit) ? +limit : 50));
+    const safePage = Math.min(1000, Math.max(1, Number.isFinite(+page) ? +page : 1));
+    const skip = (safePage - 1) * safeLimit;
 
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
@@ -95,10 +103,20 @@ export class FollowupsService {
       filter.scheduledAt = { $gt: endOfToday };
     }
 
-    return this.followUpModel
-      .find(filter)
-      .populate('leadId', 'name phone project status temperature attemptCount')
-      .sort({ scheduledAt: 1 });
+    const [data, total] = await Promise.all([
+      this.followUpModel
+        .find(filter)
+        .populate('leadId', 'name phone project status temperature attemptCount')
+        .sort({ scheduledAt: 1 })
+        .skip(skip)
+        .limit(safeLimit)
+        .lean(),
+      this.followUpModel.countDocuments(filter),
+    ]);
+    return {
+      data,
+      meta: { total, page: safePage, limit: safeLimit, totalPages: Math.ceil(total / safeLimit) },
+    };
   }
 
   async completeFollowUp(id: string, user: IAuthUser) {

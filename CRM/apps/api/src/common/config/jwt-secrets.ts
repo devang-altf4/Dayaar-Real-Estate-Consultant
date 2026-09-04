@@ -3,14 +3,22 @@ export function getJwtSecret(
 ): string {
   const configured = process.env[variableName];
   if (configured) {
+    if (configured.length < 32) {
+      throw new Error(`${variableName} too short (min 32 chars).`);
+    }
     return configured;
   }
 
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(`${variableName} must be configured in production.`);
-  }
+  // Fail-closed in every environment — no committed fallback secrets.
+  throw new Error(
+    `${variableName} must be configured (min 32 chars). No dev fallback is allowed.`,
+  );
+}
 
-  return variableName === 'JWT_SECRET'
-    ? 'development-only-access-secret-change-before-production'
-    : 'development-only-refresh-secret-change-before-production';
+export function assertJwtSecretsConfigured(): void {
+  const access = getJwtSecret('JWT_SECRET');
+  const refresh = getJwtSecret('JWT_REFRESH_SECRET');
+  if (access === refresh) {
+    throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must differ.');
+  }
 }

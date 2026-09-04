@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { CalendarClock, CheckCircle2, Clock, Phone, AlertCircle } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
@@ -9,15 +9,27 @@ import Link from 'next/link';
 
 export default function FollowUpsPage() {
   const [filter, setFilter] = useState<'today' | 'overdue' | 'upcoming'>('today');
+  const [completeError, setCompleteError] = useState('');
+  const queryClient = useQueryClient();
 
-  const { data: followUps, isLoading, refetch } = useQuery({
+  const { data: followUpsData, isLoading } = useQuery({
     queryKey: ['follow-ups', filter],
-    queryFn: () => api.get<any[]>('/follow-ups', { type: filter }),
+    queryFn: () => api.get<any>('/follow-ups', { type: filter }),
   });
+  const followUps: any[] = Array.isArray(followUpsData)
+    ? followUpsData
+    : (followUpsData as any)?.data ?? [];
 
   const completeMutation = useMutation({
     mutationFn: (id: string) => api.patch(`/follow-ups/${id}/complete`),
-    onSuccess: () => refetch(),
+    onSuccess: () => {
+      setCompleteError('');
+      queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-queue'] });
+    },
+    onError: (err: any) => {
+      setCompleteError(err?.message || 'Failed to complete follow-up');
+    },
   });
 
   return (
@@ -67,6 +79,13 @@ export default function FollowUpsPage() {
           </button>
         </div>
       </div>
+
+      {completeError && (
+        <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" />
+          <span>{completeError}</span>
+        </div>
+      )}
 
       <div className="bg-white border border-slate-200/80 rounded-2xl shadow-card overflow-hidden">
         {isLoading ? (

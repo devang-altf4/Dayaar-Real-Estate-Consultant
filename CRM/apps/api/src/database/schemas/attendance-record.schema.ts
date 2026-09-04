@@ -55,3 +55,4 @@ export class AttendanceRecord {
 export const AttendanceRecordSchema = SchemaFactory.createForClass(AttendanceRecord);
 AttendanceRecordSchema.index({ organizationId: 1, employeeId: 1, date: 1 }, { unique: true });
 AttendanceRecordSchema.index({ organizationId: 1, date: 1 });
+AttendanceRecordSchema.index({ organizationId: 1, date: 1, checkOutAt: 1 });

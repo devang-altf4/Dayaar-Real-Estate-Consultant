@@ -7,6 +7,8 @@ import { CallEvent, CallEventSchema } from '../../database/schemas/call-event.sc
 import { FollowUp, FollowUpSchema } from '../../database/schemas/follow-up.schema';
 import { Lead, LeadSchema } from '../../database/schemas/lead.schema';
 import { User, UserSchema } from '../../database/schemas/user.schema';
+import { AttendanceRecord, AttendanceRecordSchema } from '../../database/schemas/attendance-record.schema';
+import { BreakSession, BreakSessionSchema } from '../../database/schemas/break-session.schema';
 import { DevicesModule } from '../devices/devices.module';
 import { CallyzerModule } from '../callyzer/callyzer.module';
 import { AuthModule } from '../auth/auth.module';
@@ -28,6 +30,8 @@ import { FcmService } from './fcm.service';
       { name: FollowUp.name, schema: FollowUpSchema },
       { name: Lead.name, schema: LeadSchema },
       { name: User.name, schema: UserSchema },
+      { name: AttendanceRecord.name, schema: AttendanceRecordSchema },
+      { name: BreakSession.name, schema: BreakSessionSchema },
     ]),
   ],
   controllers: [CallingController],

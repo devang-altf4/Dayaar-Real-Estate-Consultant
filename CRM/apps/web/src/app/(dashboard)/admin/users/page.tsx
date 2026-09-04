@@ -25,8 +25,20 @@ export default function AdminUsersPage() {
     queryFn: () => api.get<any[]>('/users'),
   });
 
+  const sanitizeUserPayload = (payload: any) => {
+    const cleaned: any = { ...payload };
+    // MongoIdSchema.optional().nullable() rejects "" — drop empty managerId
+    if (typeof cleaned.managerId === 'string' && cleaned.managerId.trim() === '') {
+      delete cleaned.managerId;
+    }
+    if (typeof cleaned.phone === 'string') cleaned.phone = cleaned.phone.trim();
+    if (typeof cleaned.name === 'string') cleaned.name = cleaned.name.trim();
+    if (typeof cleaned.email === 'string') cleaned.email = cleaned.email.trim().toLowerCase();
+    return cleaned;
+  };
+
   const createUserMutation = useMutation({
-    mutationFn: (payload: any) => api.post('/users', payload),
+    mutationFn: (payload: any) => api.post('/users', sanitizeUserPayload(payload)),
     onSuccess: () => {
       setIsModalOpen(false);
       setForm({
@@ -261,7 +273,7 @@ export default function AdminUsersPage() {
               <button
                 type="button"
                 disabled={!form.name || !form.email || !form.phone || !form.employeeCode || !form.password || createUserMutation.isPending}
-                onClick={() => createUserMutation.mutate(form)}
+                onClick={() => createUserMutation.mutate(sanitizeUserPayload(form))}
                 className="px-5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition-colors"
               >
                 {createUserMutation.isPending ? 'Creating...' : 'Save User'}

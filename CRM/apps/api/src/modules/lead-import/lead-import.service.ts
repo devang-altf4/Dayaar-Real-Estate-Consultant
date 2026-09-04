@@ -216,7 +216,8 @@ export class LeadImportService {
     }
 
     const isManager = user.role === Role.MANAGER;
-    const teamOnly = isManager && options.assignScope !== 'ORGANIZATION';
+    // MANAGERs are always team-scoped; only ADMIN may use ORGANIZATION scope
+    const teamOnly = isManager;
 
     const baseFilter: Record<string, unknown> = {
       organizationId: orgObjectId,
@@ -289,7 +290,7 @@ export class LeadImportService {
     const assignedEmployees =
       targetEmployeeIds.length > 0
         ? await this.userModel
-            .find({ _id: { $in: targetEmployeeIds } })
+            .find({ _id: { $in: targetEmployeeIds }, organizationId: orgObjectId })
             .select('_id managerId')
         : [];
     const managerByEmployee = new Map(

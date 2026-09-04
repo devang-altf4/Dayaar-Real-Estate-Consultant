@@ -11,6 +11,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  refresh: () => Promise<string>;
   isAdmin: boolean;
   isManager: boolean;
   isEmployee: boolean;
@@ -35,10 +36,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(JSON.parse(storedUser));
       } catch {
         localStorage.removeItem('dayaar_access_token');
+        localStorage.removeItem('dayaar_refresh_token');
         localStorage.removeItem('dayaar_user');
       }
     }
     setIsLoading(false);
+  }, []);
+
+  // Keep in-memory token in sync when api.ts silently refreshes
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const next = (e as CustomEvent<string>).detail;
+      if (next) setToken(next);
+    };
+    window.addEventListener('dayaar:token-refreshed', handler as EventListener);
+    return () => window.removeEventListener('dayaar:token-refreshed', handler as EventListener);
   }, []);
 
   // Route protection
@@ -65,12 +77,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('dayaar_access_token');
-    localStorage.removeItem('dayaar_refresh_token');
-    localStorage.removeItem('dayaar_user');
+    try {
+      // Best-effort server revocation (rotation-aware backend); ignore failures
+      const rt = localStorage.getItem('dayaar_refresh_token');
+      if (rt) {
+        void api.post('/auth/logout', { refreshToken: rt }).catch(() => undefined);
+      }
+    } catch {
+      /* noop */
+    }
+    try {
+      (api as any).logoutLocal?.();
+    } catch {
+      localStorage.removeItem('dayaar_access_token');
+      localStorage.removeItem('dayaar_refresh_token');
+      localStorage.removeItem('dayaar_user');
+    }
     setToken(null);
     setUser(null);
     router.push('/login');
+  };
+
+  const refresh = async (): Promise<string> => {
+    const next = await api.refreshAccessToken();
+    setToken(next);
+    return next;
   };
 
   return (
@@ -81,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         logout,
+        refresh,
         isAdmin: user?.role === Role.ADMIN,
         isManager: user?.role === Role.MANAGER,
         isEmployee: user?.role === Role.EMPLOYEE,

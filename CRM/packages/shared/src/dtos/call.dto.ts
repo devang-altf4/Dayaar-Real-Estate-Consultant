@@ -10,6 +10,7 @@ export const InitiateCallSchema = z
   .object({
     leadId: MongoIdSchema,
     origin: z.nativeEnum(CallOrigin).optional(),
+    idempotencyKey: z.string().min(8).max(64).optional(),
   })
   .strict();
 

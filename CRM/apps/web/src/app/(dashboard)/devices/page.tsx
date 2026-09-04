@@ -68,7 +68,11 @@ export default function DevicesPage() {
   const unpairMutation = useMutation({
     mutationFn: (deviceId: string) => api.delete(`/devices/${deviceId}`),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-primary-device'] });
       refetch();
+    },
+    onError: (err: any) => {
+      alert(err?.message || 'Failed to unpair device');
     },
   });
 

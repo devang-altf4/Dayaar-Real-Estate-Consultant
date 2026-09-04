@@ -31,11 +31,15 @@ import { CallEvent, CallEventDocument } from '../../database/schemas/call-event.
 import { FollowUp, FollowUpDocument } from '../../database/schemas/follow-up.schema';
 import { Lead, LeadDocument } from '../../database/schemas/lead.schema';
 import { User, UserDocument } from '../../database/schemas/user.schema';
+import { AttendanceRecord, AttendanceRecordDocument } from '../../database/schemas/attendance-record.schema';
+import { BreakSession, BreakSessionDocument } from '../../database/schemas/break-session.schema';
 import { DevicePrincipal } from '../../common/interfaces/device-principal.interface';
 import { StorageService } from '../storage/storage.service';
 import { DevicesGateway } from '../devices/devices.gateway';
+import { DevicesService } from '../devices/devices.service';
 import { CallyzerClient } from '../callyzer/callyzer.client';
 import { AndroidDialProvider } from './android-dial.provider';
+import { DeviceStatus, SimState } from '@dayaar/shared';
 
 @Injectable()
 export class CallingService {
@@ -47,13 +51,16 @@ export class CallingService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(AndroidDevice.name) private readonly deviceModel: Model<AndroidDeviceDocument>,
     @InjectModel(FollowUp.name) private readonly followUpModel: Model<FollowUpDocument>,
+    @InjectModel(AttendanceRecord.name) private readonly attendanceModel: Model<AttendanceRecordDocument>,
+    @InjectModel(BreakSession.name) private readonly breakModel: Model<BreakSessionDocument>,
     private readonly dialProvider: AndroidDialProvider,
     private readonly storage: StorageService,
     private readonly devicesGateway: DevicesGateway,
+    private readonly devicesService: DevicesService,
     private readonly callyzerClient: CallyzerClient,
   ) {}
 
-  async initiateCall(leadId: string, origin: CallOrigin, authUser: IAuthUser) {
+  async initiateCall(leadId: string, origin: CallOrigin, authUser: IAuthUser, idempotencyKey?: string) {
     const [lead, employee] = await Promise.all([
       this.leadModel.findOne({
         _id: new Types.ObjectId(leadId),
@@ -74,6 +81,26 @@ export class CallingService {
       });
     }
     await this.assertLeadAccess(lead, authUser);
+    // Attendance gate: calls strictly blocked unless checked-in and not on break
+    const todayStr = new Date().toISOString().split('T')[0];
+    const record = await this.attendanceModel.findOne({
+      organizationId: employee.organizationId,
+      employeeId: employee._id,
+      date: todayStr,
+    });
+    if (!record || record.checkOutAt) {
+      throw new ForbiddenException({
+        code: 'NOT_CHECKED_IN',
+        message: 'Check in before placing calls.',
+      });
+    }
+    const onBreak = await this.breakModel.exists({ attendanceId: record._id, endedAt: null });
+    if (onBreak) {
+      throw new ForbiddenException({
+        code: 'ON_BREAK',
+        message: 'End your break before placing calls.',
+      });
+    }
     const phoneNumber = normalizePhoneToE164(lead.phone);
     const employeePhoneNumber = normalizePhoneToE164(employee.phone) || (origin === CallOrigin.ANDROID ? '+910000000000' : null);
     if (!phoneNumber) {
@@ -115,23 +142,62 @@ export class CallingService {
           message: 'Pair an Android device with a valid FCM token before calling from web.',
         });
       }
+      // Presence + SIM readiness gate (45s heartbeat, SIM READY, canPlaceCalls)
+      const dyn = this.devicesService.getDynamicStatus(device);
+      if (dyn !== DeviceStatus.ONLINE) {
+        throw new BadRequestException({
+          code: 'DEVICE_OFFLINE',
+          message: `Paired device is ${dyn}. Ask the agent to open the Android app to heartbeat.`,
+        });
+      }
+      if ((device as any).simState !== SimState.READY || !(device as any).capabilities?.canPlaceCalls) {
+        throw new BadRequestException({
+          code: 'DEVICE_NOT_CALL_READY',
+          message: 'Paired device SIM is not ready for calling.',
+        });
+      }
     }
 
-    const attempt = await this.attemptModel.create({
-      organizationId: employee.organizationId,
-      leadId: lead._id,
-      employeeId: employee._id,
-      deviceId: device?._id || null,
-      provider: CallProviderType.CALLYZER_SIM,
-      origin,
-      status: CallAttemptStatus.INITIATING,
-      syncStatus: CallSyncStatus.PENDING,
-      phoneNumber,
-      employeePhoneNumber,
-      dialedAt: new Date(),
-      recordingStatus: RecordingStatus.PENDING,
-      countsAsAttempt: false,
-    });
+    // Idempotency: client key or 10s server window per employee+lead
+    const key =
+      idempotencyKey?.trim() ||
+      `${authUser.id}:${lead._id.toString()}:${Math.floor(Date.now() / 10000)}`;
+    let attempt: CallAttemptDocument;
+    try {
+      attempt = await this.attemptModel.create({
+        organizationId: employee.organizationId,
+        leadId: lead._id,
+        employeeId: employee._id,
+        deviceId: device?._id || null,
+        provider: CallProviderType.CALLYZER_SIM,
+        origin,
+        status: CallAttemptStatus.INITIATING,
+        syncStatus: CallSyncStatus.PENDING,
+        phoneNumber,
+        employeePhoneNumber,
+        dialedAt: new Date(),
+        recordingStatus: RecordingStatus.PENDING,
+        countsAsAttempt: false,
+        idempotencyKey: key,
+      } as any);
+    } catch (e: any) {
+      if (e?.code === 11000) {
+        const existingAttempt = await this.attemptModel.findOne({
+          organizationId: employee.organizationId,
+          employeeId: employee._id,
+          idempotencyKey: key,
+        });
+        if (existingAttempt) return {
+          callAttemptId: (existingAttempt as any)._id.toString(),
+          commandId: (existingAttempt as any).callCommandId?.toString() || null,
+          origin,
+          status: (existingAttempt as any).status,
+          duplicate: true,
+          leadName: lead.name,
+        };
+      }
+      throw e;
+    }
     await this.logEvent(attempt, CallEventType.CALL_ATTEMPT_CREATED, { origin });
 
     if (origin === CallOrigin.WEB && device?.fcmToken) {
@@ -184,17 +250,6 @@ export class CallingService {
     device: DevicePrincipal,
     occurredAt?: string,
   ) {
-    const attempt = await this.attemptModel.findOne({
-      _id: new Types.ObjectId(callAttemptId),
-      organizationId: new Types.ObjectId(device.organizationId),
-      employeeId: new Types.ObjectId(device.userId),
-      deviceId: new Types.ObjectId(device.id),
-      providerCallId: null,
-    });
-    if (!attempt) throw new NotFoundException('Pending call attempt not found for this device.');
-    if (commandId && attempt.callCommandId?.toString() !== commandId) {
-      throw new ForbiddenException('Command does not belong to this call attempt.');
-    }
     const allowed = [
       CallAttemptStatus.DIALING,
       CallAttemptStatus.CANCELLED,
@@ -202,14 +257,64 @@ export class CallingService {
       CallAttemptStatus.COMPLETED,
     ];
     if (!allowed.includes(status)) throw new BadRequestException('Unsupported device call state.');
-    attempt.status = status;
-    if (status === CallAttemptStatus.DIALING && !attempt.connectedAt) {
-      attempt.connectedAt = null;
+    // Validate occurredAt window: [dialedAt-5m, now+1m]
+    let occurred: Date | null = null;
+    if (occurredAt) {
+      occurred = new Date(occurredAt);
+      if (Number.isNaN(occurred.getTime())) throw new BadRequestException('Invalid occurredAt.');
+      if (occurred.getTime() > Date.now() + 60 * 1000) {
+        throw new BadRequestException('occurredAt cannot be in the future.');
+      }
     }
-    if ([CallAttemptStatus.COMPLETED, CallAttemptStatus.CANCELLED, CallAttemptStatus.FAILED].includes(status)) {
-      attempt.endedAt = occurredAt ? new Date(occurredAt) : new Date();
+    // Server-side command expiry enforcement before mutating attempt
+    if (commandId) {
+      const cmd: any = await this.commandModel.findOne({
+        _id: new Types.ObjectId(commandId),
+        callAttemptId: new Types.ObjectId(callAttemptId),
+      });
+      if (!cmd) throw new ForbiddenException('Unknown command for this call attempt.');
+      if (cmd.expiresAt && new Date(cmd.expiresAt).getTime() <= Date.now()) {
+        await this.commandModel.updateOne({ _id: cmd._id }, { $set: { status: CallCommandStatus.EXPIRED } });
+        throw new BadRequestException({ code: 'COMMAND_EXPIRED', message: 'Call command has expired.' });
+      }
+      if ([CallCommandStatus.COMPLETED, CallCommandStatus.FAILED, CallCommandStatus.EXPIRED].includes(cmd.status)) {
+        throw new BadRequestException('Command already terminal.');
+      }
     }
-    await attempt.save();
+    const TERMINAL = [CallAttemptStatus.COMPLETED, CallAttemptStatus.CANCELLED, CallAttemptStatus.FAILED];
+    const now = occurred ?? new Date();
+    const update: any = { $set: { status } as any };
+    if (status === CallAttemptStatus.DIALING) {
+      update.$set.connectedAt = now;
+    }
+    if (([CallAttemptStatus.COMPLETED, CallAttemptStatus.CANCELLED, CallAttemptStatus.FAILED] as string[]).includes(status)) {
+      update.$set.endedAt = now;
+    }
+    const attempt = await this.attemptModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(callAttemptId),
+        organizationId: new Types.ObjectId(device.organizationId),
+        employeeId: new Types.ObjectId(device.userId),
+        deviceId: new Types.ObjectId(device.id),
+        providerCallId: null,
+        status: { $nin: TERMINAL },
+      },
+      update,
+      { new: true },
+    );
+    if (!attempt) {
+      const cur: any = await this.attemptModel.findOne({
+        _id: new Types.ObjectId(callAttemptId),
+        organizationId: new Types.ObjectId(device.organizationId),
+      });
+      if (cur && (TERMINAL as string[]).includes(cur.status)) {
+        return { accepted: true, duplicate: true };
+      }
+      throw new NotFoundException('Pending call attempt not found for this device.');
+    }
+    if (commandId && attempt.callCommandId?.toString() !== commandId) {
+      throw new ForbiddenException('Command does not belong to this call attempt.');
+    }
     if (attempt.callCommandId) {
       const commandStatus = status === CallAttemptStatus.DIALING
         ? CallCommandStatus.DIALING
@@ -236,22 +341,34 @@ export class CallingService {
   }
 
   async recordDisposition(callAttemptId: string, dto: CallDispositionDto, user: IAuthUser) {
-    const attempt = await this.attemptModel.findOne({
-      _id: new Types.ObjectId(callAttemptId),
-      organizationId: new Types.ObjectId(user.organizationId),
-      employeeId: new Types.ObjectId(user.id),
-    });
-    if (!attempt?.leadId) throw new NotFoundException('Call attempt not found for this employee.');
-    if (attempt.dispositionAt) {
-      throw new BadRequestException('This call already has a disposition.');
+    // Atomic claim: only one disposition per attempt (concurrent PATCH safe)
+    const attempt: any = await this.attemptModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(callAttemptId),
+        organizationId: new Types.ObjectId(user.organizationId),
+        employeeId: new Types.ObjectId(user.id),
+        dispositionAt: null,
+      },
+      {
+        $set: {
+          disposition: dto.disposition,
+          reason: dto.reason.trim(),
+          notes: dto.notes?.trim() || null,
+          hotDetails: (dto as any).hotDetails || null,
+          followUpAt: dto.followUpAt ? new Date(dto.followUpAt) : null,
+          dispositionAt: new Date(),
+        },
+      },
+      { new: true },
+    );
+    if (!attempt?.leadId) {
+      const cur: any = await this.attemptModel.findOne({
+        _id: new Types.ObjectId(callAttemptId),
+        organizationId: new Types.ObjectId(user.organizationId),
+      });
+      if (cur?.dispositionAt) throw new BadRequestException('This call already has a disposition.');
+      throw new NotFoundException('Call attempt not found for this employee.');
     }
-    attempt.disposition = dto.disposition;
-    attempt.reason = dto.reason.trim();
-    attempt.notes = dto.notes?.trim() || null;
-    attempt.hotDetails = dto.hotDetails || null;
-    attempt.followUpAt = dto.followUpAt ? new Date(dto.followUpAt) : null;
-    attempt.dispositionAt = new Date();
-    await attempt.save();
 
     const leadUpdate: Record<string, unknown> = {
       employeeNotes: dto.notes?.trim() || dto.reason.trim(),
@@ -314,13 +431,16 @@ export class CallingService {
       .select('-recordingB2Key -recordingVpsPath')
       .populate('employeeId', 'name employeeCode')
       .sort({ dialedAt: -1 })
+      .limit(100)
       .lean();
     return calls.map((call) => this.serialize(call, user.role));
   }
 
   async getRecentCalls(user: IAuthUser, limit = 50, page = 1) {
-    limit = Math.min(100, Math.max(1, limit));
-    page = Math.max(1, page);
+    const safeLimit = Math.min(100, Math.max(1, Number.isFinite(+limit) ? +limit : 50));
+    const safePage = Math.min(1000, Math.max(1, Number.isFinite(+page) ? +page : 1));
+    limit = safeLimit;
+    page = safePage;
     const filter: Record<string, unknown> = { organizationId: new Types.ObjectId(user.organizationId) };
     if (user.role === Role.EMPLOYEE) filter.employeeId = new Types.ObjectId(user.id);
     if (user.role === Role.MANAGER) filter.employeeId = { $in: await this.getManagerTeamIds(user) };
@@ -369,9 +489,10 @@ export class CallingService {
 
   async getRecordingUrl(callAttemptId: string, user: IAuthUser) {
     const attempt = await this.assertRecordingAccess(callAttemptId, user);
+    // Never expose raw provider URLs indefinitely — proxy via authenticated stream
     if (attempt.recordingUrl) {
       return {
-        url: attempt.recordingUrl,
+        url: null,
         streamPath: `/calls/${callAttemptId}/recording-stream`,
         expiresInSeconds: null,
       };

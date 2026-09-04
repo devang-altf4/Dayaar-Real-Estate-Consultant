@@ -414,7 +414,11 @@ export default function LeadsPage() {
       <LeadImportModal
         isOpen={isCsvModalOpen}
         onClose={() => setIsCsvModalOpen(false)}
-        onImportComplete={() => refetch()}
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['leads'] });
+          queryClient.invalidateQueries({ queryKey: ['daily-queue'] });
+          queryClient.invalidateQueries({ queryKey: ['queue-progress'] });
+        }}
       />
 
       {/* Bulk Assign Modal */}
@@ -561,8 +565,7 @@ export default function LeadsPage() {
 
             {bulkAssignMutation.isError && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium animate-in fade-in">
-                {(bulkAssignMutation.error as any)?.response?.data?.message ||
-                  (bulkAssignMutation.error as any)?.message ||
+                {(bulkAssignMutation.error as any)?.message ||
                   'Failed to assign leads.'}
               </div>
             )}
@@ -720,7 +723,8 @@ export default function LeadsPage() {
             {createLeadMutation.isError && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium animate-in fade-in space-y-1">
                 {(() => {
-                  const errData = (createLeadMutation.error as any)?.response?.data;
+                  const e: any = createLeadMutation.error as any;
+                  const errData = e?.details ? { message: e.message, details: e.details } : null;
                   if (Array.isArray(errData?.details) && errData.details.length > 0) {
                     return errData.details.map((d: any, i: number) => (
                       <div key={i} className="flex items-center gap-1.5">

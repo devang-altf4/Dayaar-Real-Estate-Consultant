@@ -13,6 +13,10 @@ export interface JwtPayload {
   role: string;
   organizationId: string;
   employeeCode: string;
+  jti?: string;
+  typ?: string;
+  tokenVersion?: number;
+  aud?: string;
 }
 
 @Injectable()
@@ -24,16 +28,31 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: getJwtSecret('JWT_SECRET'),
+      audience: 'dayaar-access',
     });
   }
 
   async validate(payload: JwtPayload): Promise<IAuthUser> {
-    const user = await this.userModel.findById(payload.sub).select('_id organizationId name email role employeeCode managerId isActive');
+    if ((payload as any)?.typ && (payload as any).typ !== 'access') {
+      throw new UnauthorizedException({
+        success: false,
+        code: 'INVALID_TOKEN_TYPE',
+        message: 'Invalid token type',
+      });
+    }
+    const user = await this.userModel.findById(payload.sub).select('_id organizationId name email role employeeCode managerId isActive tokenVersion');
     if (!user || !user.isActive) {
       throw new UnauthorizedException({
         success: false,
         code: 'USER_INACTIVE_OR_NOT_FOUND',
         message: 'User account is inactive or not found',
+      });
+    }
+    if ((payload.tokenVersion ?? 0) !== ((user as any).tokenVersion ?? 0)) {
+      throw new UnauthorizedException({
+        success: false,
+        code: 'SESSION_REVOKED',
+        message: 'Session revoked. Please log in again.',
       });
     }
 

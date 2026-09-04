@@ -190,6 +190,11 @@ class DayaarDeviceModule(private val context: ReactApplicationContext) : ReactCo
                 DeviceApi.claimPairing(context, apiBaseUrl, body) { result ->
                     result.fold(
                         onSuccess = { savedDeviceId ->
+                            try {
+                                HeartbeatWorker.schedule(context)
+                                HeartbeatWorker.syncFcmTokenIfNeeded(context)
+                            } catch (_: Exception) {
+                            }
                             promise.resolve(Arguments.createMap().apply {
                                 putBoolean("paired", true)
                                 putString("deviceId", savedDeviceId)

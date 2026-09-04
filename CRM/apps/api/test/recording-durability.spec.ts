@@ -59,7 +59,12 @@ describe('Recording archive durability', () => {
 
   const buildService = (attempt: any, storage: any, callyzer: any) =>
     new RecordingsService(
-      { findById: jest.fn().mockReturnValue({ select: jest.fn().mockResolvedValue(attempt) }) } as any,
+      {
+        findOneAndUpdate: jest.fn().mockReturnValue({
+          select: jest.fn().mockResolvedValue(attempt),
+        }),
+        findById: jest.fn().mockReturnValue({ select: jest.fn().mockResolvedValue(attempt) }),
+      } as any,
       { create: jest.fn().mockResolvedValue(undefined) } as any,
       {} as any,
       {} as any,

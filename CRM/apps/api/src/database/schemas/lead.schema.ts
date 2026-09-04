@@ -125,3 +125,8 @@ LeadSchema.index({ organizationId: 1, alternatePhone: 1 });
 LeadSchema.index({ organizationId: 1, assignedEmployeeId: 1, status: 1 });
 LeadSchema.index({ organizationId: 1, status: 1, temperature: 1 });
 LeadSchema.index({ organizationId: 1, nextFollowUpAt: 1 });
+LeadSchema.index({ organizationId: 1, updatedAt: -1 });
+LeadSchema.index({ organizationId: 1, createdAt: -1 });
+LeadSchema.index({ organizationId: 1, assignedEmployeeId: 1, updatedAt: -1 });
+LeadSchema.index({ organizationId: 1, assignedEmployeeId: 1, createdAt: -1 });
+LeadSchema.index({ organizationId: 1, assignedManagerId: 1, updatedAt: -1 });

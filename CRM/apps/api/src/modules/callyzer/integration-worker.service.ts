@@ -51,37 +51,55 @@ export class IntegrationWorkerService implements OnModuleInit, OnModuleDestroy {
   private async runJob(job: Awaited<ReturnType<IntegrationJobsService['claim']>>) {
     if (!job) return;
     {
+      // Heartbeat so long jobs (>120s) aren't stolen; cleared on complete/retry
+      const heartbeat = setInterval(() => {
+        void this.jobs.renew((job as any)._id, this.workerId, 120_000).catch(() => undefined);
+      }, 30_000);
       try {
-        const payload = job.payload || {};
-        switch (job.type) {
+        const payload = (job as any).payload || {};
+        switch ((job as any).type) {
           case 'PROCESS_WEBHOOK':
             await this.ingestion.processWebhookEvent(String(payload.eventId));
             break;
           case 'CALLYZER_RECONCILE':
-            if (!job.organizationId) throw new Error('Reconciliation job has no organization.');
+            if (!(job as any).organizationId) throw new Error('Reconciliation job has no organization.');
             await this.ingestion.reconcile(
-              job.organizationId.toString(),
+              (job as any).organizationId.toString(),
               new Date(String(payload.from)),
               new Date(String(payload.to)),
             );
             break;
           case 'ARCHIVE_RECORDING':
-            await this.recordings.archive(String(payload.callAttemptId), String(payload.recordingUrl));
+            await this.recordings.archive(
+              String(payload.callAttemptId),
+              String(payload.recordingUrl),
+              (job as any).organizationId?.toString(),
+            );
             break;
           case 'PURGE_PROVIDER_RECORDING':
             await this.recordings.purgeProviderRecording(String(payload.providerCallId));
             break;
           case 'RETENTION':
-            if (job.organizationId) await this.recordings.runRetention(job.organizationId.toString());
+            if ((job as any).organizationId) await this.recordings.runRetention((job as any).organizationId.toString());
             break;
           case 'RECORDING_EXPORT':
             await this.recordings.buildExport(String(payload.exportId));
             break;
         }
         await this.jobs.complete(job);
-      } catch (error) {
-        this.logger.error(`Integration job ${job.key} failed: ${error instanceof Error ? error.message : error}`);
-        await this.jobs.retry(job, error);
+      } catch (error: any) {
+        if (error?.name === 'StaleLockError') {
+          this.logger.warn(`Integration job ${(job as any).key} lock stolen — skipping completion`);
+          return;
+        }
+        this.logger.error(`Integration job ${(job as any).key} failed: ${error instanceof Error ? error.message : error}`);
+        try {
+          await this.jobs.retry(job, error);
+        } catch (retryErr: any) {
+          if (retryErr?.name !== 'StaleLockError') throw retryErr;
+        }
+      } finally {
+        clearInterval(heartbeat);
       }
     }
   }

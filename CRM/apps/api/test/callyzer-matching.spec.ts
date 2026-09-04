@@ -52,6 +52,15 @@ describe('Callyzer call matching', () => {
     const attemptModel: any = {
       findOne: jest.fn().mockResolvedValue(duplicate),
       find: jest.fn().mockResolvedValue(candidates),
+      findOneAndUpdate: jest.fn().mockImplementation(async (filter: any, update: any) => {
+        // Simulate atomic match claim: return candidate with providerCallId set
+        const id = filter?._id?.toString?.();
+        const cand = candidates.find((c: any) => c._id.toString() === id);
+        if (!cand) return null;
+        if (cand.providerCallId) return null;
+        cand.providerCallId = update?.$set?.providerCallId || cand.providerCallId;
+        return cand;
+      }),
       create: jest.fn().mockImplementation(async (doc: any) => {
         const record = { ...doc, _id: new Types.ObjectId(), save: jest.fn().mockResolvedValue(undefined) };
         created.push(record);
@@ -178,9 +187,18 @@ describe('Callyzer lead-only tracking', () => {
     const created: any[] = [];
     const enqueue = jest.fn();
     const events: any[] = [];
+    const cands = options.candidates ?? [];
     const attemptModel: any = {
       findOne: jest.fn().mockResolvedValue(options.duplicate ?? null),
-      find: jest.fn().mockResolvedValue(options.candidates ?? []),
+      find: jest.fn().mockResolvedValue(cands),
+      findOneAndUpdate: jest.fn().mockImplementation(async (filter: any, update: any) => {
+        const id = filter?._id?.toString?.();
+        const cand = cands.find((c: any) => c._id.toString() === id);
+        if (!cand) return null;
+        if (cand.providerCallId) return null;
+        cand.providerCallId = update?.$set?.providerCallId || cand.providerCallId;
+        return cand;
+      }),
       create: jest.fn().mockImplementation(async (doc: any) => {
         const record = { ...doc, _id: new Types.ObjectId(), save: jest.fn().mockResolvedValue(undefined) };
         created.push(record);

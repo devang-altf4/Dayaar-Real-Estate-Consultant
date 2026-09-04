@@ -12,7 +12,7 @@ export class User {
   @Prop({ required: true, trim: true })
   name: string;
 
-  @Prop({ required: true, unique: true, lowercase: true, trim: true, index: true })
+  @Prop({ required: true, lowercase: true, trim: true, index: true })
   email: string;
 
   @Prop({ required: true, trim: true })
@@ -35,10 +35,18 @@ export class User {
 
   @Prop({ default: false, index: true })
   callingEnabled: boolean;
+
+  @Prop({ default: 0 })
+  tokenVersion: number;
+
+  @Prop({ type: [String], default: [] })
+  revokedRefreshJtis: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.index({ organizationId: 1, employeeCode: 1 }, { unique: true });
+UserSchema.index({ organizationId: 1, email: 1 }, { unique: true });
 UserSchema.index({ organizationId: 1, role: 1 });
 UserSchema.index({ organizationId: 1, managerId: 1 });
+UserSchema.index({ organizationId: 1, managerId: 1, isActive: 1 });
 UserSchema.index({ organizationId: 1, callingEnabled: 1, isActive: 1 });

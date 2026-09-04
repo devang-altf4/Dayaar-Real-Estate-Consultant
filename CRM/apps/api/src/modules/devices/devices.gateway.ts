@@ -33,6 +33,9 @@ export class DevicesGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   private readonly logger = new Logger(DevicesGateway.name);
   private readonly connectedClients = new Map<string, ConnectedPrincipal>();
+  private readonly deviceSockets = new Map<string, Set<string>>();
+  private static readonly MAX_SOCKETS_PER_DEVICE = 3;
+  private static readonly MAX_SOCKETS_PER_USER = 5;
 
   constructor(
     private readonly devicesService: DevicesService,
@@ -52,8 +55,20 @@ export class DevicesGateway implements OnGatewayConnection, OnGatewayDisconnect 
           deviceId,
           deviceToken,
         );
+        // Cap sockets per device to prevent fan-out exhaustion
+        const set = this.deviceSockets.get(device.deviceId) ?? new Set<string>();
+        if (set.size >= DevicesGateway.MAX_SOCKETS_PER_DEVICE) {
+          const oldest = set.values().next().value as string | undefined;
+          if (oldest) {
+            this.connectedClients.delete(oldest);
+            set.delete(oldest);
+            this.server.sockets.sockets.get(oldest)?.disconnect(true);
+          }
+        }
         const principal: ConnectedPrincipal = { kind: 'device', ...device };
         this.connectedClients.set(client.id, principal);
+        set.add(client.id);
+        this.deviceSockets.set(device.deviceId, set);
         await client.join(`device_${device.deviceId}`);
         return;
       }
@@ -63,6 +78,14 @@ export class DevicesGateway implements OnGatewayConnection, OnGatewayDisconnect 
         throw new Error('Missing access token');
       }
       const user = await this.authService.authenticateAccessToken(token);
+      // Cap sockets per user
+      let userCount = 0;
+      for (const p of this.connectedClients.values()) {
+        if (p.kind === 'user' && (p as any).userId === user.id) userCount++;
+      }
+      if (userCount >= DevicesGateway.MAX_SOCKETS_PER_USER) {
+        throw new Error('Too many concurrent sessions');
+      }
       this.connectedClients.set(client.id, {
         kind: 'user',
         userId: user.id,
@@ -77,7 +100,16 @@ export class DevicesGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   handleDisconnect(client: Socket) {
+    const principal = this.connectedClients.get(client.id);
     this.connectedClients.delete(client.id);
+    if (principal?.kind === 'device') {
+      const set = this.deviceSockets.get((principal as any).deviceId);
+      if (set) {
+        set.delete(client.id);
+        if (!set.size) this.deviceSockets.delete((principal as any).deviceId);
+      }
+    }
+    // Presence stays heartbeat-authoritative (no OFFLINE flip here) — emit hint only
   }
 
   @SubscribeMessage('DEVICE_HEARTBEAT')

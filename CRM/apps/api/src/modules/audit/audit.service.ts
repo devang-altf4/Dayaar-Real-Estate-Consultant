@@ -42,7 +42,9 @@ export class AuditService {
     }
   }
 
-  async findAll(organizationId: string, limit = 100, page = 1, entityType?: string) {
+  async findAll(organizationId: string, rawLimit = 50, rawPage = 1, entityType?: string) {
+    const limit = Math.min(100, Math.max(1, Number.isFinite(+rawLimit) ? +rawLimit : 50));
+    const page = Math.min(1000, Math.max(1, Number.isFinite(+rawPage) ? +rawPage : 1));
     const filter: any = { organizationId: new Types.ObjectId(organizationId) };
     if (entityType) {
       filter.entityType = entityType;
@@ -55,7 +57,8 @@ export class AuditService {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('actorId', 'name email employeeCode role'),
+        .populate('actorId', 'name email employeeCode role')
+        .lean(),
       this.auditLogModel.countDocuments(filter),
     ]);
 

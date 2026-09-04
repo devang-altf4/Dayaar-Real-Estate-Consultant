@@ -178,6 +178,9 @@ describe('Phase 1 security hardening', () => {
       null as any,
       null as any,
       null as any,
+      null as any,
+      null as any,
+      null as any,
     );
     const source = {
       _id: new Types.ObjectId(),
@@ -220,7 +223,8 @@ describe('Phase 1 security hardening', () => {
       populate: jest.fn().mockReturnThis(),
       sort: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue([]),
+      limit: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue([]),
     };
     const leadModel = {
       find: jest.fn().mockReturnValue(query),

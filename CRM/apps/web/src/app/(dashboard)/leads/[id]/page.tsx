@@ -61,9 +61,18 @@ export default function LeadDetailPage() {
 
   // Call Initiation Mutation
   const callMutation = useMutation({
-    mutationFn: () => api.post<any>('/calls/initiate', { leadId: id, origin: CallOrigin.WEB }),
+    mutationFn: () =>
+      api.post<any>('/calls/initiate', {
+        leadId: id,
+        origin: CallOrigin.WEB,
+        idempotencyKey: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${id}-${Date.now()}`,
+      }),
     onSuccess: (data) => {
       setCallError('');
+      queryClient.invalidateQueries({ queryKey: ['lead', id] });
+      queryClient.invalidateQueries({ queryKey: ['lead-calls', id] });
+      queryClient.invalidateQueries({ queryKey: ['recent-calls'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-queue'] });
       setActiveCall({
         isActive: true,
         leadId: lead._id,
@@ -99,7 +108,9 @@ export default function LeadDetailPage() {
       setFollowUpDate('');
       setFollowUpNotes('');
       setFollowUpStatus({ type: 'success', text: 'Follow-up scheduled successfully.' });
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['lead', id] });
+      queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-queue'] });
     },
     onError: (err: any) => {
       setFollowUpStatus({ type: 'error', text: err.message || 'Failed to schedule follow-up.' });
@@ -214,8 +225,12 @@ export default function LeadDetailPage() {
         <QuickDispositionBar
           callAttemptId={currentCallAttemptId}
           onDispositionComplete={() => {
-            refetch();
-            refetchCalls();
+            queryClient.invalidateQueries({ queryKey: ['lead', id] });
+            queryClient.invalidateQueries({ queryKey: ['lead-calls', id] });
+            queryClient.invalidateQueries({ queryKey: ['leads'] });
+            queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
+            queryClient.invalidateQueries({ queryKey: ['daily-queue'] });
+            queryClient.invalidateQueries({ queryKey: ['recent-calls'] });
           }}
         />
       </div>
@@ -269,7 +284,11 @@ export default function LeadDetailPage() {
           initialQualification={lead.qualification}
           currentStatus={lead.status}
           currentTemperature={lead.temperature}
-          onSaved={() => refetch()}
+          onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ['lead', id] });
+            queryClient.invalidateQueries({ queryKey: ['leads'] });
+            queryClient.invalidateQueries({ queryKey: ['daily-queue'] });
+          }}
         />
       )}
 

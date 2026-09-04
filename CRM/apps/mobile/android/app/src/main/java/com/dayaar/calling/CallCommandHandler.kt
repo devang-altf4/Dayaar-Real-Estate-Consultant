@@ -20,14 +20,27 @@ object CallCommandHandler {
         val processed = prefs.getStringSet(SecurePrefs.PROCESSED_COMMANDS, emptySet())?.toMutableSet()
             ?: mutableSetOf()
         if (processed.contains(commandId)) return
-        if (processed.size >= 200) processed.clear()
+        // LRU: drop oldest instead of clearing all (prevents replay after 200)
+        if (processed.size >= 200) {
+            val iterator = processed.iterator()
+            var toRemove = processed.size - 199
+            while (toRemove-- > 0 && iterator.hasNext()) {
+                iterator.next()
+                iterator.remove()
+            }
+        }
         processed.add(commandId)
         prefs.edit().putStringSet(SecurePrefs.PROCESSED_COMMANDS, processed).apply()
 
-        CallLauncher.placeTracked(context, phoneNumber, commandId, callAttemptId)
+        CallLauncher.placeTracked(context, phoneNumber, commandId, callAttemptId, expiresAt)
     }
 
-    private fun isExpired(value: String): Boolean {
+    fun isExpired(value: String): Boolean {
+        // Accept both SSSX (legacy) and ISO_INSTANT (toISOString, with millis + Z)
+        try {
+            return java.time.Instant.parse(value).toEpochMilli() <= System.currentTimeMillis()
+        } catch (_: Exception) {
+        }
         return try {
             val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.US).apply {
                 timeZone = TimeZone.getTimeZone("UTC")

@@ -25,4 +25,9 @@ export class BreakSession {
 }
 
 export const BreakSessionSchema = SchemaFactory.createForClass(BreakSession);
-BreakSessionSchema.index({ attendanceId: 1, endedAt: 1 });
+// Max one active break per attendance — partial unique makes double-click safe
+BreakSessionSchema.index(
+  { attendanceId: 1, endedAt: 1 },
+  { unique: true, partialFilterExpression: { endedAt: null } },
+);
+BreakSessionSchema.index({ attendanceId: 1, employeeId: 1, startedAt: -1 });

@@ -1,5 +1,8 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { createSign } from 'crypto';
+import { AndroidDevice, AndroidDeviceDocument } from '../../database/schemas/android-device.schema';
 
 interface CachedToken {
   value: string;
@@ -8,11 +11,17 @@ interface CachedToken {
 
 @Injectable()
 export class FcmService {
+  private readonly logger = new Logger(FcmService.name);
   private cachedToken: CachedToken | null = null;
+
+  constructor(
+    @InjectModel(AndroidDevice.name) private readonly deviceModel: Model<AndroidDeviceDocument>,
+  ) {}
 
   async sendDialCommand(
     registrationToken: string,
     data: Record<string, string>,
+    deviceRecordId?: string,
   ): Promise<void> {
     const projectId = process.env.FCM_PROJECT_ID;
     if (!projectId) {
@@ -37,7 +46,8 @@ export class FcmService {
             android: {
               priority: 'high',
               ttl: '60s',
-              collapseKey: `dayaar-call-${data.commandId}`,
+              // Per-device collapse so stale dials supersede instead of queueing bursts
+              collapseKey: `dayaar-call-${deviceRecordId || data.commandId}`,
             },
           },
         }),
@@ -45,6 +55,25 @@ export class FcmService {
     );
     if (!response.ok) {
       const detail = await response.text();
+      // Auto-clean expired FCM tokens to avoid silent blackholes
+      if (
+        response.status === 404 ||
+        response.status === 410 ||
+        /UNREGISTERED|NOT_FOUND|INVALID_ARGUMENT/i.test(detail)
+      ) {
+        try {
+          await this.deviceModel.updateOne(
+            { fcmToken: registrationToken },
+            { $set: { fcmToken: null, status: 'STALE' } },
+          );
+        } catch (e) {
+          this.logger.warn(`Failed to clear stale FCM token: ${(e as Error).message}`);
+        }
+        throw new ServiceUnavailableException({
+          code: 'FCM_TOKEN_UNREGISTERED',
+          message: 'Device FCM token expired. Ask the user to reopen the Android app.',
+        });
+      }
       throw new ServiceUnavailableException({
         code: 'FCM_DELIVERY_FAILED',
         message: `FCM rejected the call command (${response.status}).`,

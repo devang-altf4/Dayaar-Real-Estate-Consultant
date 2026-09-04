@@ -35,9 +35,10 @@ export class UsersController {
     @Query('scope') scope?: string,
   ) {
     if (user.role === Role.MANAGER) {
-      // Minimal cross-team employee list used by the import distribution picker.
+      // Managers are team-scoped by default. Org-wide picker is disabled to
+      // prevent cross-team enumeration (use ADMIN for org-wide distribution).
       if (scope === 'organization' && role === Role.EMPLOYEE) {
-        return this.usersService.findOrgEmployeesMinimal(user.organizationId);
+        return this.usersService.findTeamMembers(user.id, user.organizationId);
       }
       // Managers only see their own team or subordinate employees
       return this.usersService.findAll(user.organizationId, role, user.id);

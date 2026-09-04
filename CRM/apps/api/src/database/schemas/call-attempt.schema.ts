@@ -124,13 +124,22 @@ export class CallAttempt {
 
   @Prop({ type: Date, default: null })
   purgedAt: Date | null;
+
+  @Prop({ type: String, default: null, index: true })
+  idempotencyKey: string | null;
 }
 
 export const CallAttemptSchema = SchemaFactory.createForClass(CallAttempt);
 CallAttemptSchema.index({ organizationId: 1, leadId: 1, dialedAt: -1 });
 CallAttemptSchema.index({ organizationId: 1, employeeId: 1, dialedAt: -1 });
 CallAttemptSchema.index({ organizationId: 1, employeePhoneNumber: 1, phoneNumber: 1, dialedAt: 1 });
+CallAttemptSchema.index({ organizationId: 1, dialedAt: -1 });
+CallAttemptSchema.index({ organizationId: 1, employeeId: 1, status: 1, dialedAt: -1 });
 CallAttemptSchema.index(
   { organizationId: 1, providerCallId: 1 },
   { unique: true, partialFilterExpression: { providerCallId: { $type: 'string' } } },
+);
+CallAttemptSchema.index(
+  { organizationId: 1, employeeId: 1, idempotencyKey: 1 },
+  { unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } },
 );

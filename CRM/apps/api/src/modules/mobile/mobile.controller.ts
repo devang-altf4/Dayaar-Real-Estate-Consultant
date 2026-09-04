@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { InitiateCallDto, InitiateCallSchema } from '@dayaar/shared';
+import { InitiateCallDto, InitiateCallSchema, MobileDispositionSchema } from '@dayaar/shared';
 import { CurrentDevice } from '../../common/decorators/current-device.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { DeviceAuthGuard } from '../../common/guards/device-auth.guard';
@@ -32,7 +32,7 @@ export class MobileController {
   @UseGuards(DeviceAuthGuard)
   @Post('disposition')
   recordDisposition(
-    @Body() dto: any,
+    @Body(new ZodValidationPipe(MobileDispositionSchema)) dto: any,
     @CurrentDevice() device: DevicePrincipal,
   ) {
     return this.mobileService.recordDisposition(dto, device);

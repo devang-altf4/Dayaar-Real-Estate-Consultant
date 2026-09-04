@@ -22,6 +22,15 @@ export class DevicePairingSession {
 
   @Prop({ default: false })
   isClaimed: boolean;
+
+  @Prop({ default: 0 })
+  attempts: number;
+
+  @Prop({ type: Date, default: null })
+  lastAttemptAt: Date | null;
+
+  @Prop({ type: Date, default: null })
+  lockedUntil: Date | null;
 }
 
 export const DevicePairingSessionSchema = SchemaFactory.createForClass(DevicePairingSession);

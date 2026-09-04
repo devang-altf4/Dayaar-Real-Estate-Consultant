@@ -208,8 +208,10 @@ export class LeadsService {
       filter.$and = andConditions;
     }
 
-    const page = Math.max(1, options.page || 1);
-    const limit = Math.min(100, Math.max(1, options.limit || 50));
+    const rawPage = Number(options.page);
+    const rawLimit = Number(options.limit);
+    const page = Math.min(1000, Math.max(1, Number.isFinite(rawPage) ? rawPage : 1));
+    const limit = Math.min(100, Math.max(1, Number.isFinite(rawLimit) ? rawLimit : 50));
     const skip = (page - 1) * limit;
 
     const allowedSortFields = new Set([
@@ -233,7 +235,8 @@ export class LeadsService {
         .populate('assignedManagerId', 'name email employeeCode')
         .sort({ [sortField]: sortDir })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       this.leadModel.countDocuments(filter),
     ]);
 
@@ -276,11 +279,19 @@ export class LeadsService {
     });
 
     if (existing) {
+      // Generic duplicate response for non-ADMIN to avoid cross-team PII oracle
+      if (user.role === Role.ADMIN) {
+        throw new BadRequestException({
+          success: false,
+          code: 'DUPLICATE_PHONE_NUMBER',
+          message: `A lead with phone number ${dto.phone} already exists in the system (${existing.name} - ${existing.project}).`,
+          existingLeadId: existing._id.toString(),
+        });
+      }
       throw new BadRequestException({
         success: false,
         code: 'DUPLICATE_PHONE_NUMBER',
-        message: `A lead with phone number ${dto.phone} already exists in the system (${existing.name} - ${existing.project}).`,
-        existingLeadId: existing._id.toString(),
+        message: `A lead with phone number ${dto.phone} already exists in the system.`,
       });
     }
 
@@ -486,31 +497,44 @@ export class LeadsService {
       );
     }
 
+    if (leadIds.length > 500) {
+      throw new BadRequestException('Max 500 leads per bulk operation.');
+    }
     let assignedCount = 0;
     if (strategy === 'ROUND_ROBIN') {
-      for (let i = 0; i < leads.length; i++) {
+      const ops = leads.map((lead, i) => {
         const assignedEmpId = employeeIds[i % employeeIds.length];
-        leads[i].assignedEmployeeId = new Types.ObjectId(assignedEmpId) as any;
-        leads[i].assignedManagerId =
-          employeeById.get(assignedEmpId)?.managerId || null;
-        await leads[i].save();
-        assignedCount++;
-      }
+        return {
+          updateOne: {
+            filter: { _id: (lead as any)._id },
+            update: {
+              $set: {
+                assignedEmployeeId: new Types.ObjectId(assignedEmpId),
+                assignedManagerId: employeeById.get(assignedEmpId)?.managerId || null,
+              },
+            },
+          },
+        };
+      });
+      if (ops.length) await this.leadModel.bulkWrite(ops as any, { ordered: false });
+      assignedCount = leads.length;
     } else {
       const singleEmpId = new Types.ObjectId(employeeIds[0]);
       const singleManagerId = employeeById.get(employeeIds[0])?.managerId || null;
-      await this.leadModel.updateMany(
-        {
-          _id: { $in: leadIds.map((id) => new Types.ObjectId(id)) },
-          organizationId: new Types.ObjectId(organizationId),
+      // Preserve team scope in the write filter (not just validation) to close TOCTOU
+      const writeFilter: Record<string, unknown> = {
+        _id: { $in: leadIds.map((id) => new Types.ObjectId(id)) },
+        organizationId: new Types.ObjectId(organizationId),
+      };
+      if (user.role === Role.MANAGER) {
+        writeFilter.$or = (leadFilter as any).$or;
+      }
+      await this.leadModel.updateMany(writeFilter, {
+        $set: {
+          assignedEmployeeId: singleEmpId,
+          assignedManagerId: singleManagerId,
         },
-        {
-          $set: {
-            assignedEmployeeId: singleEmpId,
-            assignedManagerId: singleManagerId,
-          },
-        },
-      );
+      });
       assignedCount = leads.length;
     }
 
@@ -600,6 +624,10 @@ export class LeadsService {
       role: Role.EMPLOYEE,
       isActive: true,
     };
+    // MANAGERs may only assign within their own team (consistent with bulkAssign)
+    if (user.role === Role.MANAGER) {
+      filter.managerId = new Types.ObjectId(user.id);
+    }
     const employee = await this.userModel.findOne(filter);
     if (!employee) {
       throw new ForbiddenException(

@@ -1,9 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2, Database, MapPin, Save, Smartphone } from 'lucide-react';
 import { api } from '@/lib/api';
+
+const SETTINGS_KEYS = [
+  'name',
+  'officeLatitude',
+  'officeLongitude',
+  'allowedRadiusMeters',
+  'maxAllowedGpsAccuracyMeters',
+  'dailyCallTarget',
+  'maxUnsuccessfulAttempts',
+  'callingSeatLimit',
+  'recordingRetentionMonths',
+  'timezone',
+] as const;
+
+function pickSettings(form: SettingsForm): Partial<SettingsForm> {
+  const out: any = {};
+  for (const k of SETTINGS_KEYS) {
+    const v: any = (form as any)[k];
+    // Omit empty strings / undefined so optional min() validators don't fail
+    if (v === '' || v === undefined) continue;
+    // Omit NaN numbers (cleared inputs)
+    if (typeof v === 'number' && Number.isNaN(v)) continue;
+    out[k] = v;
+  }
+  return out;
+}
 
 interface SettingsForm {
   name: string;
@@ -34,26 +60,34 @@ const DEFAULTS: SettingsForm = {
 export default function AdminSettingsPage() {
   const [form, setForm] = useState<SettingsForm>(DEFAULTS);
   const [saved, setSaved] = useState(false);
+  const queryClient = useQueryClient();
 
   const { isLoading } = useQuery({
     queryKey: ['org-settings'],
     queryFn: async () => {
-      const organization = await api.get<Partial<SettingsForm>>('/organizations/current');
-      setForm((current) => ({ ...current, ...organization }));
+      const organization: any = await api.get('/organizations/current');
+      // Whitelist only known keys — GET returns _id/slug/__v/createdAt which .strict() rejects
+      const next: any = {};
+      for (const k of SETTINGS_KEYS) {
+        if (organization?.[k] !== undefined) next[k] = organization[k];
+      }
+      setForm((current) => ({ ...current, ...next }));
       return organization;
     },
   });
 
   const saveMutation = useMutation({
-    mutationFn: () => api.patch('/organizations/settings', form),
+    mutationFn: () => api.patch('/organizations/settings', pickSettings(form)),
     onSuccess: () => {
       setSaved(true);
+      queryClient.invalidateQueries({ queryKey: ['org-settings'] });
       window.setTimeout(() => setSaved(false), 3000);
     },
   });
 
   const numberField = (key: keyof SettingsForm, value: string) => {
-    setForm((current) => ({ ...current, [key]: Number(value) }));
+    // Empty input → undefined (omitted on save) instead of Number("")=0 failing min()
+    setForm((current) => ({ ...current, [key]: (value === '' ? undefined : Number(value)) as any }));
   };
 
   if (isLoading) return <div className="p-12 text-center text-slate-400">Loading settings...</div>;

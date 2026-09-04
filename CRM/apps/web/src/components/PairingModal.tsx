@@ -20,15 +20,17 @@ export function PairingModal({ isOpen, onClose }: PairingModalProps) {
   const [timeLeft, setTimeLeft] = useState(300); // 5 mins in seconds
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [genError, setGenError] = useState('');
 
   const generateSession = async () => {
     setLoading(true);
+    setGenError('');
     try {
       const res: any = await api.post('/devices/pairing-session');
       setPairingData(res);
       setTimeLeft(300);
-    } catch (err) {
-      console.error('Failed to generate pairing session', err);
+    } catch (err: any) {
+      setGenError(err?.message || 'Failed to generate pairing code');
     } finally {
       setLoading(false);
     }
@@ -102,6 +104,9 @@ export function PairingModal({ isOpen, onClose }: PairingModalProps) {
         </div>
 
         <div className="p-6 space-y-5 text-center">
+          {genError && (
+            <div className="p-3 bg-rose-50 text-rose-800 text-xs rounded-xl border border-rose-200">{genError}</div>
+          )}
           <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
             Open the <strong>Dayaar Agent</strong> app on your Android smartphone and scan this secure QR code or enter the single-use PIN.
           </p>

@@ -68,8 +68,12 @@ export class AndroidDevice {
 
   @Prop({ type: Date, default: null })
   revokedAt: Date | null;
+
+  @Prop({ type: Date, default: null })
+  fcmTokenUpdatedAt: Date | null;
 }
 
 export const AndroidDeviceSchema = SchemaFactory.createForClass(AndroidDevice);
 AndroidDeviceSchema.index({ organizationId: 1, userId: 1 });
 AndroidDeviceSchema.index({ deviceId: 1 }, { unique: true });
+AndroidDeviceSchema.index({ organizationId: 1, lastSeenAt: -1 });

@@ -38,21 +38,44 @@ export class CallyzerIngestionService {
   ) {}
 
   async processWebhookEvent(eventId: string): Promise<void> {
-    const event = await this.eventModel.findById(eventId);
-    if (!event || event.status === 'PROCESSED') return;
+    // Atomic claim — concurrent workers can't both process RECEIVED
+    const event: any = await this.eventModel.findOneAndUpdate(
+      { _id: new Types.ObjectId(eventId), status: { $in: ['RECEIVED', 'FAILED'] } },
+      { $set: { status: 'PROCESSING' } },
+      { new: true },
+    );
+    if (!event) return; // already claimed/processed
     try {
       const rawCalls = this.flattenPayload(event.payload);
+      const failures: string[] = [];
       for (const raw of rawCalls) {
-        await this.ingest(event.organizationId.toString(), this.callyzer.normalize(raw));
+        try {
+          await this.ingest(event.organizationId.toString(), this.callyzer.normalize(raw));
+        } catch (e: any) {
+          failures.push(String((raw as any)?.id || 'unknown'));
+          this.logger.error(`Webhook ${eventId} call failed: ${e?.message || e}`);
+        }
       }
-      event.status = 'PROCESSED';
+      if (failures.length === 0) {
+        event.status = 'PROCESSED';
+      } else if (failures.length === rawCalls.length && rawCalls.length > 0) {
+        event.status = 'FAILED';
+        event.error = `All ${failures.length} calls failed: ${failures.slice(0, 5).join(',')}`;
+        await event.save();
+        throw new Error(event.error);
+      } else {
+        (event.status as any) = 'PARTIAL';
+        event.error = `Partial: ${failures.length}/${rawCalls.length} failed`;
+      }
       event.processedAt = new Date();
-      event.error = null;
+      if (failures.length === 0) event.error = null;
       await event.save();
     } catch (error) {
-      event.status = 'FAILED';
-      event.error = error instanceof Error ? error.message.slice(0, 2000) : String(error).slice(0, 2000);
-      await event.save();
+      if ((event as any).status !== 'FAILED') {
+        event.status = 'FAILED';
+        event.error = error instanceof Error ? error.message.slice(0, 2000) : String(error).slice(0, 2000);
+        await event.save();
+      }
       throw error;
     }
   }
@@ -84,8 +107,10 @@ export class CallyzerIngestionService {
         if (!duplicate.recordingStatus || duplicate.recordingStatus === RecordingStatus.NO_RECORDING) {
           duplicate.recordingStatus = RecordingStatus.PENDING;
           changed = true;
+          const { createHash } = await import('crypto');
+          const urlHash = createHash('sha256').update(call.recordingUrl).digest('hex').slice(0, 12);
           await this.jobs.enqueue({
-            key: `archive:${call.providerCallId}`,
+            key: `archive:${call.providerCallId}:${urlHash}`,
             organizationId,
             type: 'ARCHIVE_RECORDING',
             payload: { callAttemptId: duplicate._id.toString(), recordingUrl: call.recordingUrl },
@@ -143,23 +168,49 @@ export class CallyzerIngestionService {
     }
 
     if (!attempt) {
-      attempt = await this.attemptModel.create({
-        organizationId: new Types.ObjectId(organizationId),
-        leadId: trackedLeadId,
-        employeeId: employee?._id || null,
-        provider: CallProviderType.CALLYZER_SIM,
-        origin: CallOrigin.ANDROID,
-        status: CallAttemptStatus.UNKNOWN,
-        syncStatus: CallSyncStatus.UNMATCHED,
-        phoneNumber: call.clientPhoneNumber,
-        employeePhoneNumber: call.employeePhoneNumber,
-        dialedAt: call.callDate,
-      });
+      try {
+        attempt = await this.attemptModel.create({
+          organizationId: new Types.ObjectId(organizationId),
+          leadId: trackedLeadId,
+          employeeId: employee?._id || null,
+          provider: CallProviderType.CALLYZER_SIM,
+          origin: CallOrigin.ANDROID,
+          status: CallAttemptStatus.UNKNOWN,
+          syncStatus: CallSyncStatus.UNMATCHED,
+          phoneNumber: call.clientPhoneNumber,
+          employeePhoneNumber: call.employeePhoneNumber,
+          dialedAt: call.callDate,
+          providerCallId: call.providerCallId,
+        } as any);
+      } catch (e: any) {
+        if (e?.code === 11000) {
+          // Lost race: another worker created the provider row — reload duplicate path, don't double-inc
+          return this.attemptModel.findOne({
+            organizationId: new Types.ObjectId(organizationId),
+            providerCallId: call.providerCallId,
+          });
+        }
+        throw e;
+      }
+    } else {
+      // Atomic match claim: only winner with providerCallId==null proceeds to increment
+      const matched: any = await this.attemptModel.findOneAndUpdate(
+        { _id: attempt._id, providerCallId: null },
+        { $set: { providerCallId: call.providerCallId } },
+        { new: true },
+      );
+      if (!matched) {
+        // Lost race — another worker already matched; reload without side-effects
+        return this.attemptModel.findOne({
+          organizationId: new Types.ObjectId(organizationId),
+          providerCallId: call.providerCallId,
+        });
+      }
+      attempt = matched;
     }
 
     const connected = call.duration > 2;
     const countsAsAttempt = !!employee && call.callType === ProviderCallType.OUTGOING && !connected;
-    attempt.providerCallId = call.providerCallId;
     attempt.employeePhoneNumber = call.employeePhoneNumber;
     attempt.duration = call.duration;
     attempt.callType = this.callType(call.callType);
@@ -198,8 +249,10 @@ export class CallyzerIngestionService {
     if (call.recordingUrl) {
       attempt.recordingUrl = call.recordingUrl;
       await attempt.save();
+      const { createHash } = await import('crypto');
+      const urlHash = createHash('sha256').update(call.recordingUrl).digest('hex').slice(0, 12);
       await this.jobs.enqueue({
-        key: `archive:${call.providerCallId}`,
+        key: `archive:${call.providerCallId}:${urlHash}`,
         organizationId,
         type: 'ARCHIVE_RECORDING',
         payload: { callAttemptId: attempt._id.toString(), recordingUrl: call.recordingUrl },

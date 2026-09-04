@@ -34,7 +34,7 @@ interface SocketContextType {
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [deviceStatus, setDeviceStatus] = useState<{
@@ -60,8 +60,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
 
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'https://dayaar-real-estate-consultant-5ahf.onrender.com';
-    const token = localStorage.getItem('dayaar_access_token');
-    if (!token) return;
+    const socketToken = token ?? (typeof window !== 'undefined' ? localStorage.getItem('dayaar_access_token') : null);
+    if (!socketToken) return;
 
     let cancelled = false;
     void api.get<any>('/devices/my-device').then((device) => {
@@ -81,7 +81,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
 
     const s = io(wsUrl, {
-      auth: { token },
+      auth: { token: socketToken },
       transports: ['websocket', 'polling'],
     });
 
@@ -91,6 +91,19 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     s.on('disconnect', () => {
       setIsConnected(false);
+    });
+
+    s.on('connect_error', async (err: any) => {
+      const msg = String(err?.message || '');
+      if (msg.includes('401') || msg.toLowerCase().includes('unauthorized')) {
+        try {
+          const fresh = await api.refreshAccessToken();
+          (s.auth as any) = { token: fresh };
+          s.disconnect().connect();
+        } catch {
+          // Refresh failed — AuthContext/api will redirect to login
+        }
+      }
     });
 
     s.on('DEVICE_STATUS_CHANGED', (data: any) => {
@@ -128,13 +141,23 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     setSocket(s);
 
+    // Live-update auth when silent refresh rotates the token
+    const onRefreshed = (e: Event) => {
+      const next = (e as CustomEvent<string>).detail;
+      if (next) {
+        (s.auth as any) = { token: next };
+      }
+    };
+    window.addEventListener('dayaar:token-refreshed', onRefreshed as EventListener);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('dayaar:token-refreshed', onRefreshed as EventListener);
       s.disconnect();
       setSocket((current) => (current === s ? null : current));
       setIsConnected(false);
     };
-  }, [user]);
+  }, [user, token]);
 
   const updateDeviceStatus = (status: any) => {
     setDeviceStatus((prev) => ({ ...prev, ...status }));

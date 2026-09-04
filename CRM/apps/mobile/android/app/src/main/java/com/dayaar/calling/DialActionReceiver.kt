@@ -9,6 +9,9 @@ class DialActionReceiver : BroadcastReceiver() {
         val phoneNumber = intent.getStringExtra("phoneNumber") ?: return
         val commandId = intent.getStringExtra("commandId") ?: return
         val callAttemptId = intent.getStringExtra("callAttemptId") ?: return
-        CallLauncher.placeTracked(context, phoneNumber, commandId, callAttemptId)
+        val expiresAt = intent.getStringExtra("expiresAt")
+        // Enforce expiry on notification re-dial (prevents stale replay)
+        if (expiresAt != null && CallCommandHandler.isExpired(expiresAt)) return
+        CallLauncher.placeTracked(context, phoneNumber, commandId, callAttemptId, expiresAt)
     }
 }

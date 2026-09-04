@@ -32,7 +32,8 @@ export class DevicesService {
   ) {}
 
   private hashSecret(secret: string): string {
-    return crypto.createHash('sha256').update(secret).digest('hex');
+    const pepper = process.env.PAIRING_PEPPER || process.env.JWT_SECRET || 'pairing-pepper-not-configured';
+    return crypto.createHmac('sha256', pepper).update(secret).digest('hex');
   }
 
   /**
@@ -40,8 +41,8 @@ export class DevicesService {
    * Cryptographic PIN and Token hashes are stored in the database.
    */
   async createPairingSession(userId: string, organizationId: string) {
-    // Generate secure 6-digit random PIN
-    const randomDigits = Math.floor(100000 + crypto.randomInt(900000)).toString();
+    // Generate secure 6-digit random PIN (crypto.randomInt min inclusive, max exclusive)
+    const randomDigits = crypto.randomInt(100000, 1000000).toString().padStart(6, '0');
     const randomToken = crypto.randomUUID();
 
     const pairingCodeHash = this.hashSecret(randomDigits);
@@ -83,18 +84,47 @@ export class DevicesService {
     const hashedCode = this.hashSecret(dto.pairingCode);
     const hashedPairingToken = this.hashSecret(dto.pairingToken);
 
+    // Throttle: look up by token first to enforce per-session attempt lockout
+    const probe = await this.pairingModel.findOne({
+      pairingTokenHash: hashedPairingToken,
+      isClaimed: false,
+      expiresAt: { $gt: new Date() },
+    });
+    if (probe?.lockedUntil && probe.lockedUntil.getTime() > Date.now()) {
+      throw new BadRequestException({
+        success: false,
+        code: 'PAIRING_LOCKED',
+        message: 'Too many incorrect attempts. Generate a new code from Web CRM.',
+      });
+    }
+
     const session = await this.pairingModel.findOneAndUpdate(
       {
         pairingCodeHash: hashedCode,
         pairingTokenHash: hashedPairingToken,
         isClaimed: false,
         expiresAt: { $gt: new Date() },
+        $or: [{ lockedUntil: null }, { lockedUntil: { $lte: new Date() } }],
       },
-      { $set: { isClaimed: true } },
+      { $set: { isClaimed: true }, $inc: { attempts: 1 }, $setOnInsert: {} },
       { new: true },
     );
 
     if (!session) {
+      // Increment attempt counter on token match to enable lockout after 5 fails
+      if (probe) {
+        const attempts = (probe.attempts || 0) + 1;
+        await this.pairingModel.updateOne(
+          { _id: probe._id },
+          {
+            $set: {
+              attempts,
+              lastAttemptAt: new Date(),
+              ...(attempts >= 5 ? { lockedUntil: new Date(Date.now() + 15 * 60 * 1000) } : {}),
+            },
+          },
+        );
+      }
       throw new BadRequestException({
         success: false,
         code: 'INVALID_OR_EXPIRED_PAIRING_CODE',
@@ -126,14 +156,33 @@ export class DevicesService {
       { $set: { isPrimaryCallingDevice: false } },
     ).catch(rollbackClaim);
 
-    // Create or update device record
+    // Create or update device record — scoped to session org/user to prevent cross-tenant takeover.
+    // A device bound to another org/user must be explicitly unpaired there first.
+    const foreign = await this.deviceModel
+      .exists({
+        deviceId: dto.deviceId,
+        $or: [
+          { organizationId: { $ne: session.organizationId } },
+          { userId: { $ne: session.userId } },
+        ],
+      })
+      .catch(rollbackClaim);
+    if (foreign) {
+      await rollbackClaim(
+        new BadRequestException({
+          success: false,
+          code: 'DEVICE_ALREADY_PAIRED_ELSEWHERE',
+          message: 'This device is paired to another organization or user. Revoke it there first.',
+        }),
+      );
+    }
     let device = await this.deviceModel.findOne({
       deviceId: dto.deviceId,
+      organizationId: session.organizationId,
+      userId: session.userId,
     }).select('+authTokenHash').catch(rollbackClaim);
 
     if (device) {
-      device.organizationId = session.organizationId;
-      device.userId = session.userId;
       device.deviceName = dto.deviceName;
       device.manufacturer = dto.manufacturer || device.manufacturer;
       device.set('model', dto.model || device.get('model'));
@@ -205,7 +254,19 @@ export class DevicesService {
       throw new NotFoundException('Device not found. Please re-pair device.');
     }
 
-    device.lastSeenAt = new Date();
+    const now = new Date();
+    // Anti-spoof: minimum heartbeat interval 5s, monotonic check
+    if (device.lastSeenAt && now.getTime() - new Date(device.lastSeenAt).getTime() < 5000) {
+      // Still return success but don't advance clock on flood
+      return {
+        success: true,
+        deviceId: device.deviceId,
+        status: device.status,
+        simState: device.simState,
+        lastSeenAt: device.lastSeenAt,
+      };
+    }
+    device.lastSeenAt = now;
     device.status = DeviceStatus.ONLINE;
     if (dto.simState) device.simState = dto.simState;
     if (dto.simOperator) device.simOperator = dto.simOperator;
@@ -223,6 +284,14 @@ export class DevicesService {
   }
 
   async updateFcmToken(fcmToken: string, principal: DevicePrincipal) {
+    // Validate format; do NOT flip ONLINE here — heartbeat is authoritative for presence
+    if (!/^[A-Za-z0-9:_-]{20,4096}$/.test(fcmToken)) {
+      throw new BadRequestException({
+        success: false,
+        code: 'INVALID_FCM_TOKEN',
+        message: 'Invalid FCM registration token format.',
+      });
+    }
     const result = await this.deviceModel.updateOne(
       {
         _id: new Types.ObjectId(principal.id),
@@ -231,7 +300,7 @@ export class DevicesService {
         deviceId: principal.deviceId,
         status: { $ne: DeviceStatus.REVOKED },
       },
-      { $set: { fcmToken, lastSeenAt: new Date(), status: DeviceStatus.ONLINE } },
+      { $set: { fcmToken, fcmTokenUpdatedAt: new Date() } },
     );
     if (!result.matchedCount) throw new NotFoundException('Active paired device not found.');
     return { updated: true };

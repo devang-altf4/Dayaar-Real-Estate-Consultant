@@ -68,6 +68,10 @@ object DeviceApi {
         callback: (Result<String>) -> Unit,
     ) {
         val normalizedApiBaseUrl = apiBaseUrl.trimEnd('/')
+        // Reject insecure pairing URLs (QR injection → MITM). Allow http only for local dev.
+        require(normalizedApiBaseUrl.startsWith("https://") || normalizedApiBaseUrl.contains("10.0.2.2") || normalizedApiBaseUrl.contains("localhost")) {
+            "Insecure pairing URL rejected"
+        }
         executor.execute {
             var connection: HttpURLConnection? = null
             try {
@@ -133,6 +137,9 @@ object DeviceApi {
         callAttemptId: String,
         status: String,
     ) {
+        val fmt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", java.util.Locale.US).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }
         post(
             context,
             "/calls/device-status",
@@ -140,7 +147,7 @@ object DeviceApi {
                 .put("commandId", commandId)
                 .put("callAttemptId", callAttemptId)
                 .put("status", status)
-                .put("occurredAt", java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", java.util.Locale.US).format(java.util.Date())),
+                .put("occurredAt", fmt.format(java.util.Date())),
         )
     }
 }

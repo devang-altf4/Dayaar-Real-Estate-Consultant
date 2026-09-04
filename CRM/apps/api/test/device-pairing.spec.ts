@@ -29,11 +29,13 @@ describe('Device pairing durability', () => {
     };
     const deviceModel = {
       updateMany: jest.fn().mockResolvedValue({ modifiedCount: 0 }),
+      exists: jest.fn().mockResolvedValue(null),
       findOne: jest.fn().mockReturnValue({
         select: jest.fn().mockResolvedValue(device),
       }),
     };
     const pairingModel = {
+      findOne: jest.fn().mockResolvedValue(null),
       findOneAndUpdate: jest.fn().mockResolvedValue(session),
       updateOne: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
     };

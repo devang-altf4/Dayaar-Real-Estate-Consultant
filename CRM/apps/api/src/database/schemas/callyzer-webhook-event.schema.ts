@@ -8,7 +8,7 @@ export class CallyzerWebhookEvent {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Organization', required: true, index: true })
   organizationId: MongooseSchema.Types.ObjectId;
 
-  @Prop({ required: true, unique: true, index: true })
+  @Prop({ required: true, index: true })
   dedupeKey: string;
 
   @Prop({ type: MongooseSchema.Types.Mixed, required: true })
@@ -25,3 +25,5 @@ export class CallyzerWebhookEvent {
 }
 
 export const CallyzerWebhookEventSchema = SchemaFactory.createForClass(CallyzerWebhookEvent);
+CallyzerWebhookEventSchema.index({ organizationId: 1, dedupeKey: 1 }, { unique: true });
+CallyzerWebhookEventSchema.index({ organizationId: 1, status: 1, createdAt: -1 });

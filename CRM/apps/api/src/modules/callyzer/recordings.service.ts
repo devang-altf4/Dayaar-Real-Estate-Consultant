@@ -27,8 +27,20 @@ export class RecordingsService {
     private readonly audit: AuditService,
   ) {}
 
-  async archive(callAttemptId: string, recordingUrl: string): Promise<void> {
-    const attempt = await this.attemptModel.findById(callAttemptId).select('+recordingB2Key +recordingVpsPath');
+  async archive(callAttemptId: string, recordingUrl: string, organizationId?: string): Promise<void> {
+    // Atomic claim to prevent concurrent re-entry (double upload + double event)
+    const claimFilter: any = {
+      _id: new Types.ObjectId(callAttemptId),
+      recordingStatus: { $ne: RecordingStatus.ARCHIVING },
+    };
+    if (organizationId && Types.ObjectId.isValid(organizationId)) {
+      claimFilter.organizationId = new Types.ObjectId(organizationId);
+    }
+    const claimed = await this.attemptModel
+      .findOneAndUpdate(claimFilter, { $set: { recordingStatus: RecordingStatus.ARCHIVING } }, { new: true })
+      .select('+recordingB2Key +recordingVpsPath');
+    if (!claimed) return; // already claimed/archiving by another worker
+    const attempt = claimed;
     if (!attempt || !attempt.providerCallId) throw new NotFoundException('Archive call attempt not found.');
     if (attempt.providerRecordingDeletedAt) return;
 
@@ -36,12 +48,10 @@ export class RecordingsService {
       attempt.recordingStatus === RecordingStatus.ARCHIVED && Boolean(attempt.recordingVpsPath);
     // Re-archive when a durable store became available after an on-host-only
     // archive, so recordings captured before B2 was configured get promoted.
-    const needsArchive = !alreadyArchived || (this.storage.primaryIsDurable() && !attempt.recordingB2Key);
+    const needsArchive = true; // claim already set ARCHIVING; proceed to durable upload
 
     try {
       if (needsArchive) {
-        attempt.recordingStatus = RecordingStatus.ARCHIVING;
-        await attempt.save();
         const archived = await this.storage.archiveFromUrl({
           organizationId: attempt.organizationId.toString(),
           callAttemptId: attempt._id.toString(),

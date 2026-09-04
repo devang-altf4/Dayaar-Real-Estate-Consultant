@@ -70,8 +70,39 @@ export class MobileService {
     return this.callingService.initiateCall(leadId, CallOrigin.ANDROID, user);
   }
 
+  // Mobile must respect the same funnel as web — no skipping qualification
+  private readonly mobileTransitions: Record<LeadStatus, LeadStatus[]> = {
+    [LeadStatus.NEW]: [LeadStatus.CALLING, LeadStatus.INTERESTED, LeadStatus.NOT_INTERESTED, LeadStatus.FOLLOW_UP, LeadStatus.COLD, LeadStatus.WARM, LeadStatus.HOT, LeadStatus.INVALID_NUMBER, LeadStatus.NOT_PICKED_UP],
+    [LeadStatus.CALLING]: [LeadStatus.INTERESTED, LeadStatus.NOT_INTERESTED, LeadStatus.FOLLOW_UP, LeadStatus.NOT_PICKED_UP, LeadStatus.COLD, LeadStatus.WARM, LeadStatus.HOT, LeadStatus.SITE_VISIT, LeadStatus.INVALID_NUMBER],
+    [LeadStatus.FOLLOW_UP]: [LeadStatus.CALLING, LeadStatus.INTERESTED, LeadStatus.NOT_INTERESTED, LeadStatus.NOT_PICKED_UP, LeadStatus.COLD, LeadStatus.WARM, LeadStatus.HOT, LeadStatus.SITE_VISIT],
+    [LeadStatus.NOT_PICKED_UP]: [LeadStatus.CALLING, LeadStatus.FOLLOW_UP, LeadStatus.INTERESTED, LeadStatus.NOT_INTERESTED, LeadStatus.COLD],
+    [LeadStatus.NOT_INTERESTED]: [LeadStatus.CALLING, LeadStatus.FOLLOW_UP, LeadStatus.INTERESTED, LeadStatus.COLD],
+    [LeadStatus.INTERESTED]: [LeadStatus.WARM, LeadStatus.HOT, LeadStatus.COLD, LeadStatus.SITE_VISIT, LeadStatus.NEGOTIATION, LeadStatus.BOOKED, LeadStatus.FOLLOW_UP, LeadStatus.NOT_INTERESTED],
+    [LeadStatus.COLD]: [LeadStatus.WARM, LeadStatus.HOT, LeadStatus.FOLLOW_UP, LeadStatus.NOT_INTERESTED, LeadStatus.CALLING],
+    [LeadStatus.WARM]: [LeadStatus.HOT, LeadStatus.SITE_VISIT, LeadStatus.NEGOTIATION, LeadStatus.FOLLOW_UP, LeadStatus.COLD, LeadStatus.NOT_INTERESTED],
+    [LeadStatus.HOT]: [LeadStatus.SITE_VISIT, LeadStatus.NEGOTIATION, LeadStatus.BOOKED, LeadStatus.FOLLOW_UP, LeadStatus.WARM, LeadStatus.NOT_INTERESTED],
+    [LeadStatus.SITE_VISIT]: [LeadStatus.NEGOTIATION, LeadStatus.BOOKED, LeadStatus.HOT, LeadStatus.WARM, LeadStatus.FOLLOW_UP, LeadStatus.CLOSED, LeadStatus.NOT_INTERESTED],
+    [LeadStatus.NEGOTIATION]: [LeadStatus.BOOKED, LeadStatus.CLOSED, LeadStatus.HOT, LeadStatus.FOLLOW_UP, LeadStatus.NOT_INTERESTED],
+    [LeadStatus.BOOKED]: [LeadStatus.CLOSED, LeadStatus.NEGOTIATION],
+    [LeadStatus.CLOSED]: [LeadStatus.BOOKED],
+    [LeadStatus.INVALID_NUMBER]: [LeadStatus.NEW],
+  };
+
   async recordDisposition(dto: any, principal: DevicePrincipal) {
     const { user } = await this.getEmployee(principal);
+    // Whitelist enums — raw device payloads must not drive arbitrary status/temperature
+    const allowedDispositions = new Set(Object.values(CallDisposition));
+    const allowedStatuses = new Set(Object.values(LeadStatus));
+    const allowedTemps = new Set(Object.values(Temperature));
+    if (dto.disposition && !allowedDispositions.has(dto.disposition)) {
+      throw new ForbiddenException('Invalid disposition value.');
+    }
+    if (dto.status && !allowedStatuses.has(dto.status)) {
+      throw new ForbiddenException('Invalid lead status value.');
+    }
+    if (dto.temperature && !allowedTemps.has(dto.temperature)) {
+      throw new ForbiddenException('Invalid temperature value.');
+    }
     const lead = await this.leadModel.findOne({
       _id: new Types.ObjectId(dto.leadId),
       organizationId: new Types.ObjectId(user.organizationId),
@@ -83,6 +114,9 @@ export class MobileService {
 
     const disposition = (dto.disposition as CallDisposition) || CallDisposition.FOLLOW_UP;
     const reason = (dto.reason || dto.notes || 'Status updated via Mobile companion').trim();
+    if (reason.length < 2) {
+      throw new ForbiddenException('Disposition reason must be at least 2 characters.');
+    }
     const notes = dto.notes?.trim() || reason;
     const followUpAt = dto.followUpAt ? new Date(dto.followUpAt) : null;
 
@@ -102,7 +136,20 @@ export class MobileService {
       temperature: (dto.temperature as Temperature) || Temperature.WARM,
     };
 
-    lead.status = (dto.status as LeadStatus) || mapped.status;
+    const nextStatus = (dto.status as LeadStatus) || mapped.status;
+    // Enforce state machine (same as LeadsService.updateDisposition)
+    if (lead.status !== nextStatus) {
+      const allowed = this.mobileTransitions[lead.status] || [];
+      if (!allowed.includes(nextStatus)) {
+        throw new ForbiddenException(
+          `Cannot transition lead from ${lead.status} to ${nextStatus}.`,
+        );
+      }
+    }
+    if (nextStatus === LeadStatus.NOT_INTERESTED && reason.trim().length < 2) {
+      throw new ForbiddenException('Reason is required when marking NOT_INTERESTED.');
+    }
+    lead.status = nextStatus;
     lead.temperature = (dto.temperature as Temperature) || mapped.temperature || Temperature.WARM;
     if (notes) lead.employeeNotes = notes;
     if (followUpAt) lead.nextFollowUpAt = followUpAt;

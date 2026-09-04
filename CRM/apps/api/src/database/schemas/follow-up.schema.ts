@@ -33,3 +33,4 @@ export class FollowUp {
 
 export const FollowUpSchema = SchemaFactory.createForClass(FollowUp);
 FollowUpSchema.index({ organizationId: 1, employeeId: 1, status: 1, scheduledAt: 1 });
+FollowUpSchema.index({ organizationId: 1, status: 1, scheduledAt: 1 });

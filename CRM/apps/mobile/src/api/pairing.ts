@@ -84,6 +84,26 @@ export function parsePairingQrData(scanned: string): PairingQrData | null {
   return null;
 }
 
+function isAllowedApiBaseUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' && !__DEV__) return false;
+    const allowlist = ((process.env.EXPO_PUBLIC_API_ALLOWLIST || '') as string)
+      .split(',')
+      .map((s) => s.trim().replace(/\/$/, ''))
+      .filter(Boolean);
+    if (!allowlist.length) {
+      // Fallback: trust the configured default + current client base
+      const def = (DEFAULT_API_BASE_URL || '').replace(/\/$/, '');
+      const cur = (api.getBaseUrl() || '').replace(/\/$/, '');
+      return [def, cur].includes(u.origin) || [def, cur].includes(url.replace(/\/$/, ''));
+    }
+    return allowlist.includes(u.origin) || allowlist.includes(url.replace(/\/$/, ''));
+  } catch {
+    return false;
+  }
+}
+
 export async function executeDevicePairing(): Promise<{ success: boolean; message?: string }> {
   if (!DayaarDevice?.scanPairingQr || !DayaarDevice?.pairDevice) {
     throw new Error('QR pairing is only available on physical Android devices.');
@@ -99,6 +119,10 @@ export async function executeDevicePairing(): Promise<{ success: boolean; messag
     throw new Error(
       'Invalid QR code format. Please scan the QR code displayed in Web CRM (Calling > Pair Android Device).',
     );
+  }
+
+  if (!isAllowedApiBaseUrl(parsed.apiBaseUrl)) {
+    throw new Error('Untrusted server in QR code. Ask your admin for a valid pairing QR.');
   }
 
   await DayaarDevice.pairDevice(parsed.apiBaseUrl, parsed.pairingCode, parsed.pairingToken);

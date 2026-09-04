@@ -17,8 +17,12 @@ export class FollowupsController {
   async getFollowUps(
     @CurrentUser() user: IAuthUser,
     @Query('type') type: 'today' | 'overdue' | 'upcoming' | 'all' = 'all',
+    @Query('page') page = '1',
+    @Query('limit') limit = '50',
   ) {
-    return this.followupsService.getMyFollowUps(user, type);
+    const safeLimit = Number.isFinite(+limit) ? +limit : 50;
+    const safePage = Number.isFinite(+page) ? +page : 1;
+    return this.followupsService.getMyFollowUps(user, type, safePage, safeLimit);
   }
 
   @Post()

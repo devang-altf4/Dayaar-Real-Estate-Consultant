@@ -70,9 +70,16 @@ export default function DailyCallQueuePage() {
 
   // Call Initiation Mutation
   const callMutation = useMutation({
-    mutationFn: (leadId: string) => api.post<any>('/calls/initiate', { leadId, origin: CallOrigin.WEB }),
+    mutationFn: (leadId: string) =>
+      api.post<any>('/calls/initiate', {
+        leadId,
+        origin: CallOrigin.WEB,
+        idempotencyKey: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${leadId}-${Date.now()}`,
+      }),
     onSuccess: (data) => {
       setCallError('');
+      queryClient.invalidateQueries({ queryKey: ['queue-progress'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-queue'] });
       setActiveCall({
         isActive: true,
         leadId: currentLead._id,
@@ -97,6 +104,10 @@ export default function DailyCallQueuePage() {
   const handleNextLead = () => {
     queryClient.invalidateQueries({ queryKey: ['daily-queue'] });
     queryClient.invalidateQueries({ queryKey: ['queue-progress'] });
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-calls'] });
+    queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
+    queryClient.invalidateQueries({ queryKey: ['lead-calls'] });
   };
 
   return (

@@ -43,8 +43,26 @@ export class AttendanceService {
     private readonly auditService: AuditService,
   ) {}
 
-  private getTodayDateString(): string {
-    return new Date().toISOString().split('T')[0];
+  private getTodayDateString(tz = 'Asia/Kolkata', now = new Date()): string {
+    try {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: tz,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(now);
+    } catch {
+      return now.toISOString().split('T')[0];
+    }
+  }
+
+  private async getOrgTimezone(orgId: string): Promise<string> {
+    try {
+      const org: any = await this.orgModel.findById(orgId).select('timezone').lean();
+      return org?.timezone || 'Asia/Kolkata';
+    } catch {
+      return 'Asia/Kolkata';
+    }
   }
 
   /**
@@ -115,7 +133,8 @@ export class AttendanceService {
    * Employee Check-In with Geolocation Validation
    */
   async checkIn(dto: CheckInDto, user: IAuthUser) {
-    const today = this.getTodayDateString();
+    const tz = await this.getOrgTimezone(user.organizationId);
+    const today = this.getTodayDateString(tz);
     const existing = await this.attendanceModel.findOne({
       organizationId: new Types.ObjectId(user.organizationId),
       employeeId: new Types.ObjectId(user.id),
@@ -153,7 +172,18 @@ export class AttendanceService {
       totalBreakSeconds: 0,
     });
 
-    await record.save();
+    try {
+      await record.save();
+    } catch (e: any) {
+      if (e?.code === 11000) {
+        throw new BadRequestException({
+          success: false,
+          code: 'ALREADY_CHECKED_IN',
+          message: 'You have already checked in for today.',
+        });
+      }
+      throw e;
+    }
 
     await this.auditService.log({
       organizationId: user.organizationId,
@@ -173,7 +203,8 @@ export class AttendanceService {
    * Employee Check-Out
    */
   async checkOut(dto: CheckOutDto, user: IAuthUser) {
-    const today = this.getTodayDateString();
+    const tz = await this.getOrgTimezone(user.organizationId);
+    const today = this.getTodayDateString(tz);
     const record = await this.attendanceModel.findOne({
       organizationId: new Types.ObjectId(user.organizationId),
       employeeId: new Types.ObjectId(user.id),
@@ -188,15 +219,16 @@ export class AttendanceService {
       throw new BadRequestException('You have already checked out for today.');
     }
 
-    // If on active break, end it
-    await this.endActiveBreakInternal(record._id.toString(), user.id);
-
+    // Validate geofence FIRST — ending the break before validation loses break state on failure
     const { distanceMeters } = await this.validateGeofence(
       user.organizationId,
       dto.latitude,
       dto.longitude,
       dto.accuracy,
     );
+
+    // If on active break, end it (only after validation succeeds)
+    await this.endActiveBreakInternal(record._id.toString(), user.id);
 
     const checkOutTime = new Date();
     record.checkOutAt = checkOutTime;
@@ -233,7 +265,8 @@ export class AttendanceService {
    * Starts a break session
    */
   async startBreak(dto: StartBreakDto, user: IAuthUser) {
-    const today = this.getTodayDateString();
+    const tz = await this.getOrgTimezone(user.organizationId);
+    const today = this.getTodayDateString(tz);
     const record = await this.attendanceModel.findOne({
       organizationId: new Types.ObjectId(user.organizationId),
       employeeId: new Types.ObjectId(user.id),
@@ -261,7 +294,14 @@ export class AttendanceService {
       reason: dto.reason || 'Short Break',
     });
 
-    await breakSession.save();
+    try {
+      await breakSession.save();
+    } catch (e: any) {
+      if (e?.code === 11000) {
+        throw new BadRequestException('You are already on an active break session');
+      }
+      throw e;
+    }
     return breakSession;
   }
 
@@ -269,7 +309,8 @@ export class AttendanceService {
    * Ends active break session
    */
   async endBreak(user: IAuthUser) {
-    const today = this.getTodayDateString();
+    const tz = await this.getOrgTimezone(user.organizationId);
+    const today = this.getTodayDateString(tz);
     const record = await this.attendanceModel.findOne({
       organizationId: new Types.ObjectId(user.organizationId),
       employeeId: new Types.ObjectId(user.id),
@@ -284,27 +325,30 @@ export class AttendanceService {
   }
 
   private async endActiveBreakInternal(attendanceId: string, userId: string) {
-    const activeBreak = await this.breakModel.findOne({
-      attendanceId: new Types.ObjectId(attendanceId),
-      endedAt: null,
-    });
+    // Atomic claim — concurrent End + Checkout can't double-count
+    const endTime = new Date();
+    const activeBreak: any = await this.breakModel.findOneAndUpdate(
+      { attendanceId: new Types.ObjectId(attendanceId), endedAt: null },
+      { $set: { endedAt: endTime } },
+      { new: true },
+    );
 
     if (!activeBreak) {
       return null;
     }
 
-    const endTime = new Date();
-    activeBreak.endedAt = endTime;
-    activeBreak.durationSeconds = Math.floor(
-      (endTime.getTime() - new Date(activeBreak.startedAt).getTime()) / 1000,
+    const secs = Math.max(
+      0,
+      Math.floor((endTime.getTime() - new Date(activeBreak.startedAt).getTime()) / 1000),
     );
-    await activeBreak.save();
+    await this.breakModel.updateOne({ _id: activeBreak._id }, { $set: { durationSeconds: secs } });
 
     // Increment total break seconds on attendance record
     await this.attendanceModel.findByIdAndUpdate(attendanceId, {
-      $inc: { totalBreakSeconds: activeBreak.durationSeconds },
+      $inc: { totalBreakSeconds: secs },
     });
 
+    activeBreak.durationSeconds = secs;
     return activeBreak;
   }
 
@@ -312,7 +356,8 @@ export class AttendanceService {
    * Returns employee's current today status
    */
   async getTodayStatus(user: IAuthUser) {
-    const today = this.getTodayDateString();
+    const tz = await this.getOrgTimezone(user.organizationId);
+    const today = this.getTodayDateString(tz);
     const record = await this.attendanceModel.findOne({
       organizationId: new Types.ObjectId(user.organizationId),
       employeeId: new Types.ObjectId(user.id),
@@ -364,10 +409,11 @@ export class AttendanceService {
    * check-in/check-out GPS locations so the boss can audit presence.
    */
   async getDailyReport(organizationId: string, date?: string) {
+    const tz = await this.getOrgTimezone(organizationId);
     const targetDate =
       date && /^\d{4}-\d{2}-\d{2}$/.test(date)
         ? date
-        : this.getTodayDateString();
+        : this.getTodayDateString(tz);
 
     const records = await this.attendanceModel
       .find({
