@@ -6,6 +6,7 @@ services:
     rootDir: CRM
     buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @dayaar/shared build && pnpm --filter @dayaar/api build
     startCommand: pnpm --filter @dayaar/api start:prod
+    plan: free
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -48,15 +49,12 @@ services:
       - key: B2_APPLICATION_KEY
         sync: false
       - key: VPS_RECORDING_BACKUP_PATH
-        value: /var/data/dayaar-recordings
-    disk:
-      name: dayaar-recording-backup
-      mountPath: /var/data
-      sizeGB: 10
+        value: ./data/recording-backup
 
   - type: web
     name: dayaar-crm-web
     runtime: node
+    plan: free
     rootDir: CRM
     buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @dayaar/shared build && pnpm --filter @dayaar/web build
     startCommand: pnpm --filter @dayaar/web start

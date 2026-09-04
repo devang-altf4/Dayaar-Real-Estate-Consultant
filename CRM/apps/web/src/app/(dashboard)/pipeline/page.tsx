@@ -31,15 +31,20 @@ export default function PipelineKanbanPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">Pipeline Kanban</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real Estate Sales Funnel & Qualification Stages
+          <h1 className="text-2xl font-black tracking-tight text-slate-950">Pipeline Kanban</h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Real estate sales funnel, buyer intent & deal progression stages
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-sky-800 bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200/70 shadow-subtle">
+            {leads.length} Active Deals Tracked
+          </span>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="p-12 text-center text-slate-400">Loading pipeline board...</div>
+        <div className="p-16 text-center text-slate-400 font-medium">Loading pipeline board...</div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-6">
           {columns.map((col) => {
@@ -47,56 +52,62 @@ export default function PipelineKanbanPage() {
             return (
               <div
                 key={col.id}
-                className="w-72 flex-shrink-0 bg-slate-100/70 border border-slate-200 rounded-2xl p-3 flex flex-col max-h-[75vh]"
+                className="w-72 flex-shrink-0 bg-slate-100/70 border border-slate-200/80 rounded-2xl p-3 flex flex-col max-h-[78vh] shadow-subtle"
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between px-2 py-1.5 mb-2">
-                  <span className="text-xs font-bold text-slate-800">{col.title}</span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700">
+                <div className="flex items-center justify-between px-2 py-2 mb-2.5">
+                  <span className="text-xs font-extrabold text-slate-800 tracking-tight">{col.title}</span>
+                  <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg bg-white border border-slate-200/90 text-slate-700 shadow-subtle">
                     {colLeads.length}
                   </span>
                 </div>
 
                 {/* Cards Container */}
                 <div className="space-y-2.5 overflow-y-auto flex-1 pr-1">
-                  {colLeads.map((lead: any) => (
-                    <Link
-                      key={lead._id}
-                      href={`/leads/${lead._id}`}
-                      className="block p-3.5 bg-white border border-slate-200 hover:border-sky-300 rounded-xl shadow-xs hover:shadow transition-all space-y-2 group"
-                    >
-                      <div className="flex items-start justify-between">
-                        <span className="font-bold text-xs text-slate-900 group-hover:text-sky-700">
-                          {lead.name}
-                        </span>
-                        <span
-                          className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase ${
-                            lead.temperature === Temperature.HOT
-                              ? 'bg-rose-100 text-rose-800'
-                              : lead.temperature === Temperature.WARM
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}
-                        >
-                          {lead.temperature}
-                        </span>
-                      </div>
-
-                      <div className="text-[11px] text-slate-500 font-medium">{lead.project}</div>
-
-                      {lead.qualification?.budgetMax && (
-                        <div className="text-[11px] font-bold text-emerald-700">
-                          {formatIndianCurrency(lead.qualification.budgetMin)} -{' '}
-                          {formatIndianCurrency(lead.qualification.budgetMax)}
+                  {colLeads.length === 0 ? (
+                    <div className="py-8 text-center text-[11px] text-slate-400 italic">
+                      No deals in this stage
+                    </div>
+                  ) : (
+                    colLeads.map((lead: any) => (
+                      <Link
+                        key={lead._id}
+                        href={`/leads/${lead._id}`}
+                        className="block p-3.5 bg-white border border-slate-200/80 hover:border-sky-300 rounded-xl shadow-subtle hover:shadow-card transition-all space-y-2.5 group"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-bold text-xs text-slate-900 group-hover:text-sky-700 transition-colors line-clamp-1">
+                            {lead.name}
+                          </span>
+                          <span
+                            className={`text-[9px] font-extrabold px-2 py-0.5 rounded-md uppercase border shrink-0 ${
+                              lead.temperature === Temperature.HOT
+                                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                : lead.temperature === Temperature.WARM
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-slate-50 text-slate-700 border-slate-200'
+                            }`}
+                          >
+                            {lead.temperature === Temperature.HOT ? '🔥 ' : ''}{lead.temperature}
+                          </span>
                         </div>
-                      )}
 
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-50">
-                        <span className="font-mono">{lead.phone}</span>
-                        <span>{lead.attemptCount || 0}/4 attempts</span>
-                      </div>
-                    </Link>
-                  ))}
+                        <div className="text-[11px] text-slate-500 font-semibold">{lead.project}</div>
+
+                        {lead.qualification?.budgetMax && (
+                          <div className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50/60 px-2 py-0.5 rounded-md border border-emerald-100 inline-block">
+                            {formatIndianCurrency(lead.qualification.budgetMin)} -{' '}
+                            {formatIndianCurrency(lead.qualification.budgetMax)}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1.5 border-t border-slate-100 font-medium">
+                          <span className="font-mono text-slate-600">{lead.phone}</span>
+                          <span className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{lead.attemptCount || 0}/4 attempts</span>
+                        </div>
+                      </Link>
+                    ))
+                  )}
                 </div>
               </div>
             );

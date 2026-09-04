@@ -59,7 +59,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'https://dayaar-real-estate-consultant-2.onrender.com';
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'https://dayaar-real-estate-consultant-5ahf.onrender.com';
     const token = localStorage.getItem('dayaar_access_token');
     if (!token) return;
 

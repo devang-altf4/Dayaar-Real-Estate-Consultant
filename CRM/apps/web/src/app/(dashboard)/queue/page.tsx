@@ -102,33 +102,37 @@ export default function DailyCallQueuePage() {
   return (
     <div className="space-y-6">
       {/* Header & Target Metrics */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-card">
         <div>
-          <div className="flex items-center gap-2">
-            <Zap className="h-6 w-6 text-amber-500" />
-            <h1 className="text-xl font-black text-slate-900">High-Throughput Call Queue</h1>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60">
+              <Zap className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-xl font-extrabold tracking-tight text-slate-950">High-Throughput Call Queue</h1>
+              <p className="text-xs text-slate-500 font-medium">
+                Optimized for rapid 300 leads/day calling workflow with automatic progression
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Optimized for rapid 300 leads/day calling workflow with automatic Next-Lead progression
-          </p>
         </div>
 
         <div className="flex items-center gap-3">
           {progressData && (
-            <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-4 bg-slate-50/80 px-4 py-2.5 rounded-xl border border-slate-200/70">
               <div className="text-center">
                 <span className="text-[10px] uppercase font-bold text-slate-400">Calls Today</span>
-                <div className="text-lg font-black text-slate-900">{progressData.totalCallsMadeToday}</div>
+                <div className="text-base font-extrabold text-slate-900">{progressData.totalCallsMadeToday}</div>
               </div>
-              <div className="h-8 w-px bg-slate-200" />
+              <div className="h-7 w-px bg-slate-200" />
               <div className="text-center">
                 <span className="text-[10px] uppercase font-bold text-slate-400">Remaining</span>
-                <div className="text-lg font-black text-amber-600">{progressData.remainingCalls}</div>
+                <div className="text-base font-extrabold text-amber-700">{progressData.remainingCalls}</div>
               </div>
-              <div className="h-8 w-px bg-slate-200" />
+              <div className="h-7 w-px bg-slate-200" />
               <div className="text-center">
                 <span className="text-[10px] uppercase font-bold text-slate-400">In Queue</span>
-                <div className="text-lg font-black text-sky-700">{queue.length}</div>
+                <div className="text-base font-extrabold text-sky-700">{queue.length}</div>
               </div>
             </div>
           )}
@@ -138,35 +142,37 @@ export default function DailyCallQueuePage() {
             onClick={handleManualRefresh}
             disabled={isRefreshing || isLoading}
             title="Sync Call Queue (3s cooldown)"
-            className="flex items-center gap-1.5 px-3.5 py-3 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition-all shadow-xs disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition-all shadow-subtle disabled:opacity-50 cursor-pointer"
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing || isRefetching ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
+            <RefreshCw className={`h-4 w-4 ${isRefreshing || isRefetching ? 'animate-spin text-sky-600' : 'text-slate-500'}`} />
             <span className="hidden sm:inline">{isRefreshing || isRefetching ? 'Syncing...' : 'Sync'}</span>
           </button>
         </div>
       </div>
 
       {callError && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center gap-2.5">
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center gap-2.5 shadow-subtle">
           <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
           <span className="font-semibold">{callError}</span>
         </div>
       )}
 
       {isLoading ? (
-        <div className="p-12 text-center text-slate-400">Loading daily queue...</div>
+        <div className="p-16 text-center text-slate-400 font-medium">Loading daily queue...</div>
       ) : queue.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mx-auto">
-            <Sparkles className="h-6 w-6" />
+        <div className="p-16 text-center bg-white rounded-2xl border border-slate-200/80 shadow-card space-y-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 mx-auto">
+            <Sparkles className="h-7 w-7" />
           </div>
-          <h3 className="text-base font-bold text-slate-900">Queue is Clear!</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            You have called all scheduled and fresh leads in your queue. Great job! Check the Leads tab for new assignments.
-          </p>
+          <div>
+            <h3 className="text-lg font-extrabold text-slate-900">Queue is Clear!</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 font-medium">
+              You have called all scheduled and fresh leads in your queue. Check the Leads tab for new assignments.
+            </p>
+          </div>
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors"
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
           >
             Refresh Queue
           </button>
@@ -175,53 +181,53 @@ export default function DailyCallQueuePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Active Lead Call Card */}
           <div className="lg:col-span-2 space-y-5">
-            <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-6">
+            <div className="p-6 bg-white border border-slate-200/80 rounded-2xl shadow-card space-y-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-sky-800 bg-sky-50 px-2.5 py-1 rounded-md border border-sky-200/70">
                     Active Lead #{1} of {queue.length}
                   </span>
-                  <h2 className="text-2xl font-black text-slate-900 mt-2">{currentLead.name}</h2>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                    <span className="font-mono font-bold text-slate-700">{currentLead.phone}</span>
+                  <h2 className="text-2xl font-black text-slate-950 mt-2 tracking-tight">{currentLead.name}</h2>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1">
+                    <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">{currentLead.phone}</span>
                     <span>•</span>
-                    <span>{currentLead.project}</span>
+                    <span className="font-semibold text-slate-700">{currentLead.project}</span>
                     <span>•</span>
                     <span className="text-slate-400">Source: {currentLead.source}</span>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-1">
+                <div className="flex flex-col items-end gap-1.5">
                   <span
-                    className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase ${
+                    className={`text-xs font-extrabold px-3 py-1 rounded-full uppercase border ${
                       currentLead.temperature === Temperature.HOT
-                        ? 'bg-rose-100 text-rose-700'
+                        ? 'bg-rose-50 text-rose-700 border-rose-200'
                         : currentLead.temperature === Temperature.WARM
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-slate-100 text-slate-700'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-slate-50 text-slate-700 border-slate-200'
                     }`}
                   >
-                    {currentLead.temperature}
+                    {currentLead.temperature === Temperature.HOT ? '🔥 ' : ''}{currentLead.temperature}
                   </span>
-                  <span className="text-[11px] text-slate-400">
-                    Attempts: <b>{currentLead.attemptCount || 0} / 4</b>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Attempts: <b className="text-slate-700">{currentLead.attemptCount || 0} / 4</b>
                   </span>
                 </div>
               </div>
 
               {/* Massive CALL Button */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center space-y-3">
+              <div className="p-5 bg-gradient-to-b from-slate-50 to-slate-100/50 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center space-y-3">
                 <button
                   type="button"
                   disabled={!isCallReady || callMutation.isPending}
                   onClick={handleCallCurrentLead}
-                  className={`w-full py-4 rounded-2xl text-base font-black flex items-center justify-center gap-3 shadow-lg transition-all ${
+                  className={`w-full py-4 rounded-2xl text-base font-black flex items-center justify-center gap-3 shadow-lg transition-all duration-200 cursor-pointer ${
                     isCallReady
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 active:scale-[0.99]'
+                      ? 'bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-glow-emerald active:scale-[0.99]'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                   }`}
                 >
-                  <Phone className={`h-6 w-6 ${isCallReady ? 'animate-pulse' : ''}`} />
+                  <Phone className={`h-5 w-5 ${isCallReady ? 'animate-pulse' : ''}`} />
                   <span>
                     {callMutation.isPending
                       ? 'Dispatching to Android SIM...'
@@ -232,7 +238,7 @@ export default function DailyCallQueuePage() {
                 </button>
 
                 {!isCallReady && (
-                  <p className="text-xs text-rose-600 font-medium">
+                  <p className="text-xs text-rose-600 font-semibold">
                     Pair your company Android phone in the <b>Calling Device</b> tab to activate cellular calling.
                   </p>
                 )}
@@ -244,9 +250,9 @@ export default function DailyCallQueuePage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab('quick')}
-                    className={`pb-2.5 px-4 text-xs font-bold transition-colors ${
+                    className={`pb-3 px-4 text-xs font-bold transition-all cursor-pointer ${
                       activeTab === 'quick'
-                        ? 'border-b-2 border-sky-700 text-sky-700'
+                        ? 'border-b-2 border-sky-600 text-sky-800 font-extrabold'
                         : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
@@ -255,9 +261,9 @@ export default function DailyCallQueuePage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab('full')}
-                    className={`pb-2.5 px-4 text-xs font-bold transition-colors ${
+                    className={`pb-3 px-4 text-xs font-bold transition-all cursor-pointer ${
                       activeTab === 'full'
-                        ? 'border-b-2 border-sky-700 text-sky-700'
+                        ? 'border-b-2 border-sky-600 text-sky-800 font-extrabold'
                         : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
@@ -285,28 +291,28 @@ export default function DailyCallQueuePage() {
 
           {/* Up Next in Queue List */}
           <div className="space-y-4">
-            <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+            <div className="p-5 bg-white border border-slate-200/80 rounded-2xl shadow-card space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-900">Up Next in Queue</h3>
-                <span className="text-xs font-semibold text-sky-700">{queue.length} Leads</span>
+                <span className="text-xs font-bold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200/60">{queue.length} Leads</span>
               </div>
 
               <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
                 {queue.slice(1).map((lead: any, idx: number) => (
                   <div
                     key={lead._id}
-                    className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl space-y-1 transition-colors"
+                    className="p-3.5 bg-slate-50/70 hover:bg-slate-100/80 border border-slate-200/70 rounded-xl space-y-1 transition-all"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-slate-800">{lead.name}</span>
-                      <span className="text-[10px] font-semibold text-slate-400">#{idx + 2}</span>
+                      <span className="font-bold text-xs text-slate-900">{lead.name}</span>
+                      <span className="text-[10px] font-mono font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">#{idx + 2}</span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-slate-500">
                       <span className="font-mono">{lead.phone}</span>
-                      <span>{lead.project}</span>
+                      <span className="font-medium text-slate-600">{lead.project}</span>
                     </div>
                     {lead.status === LeadStatus.FOLLOW_UP && (
-                      <div className="flex items-center gap-1 text-[10px] text-amber-700 font-medium">
+                      <div className="flex items-center gap-1 text-[10px] text-amber-700 font-semibold pt-0.5">
                         <Clock className="h-3 w-3" />
                         <span>Follow-up Scheduled</span>
                       </div>

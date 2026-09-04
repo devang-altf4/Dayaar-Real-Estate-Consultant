@@ -82,7 +82,7 @@ export function AudioPlayer({ callAttemptId, durationSeconds = 0 }: AudioPlayerP
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded-xl shadow-xs w-full max-w-sm">
+      <div className="flex items-center gap-3 p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl shadow-subtle w-full max-w-sm">
         <audio
           ref={audioRef}
           onTimeUpdate={() => {
@@ -100,12 +100,12 @@ export function AudioPlayer({ callAttemptId, durationSeconds = 0 }: AudioPlayerP
           disabled={isLoading}
           onClick={togglePlay}
           aria-label={isPlaying ? 'Pause recording' : 'Play recording'}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-700 text-white hover:bg-sky-800 disabled:bg-slate-400 flex-shrink-0"
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 text-white disabled:bg-slate-300 flex-shrink-0 shadow-xs transition-all cursor-pointer"
         >
-          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
+          {isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 ml-0.5" />}
         </button>
         <div className="flex-1 min-w-0 space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-500">
+          <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-slate-500">
             <span>{formatSecondsToTime(Math.floor(currentTime))}</span>
             <span>{formatSecondsToTime(Math.floor(duration || durationSeconds))}</span>
           </div>
@@ -115,18 +115,18 @@ export function AudioPlayer({ callAttemptId, durationSeconds = 0 }: AudioPlayerP
             max={duration || durationSeconds || 100}
             value={currentTime}
             onChange={handleSeek}
-            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-700"
+            className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-600"
           />
         </div>
         <button
           type="button"
           onClick={cyclePlaybackRate}
-          className="px-2 py-1 bg-white border border-slate-200 text-slate-700 rounded text-xs font-bold font-mono hover:bg-slate-100"
+          className="px-2 py-0.5 bg-white border border-slate-200 text-slate-700 rounded-md text-[11px] font-bold font-mono hover:bg-slate-100 transition-colors shadow-subtle cursor-pointer"
         >
           {playbackRate}x
         </button>
       </div>
-      {error && <p className="text-[11px] text-rose-600">{error}</p>}
+      {error && <p className="text-[10px] text-rose-600 font-medium">{error}</p>}
     </div>
   );
 }

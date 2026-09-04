@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dayaar-real-estate-consultant-2.onrender.com/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dayaar-real-estate-consultant-5ahf.onrender.com/api';
 
 export interface ApiErrorResponse {
   success: false;

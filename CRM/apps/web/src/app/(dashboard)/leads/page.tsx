@@ -165,21 +165,21 @@ export default function LeadsPage() {
       {/* Header & Quick Action Buttons */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">Leads Directory</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-2xl font-black tracking-tight text-slate-950">Leads Directory</h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
             Manage real estate buyers, contact attempts, and pipeline assignments
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={handleManualRefresh}
             disabled={isRefreshing || isLoading}
             title="Refresh Leads (3s cooldown)"
-            className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition-all shadow-xs disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition-all shadow-subtle disabled:opacity-50 cursor-pointer"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing || isRefetching ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing || isRefetching ? 'animate-spin text-sky-600' : 'text-slate-500'}`} />
             <span>{isRefreshing || isRefetching ? 'Syncing...' : 'Refresh'}</span>
           </button>
 
@@ -188,10 +188,10 @@ export default function LeadsPage() {
               <button
                 type="button"
                 onClick={() => setIsCsvModalOpen(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 transition-colors shadow-xs"
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 transition-all shadow-subtle cursor-pointer"
               >
-                <Upload className="h-4 w-4" />
-                <span>Import Leads</span>
+                <Upload className="h-4 w-4 text-slate-600" />
+                <span>Import CSV</span>
               </button>
 
               {selectedLeadIds.length > 0 && (
@@ -204,7 +204,7 @@ export default function LeadsPage() {
                     }
                     setIsAssignModalOpen(true);
                   }}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors shadow-xs animate-in fade-in"
+                  className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-sky-700 hover:from-blue-700 hover:to-sky-800 text-white text-xs font-bold rounded-xl transition-all shadow-subtle animate-in fade-in cursor-pointer"
                 >
                   <UserPlus className="h-4 w-4" />
                   <span>Assign ({selectedLeadIds.length})</span>
@@ -216,7 +216,7 @@ export default function LeadsPage() {
           <button
             type="button"
             onClick={() => setIsNewLeadModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 text-white text-xs font-bold rounded-xl transition-all shadow-subtle cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Create New Lead</span>
@@ -225,9 +225,9 @@ export default function LeadsPage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex flex-col md:flex-row items-center gap-3">
+      <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-card flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search by lead name, phone, email, or project..."
@@ -236,7 +236,7 @@ export default function LeadsPage() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-1 focus:ring-sky-600 text-slate-800"
+            className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50/80 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-600 text-slate-900 font-medium transition-all"
           />
         </div>
 
@@ -247,7 +247,7 @@ export default function LeadsPage() {
               setStatus(e.target.value);
               setPage(1);
             }}
-            className="text-xs p-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
+            className="text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-600 cursor-pointer"
           >
             <option value="">All Statuses</option>
             {Object.values(LeadStatus).map((st) => (
@@ -263,7 +263,7 @@ export default function LeadsPage() {
               setTemperature(e.target.value);
               setPage(1);
             }}
-            className="text-xs p-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
+            className="text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-600 cursor-pointer"
           >
             <option value="">All Temperatures</option>
             <option value={Temperature.HOT}>🔥 HOT</option>
@@ -275,18 +275,18 @@ export default function LeadsPage() {
       </div>
 
       {/* Leads Table */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+      <div className="bg-white border border-slate-200/80 rounded-2xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider">
+              <tr className="border-b border-slate-200/80 bg-slate-50/90 text-slate-500 font-bold uppercase tracking-wider">
                 {(isAdmin || isManager) && (
                   <th className="p-4 w-10">
                     <input
                       type="checkbox"
                       checked={leads.length > 0 && selectedLeadIds.length === leads.length}
                       onChange={toggleSelectAll}
-                      className="rounded text-sky-700 focus:ring-sky-600 h-4 w-4"
+                      className="rounded-md text-sky-700 focus:ring-sky-600 h-4 w-4 border-slate-300 cursor-pointer"
                     />
                   </th>
                 )}
@@ -303,33 +303,33 @@ export default function LeadsPage() {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-slate-400">
-                    Loading leads...
+                  <td colSpan={9} className="p-12 text-center text-slate-400 font-medium">
+                    Loading leads directory...
                   </td>
                 </tr>
               ) : leads.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-slate-400">
+                  <td colSpan={9} className="p-12 text-center text-slate-400 font-medium">
                     No leads found matching your criteria.
                   </td>
                 </tr>
               ) : (
                 leads.map((lead: any) => (
-                  <tr key={lead._id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr key={lead._id} className="hover:bg-slate-50/80 transition-colors">
                     {(isAdmin || isManager) && (
                       <td className="p-4">
                         <input
                           type="checkbox"
                           checked={selectedLeadIds.includes(lead._id)}
                           onChange={() => toggleSelectLead(lead._id)}
-                          className="rounded text-sky-700 focus:ring-sky-600 h-4 w-4"
+                          className="rounded-md text-sky-700 focus:ring-sky-600 h-4 w-4 border-slate-300 cursor-pointer"
                         />
                       </td>
                     )}
                     <td className="p-4">
                       <Link
                         href={`/leads/${lead._id}`}
-                        className="font-bold text-slate-900 hover:text-sky-700 flex items-center gap-1.5"
+                        className="font-bold text-slate-900 hover:text-sky-700 flex items-center gap-1.5 transition-colors"
                       >
                         <span>{lead.name}</span>
                       </Link>
@@ -337,40 +337,40 @@ export default function LeadsPage() {
                         {lead.phone}
                       </span>
                     </td>
-                    <td className="p-4 text-slate-700 font-medium">{lead.project}</td>
+                    <td className="p-4 text-slate-700 font-semibold">{lead.project}</td>
                     <td className="p-4">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
+                      <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase bg-slate-100 text-slate-700 border border-slate-200">
                         {lead.status}
                       </span>
                     </td>
                     <td className="p-4">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase border ${
                           lead.temperature === Temperature.HOT
-                            ? 'bg-rose-100 text-rose-800'
+                            ? 'bg-rose-50 text-rose-700 border-rose-200'
                             : lead.temperature === Temperature.WARM
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-slate-100 text-slate-700'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-slate-50 text-slate-700 border-slate-200'
                         }`}
                       >
-                        {lead.temperature}
+                        {lead.temperature === Temperature.HOT ? '🔥 ' : ''}{lead.temperature}
                       </span>
                     </td>
                     <td className="p-4 font-mono font-bold text-slate-700">
                       {lead.attemptCount || 0} / 4
                     </td>
-                    <td className="p-4 text-slate-600">
+                    <td className="p-4 text-slate-700 font-medium">
                       {lead.assignedEmployeeId?.name || (
                         <span className="text-slate-400 italic">Unassigned</span>
                       )}
                     </td>
-                    <td className="p-4 text-slate-400 text-[11px]">
+                    <td className="p-4 text-slate-400 text-[11px] font-medium">
                       {formatDate(lead.createdAt, 'dd MMM yyyy')}
                     </td>
                     <td className="p-4 text-right">
                       <Link
                         href={`/leads/${lead._id}`}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-800 font-semibold text-xs transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-800 font-bold text-xs transition-colors border border-transparent hover:border-sky-200"
                       >
                         <Eye className="h-3.5 w-3.5" />
                         <span>View</span>
@@ -384,9 +384,9 @@ export default function LeadsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
-          <span>
-            Showing page <b>{meta.page}</b> of <b>{meta.totalPages}</b> ({meta.total} Total Leads)
+        <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between text-xs text-slate-500">
+          <span className="font-medium">
+            Showing page <b className="text-slate-900">{meta.page}</b> of <b className="text-slate-900">{meta.totalPages}</b> ({meta.total} Total Leads)
           </span>
 
           <div className="flex items-center gap-2">
@@ -394,7 +394,7 @@ export default function LeadsPage() {
               type="button"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="p-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-50"
+              className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer shadow-subtle"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -402,7 +402,7 @@ export default function LeadsPage() {
               type="button"
               disabled={page >= meta.totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="p-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-50"
+              className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer shadow-subtle"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

@@ -1,2 +1,2 @@
-// Azure App Service root entrypoint
+// Node.js production entrypoint
 require('./dist/src/main.js');

@@ -22,11 +22,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user) return null;
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50 overflow-hidden">
+    <div className="flex h-screen flex-col bg-[#f8fafc] overflow-hidden text-slate-900">
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50/50">
+        <main className="flex-1 overflow-y-auto p-5 md:p-7 bg-[#f8fafc]">
           <div className="mx-auto max-w-7xl space-y-6">{children}</div>
         </main>
       </div>

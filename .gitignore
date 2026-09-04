@@ -15,3 +15,7 @@ node_modules/
 backend/node_modules/
 frontend/client/node_modules/
 frontend/client/dist/
+deploy-package/
+deploy-test/
+*.pdf
+
