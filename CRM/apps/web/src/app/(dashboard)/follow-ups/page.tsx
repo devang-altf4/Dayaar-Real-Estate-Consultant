@@ -12,7 +12,7 @@ export default function FollowUpsPage() {
 
   const { data: followUps, isLoading, refetch } = useQuery({
     queryKey: ['follow-ups', filter],
-    queryFn: () => api.get<any[]>('/follow-ups', { filter }),
+    queryFn: () => api.get<any[]>('/follow-ups', { type: filter }),
   });
 
   const completeMutation = useMutation({

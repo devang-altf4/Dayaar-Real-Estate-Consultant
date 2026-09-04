@@ -11,7 +11,7 @@ export default function AdminAuditLogsPage() {
 
   const { data: auditData, isLoading } = useQuery({
     queryKey: ['admin-audit-logs', page],
-    queryFn: () => api.get<any>('/audit', { page, limit: 30 }),
+    queryFn: () => api.get<any>('/audit-logs', { page, limit: 30 }),
   });
 
   const logs = Array.isArray(auditData) ? auditData : auditData?.data || [];

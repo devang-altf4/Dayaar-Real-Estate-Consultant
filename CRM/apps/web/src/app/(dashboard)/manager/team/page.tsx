@@ -23,7 +23,7 @@ export default function ManagerTeamPage() {
     queryFn: () => api.get<any>('/analytics/manager-dashboard'),
   });
 
-  const team = managerData?.teamActivity || [];
+  const team = managerData?.teamMembers || [];
 
   return (
     <div className="space-y-6">
@@ -32,6 +32,57 @@ export default function ManagerTeamPage() {
         <p className="text-xs text-slate-500 mt-0.5">
           Real-time visibility into employee attendance, Android gateway connectivity, and daily call pacing
         </p>
+      </div>
+
+      {/* Team Summary KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Team Size</span>
+            <div className="h-8 w-8 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center">
+              <Users className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-slate-900">
+            {managerData?.teamSize ?? 0}
+          </div>
+        </div>
+
+        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Shift Active</span>
+            <div className="h-8 w-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <UserCheck className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-emerald-600">
+            {managerData?.teamCheckedInCount ?? 0}
+          </div>
+        </div>
+
+        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Calls Today</span>
+            <div className="h-8 w-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+              <PhoneCall className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-slate-900">
+            {managerData?.teamTodayCalls ?? 0}
+          </div>
+        </div>
+
+        <div className="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Connected</span>
+            <div className="h-8 w-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
+              <TrendingUp className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-indigo-600">
+            {managerData?.teamTodayConnected ?? 0}
+          </div>
+        </div>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
@@ -62,13 +113,15 @@ export default function ManagerTeamPage() {
                 </tr>
               ) : (
                 team.map((member: any) => {
-                  const progress = Math.min(100, Math.round((member.callsMadeToday / 300) * 100));
+                  const calls = member.callsToday ?? member.callsMadeToday ?? 0;
+                  const connected = member.connectedToday ?? member.connectedCallsToday ?? 0;
+                  const progress = Math.min(100, Math.round((calls / 300) * 100));
                   return (
                     <tr key={member.userId} className="hover:bg-slate-50/70 transition-colors">
                       <td className="p-4">
-                        <span className="font-bold text-slate-900 block">{member.name}</span>
+                        <span className="font-bold text-slate-900 block">{member.userName || member.name}</span>
                         <span className="font-mono text-[11px] text-slate-400">
-                          {member.employeeCode} • {member.email}
+                          {member.employeeCode}{member.email ? ` • ${member.email}` : ''}
                         </span>
                       </td>
                       <td className="p-4">
@@ -98,15 +151,15 @@ export default function ManagerTeamPage() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-rose-600 font-medium">No Device</span>
+                          <span className="text-slate-400 italic">No Device</span>
                         )}
                       </td>
-                      <td className="p-4 font-bold text-sky-700">{member.callsMadeToday}</td>
-                      <td className="p-4 font-bold text-emerald-700">{member.connectedCallsToday}</td>
+                      <td className="p-4 font-bold text-sky-700">{calls}</td>
+                      <td className="p-4 font-bold text-emerald-700">{connected}</td>
                       <td className="p-4 w-48">
                         <div className="space-y-1">
                           <div className="flex justify-between text-[10px] text-slate-500">
-                            <span>{member.callsMadeToday}/300</span>
+                            <span>{calls}/300</span>
                             <span className="font-bold">{progress}%</span>
                           </div>
                           <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">

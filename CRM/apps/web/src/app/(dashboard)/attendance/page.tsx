@@ -92,7 +92,15 @@ export default function AttendancePage() {
 
   // Start Break Mutation
   const startBreakMutation = useMutation({
-    mutationFn: () => api.post('/attendance/break/start', { type: breakType }),
+    mutationFn: () => {
+      const reasonText =
+        breakType === BreakType.LUNCH
+          ? 'Lunch Break'
+          : breakType === BreakType.TEA
+          ? 'Tea Break'
+          : 'Short Break';
+      return api.post('/attendance/break/start', { reason: reasonText });
+    },
     onSuccess: () => {
       setActionMessage({ type: 'success', text: `Started ${breakType} break.` });
       refetch();

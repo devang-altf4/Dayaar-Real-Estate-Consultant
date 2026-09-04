@@ -37,6 +37,7 @@ export default function LeadDetailPage() {
   const [followUpDate, setFollowUpDate] = useState('');
   const [followUpReason, setFollowUpReason] = useState('Callback');
   const [followUpNotes, setFollowUpNotes] = useState('');
+  const [followUpStatus, setFollowUpStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [callError, setCallError] = useState('');
 
   // Fetch Lead
@@ -81,17 +82,27 @@ export default function LeadDetailPage() {
 
   // Schedule Follow-up Mutation
   const followUpMutation = useMutation({
-    mutationFn: () =>
-      api.post('/follow-ups', {
+    mutationFn: () => {
+      const payload: any = {
         leadId: id,
-        scheduledAt: followUpDate,
-        reason: followUpReason,
-        notes: followUpNotes,
-      }),
+        scheduledAt: new Date(followUpDate).toISOString(),
+      };
+      if (followUpReason.trim()) {
+        payload.reason = followUpReason.trim();
+      }
+      if (followUpNotes.trim()) {
+        payload.notes = followUpNotes.trim();
+      }
+      return api.post('/follow-ups', payload);
+    },
     onSuccess: () => {
       setFollowUpDate('');
       setFollowUpNotes('');
+      setFollowUpStatus({ type: 'success', text: 'Follow-up scheduled successfully.' });
       refetch();
+    },
+    onError: (err: any) => {
+      setFollowUpStatus({ type: 'error', text: err.message || 'Failed to schedule follow-up.' });
     },
   });
 
@@ -318,6 +329,18 @@ export default function LeadDetailPage() {
       {activeTab === 'followup' && (
         <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4 max-w-lg">
           <h4 className="text-sm font-bold text-slate-800">Schedule Callback / Meeting</h4>
+
+          {followUpStatus && (
+            <div
+              className={`p-3 rounded-xl text-xs font-semibold ${
+                followUpStatus.type === 'success'
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                  : 'bg-rose-50 text-rose-800 border border-rose-200'
+              }`}
+            >
+              {followUpStatus.text}
+            </div>
+          )}
 
           <div className="space-y-3">
             <div>

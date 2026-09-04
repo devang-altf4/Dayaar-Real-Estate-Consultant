@@ -200,13 +200,23 @@ export class AnalyticsService {
           (r) => r.employeeId.toString() === m._id.toString(),
         );
 
+        const empDevice = devices.find((d) => d.userId.toString() === m._id.toString());
+
         return {
           userId: m._id.toString(),
           userName: m.name,
+          email: m.email,
           employeeCode: m.employeeCode,
           callsToday: empCalls.length,
           connectedToday: empConnected,
           isCheckedIn,
+          device: empDevice
+            ? {
+                deviceName: empDevice.deviceName,
+                status: empDevice.status,
+                lastSeenAt: empDevice.lastSeenAt,
+              }
+            : null,
         };
       }),
     };
