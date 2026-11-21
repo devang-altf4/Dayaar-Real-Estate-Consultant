@@ -30,7 +30,10 @@
   gap: clamp(30px, 6vh, 58px);
 }
 
-.landing-hero-copy { align-self: center; }
+.landing-hero-copy {
+  align-self: center;
+  margin-inline-start: clamp(-56px, 644px - 50vw, 0px);
+}
 .landing-hero-eyebrow { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; color: #c5e2ff; }
 .landing-hero-eyebrow::before { content: ''; width: 28px; height: 1px; flex: none; background: #a0ccff; }
 .landing-hero .site-hero-title { font-size: clamp(2.75rem, 6.7vw, 6.15rem); letter-spacing: -.045em; }
@@ -50,10 +53,24 @@
   padding-top: 19px;
 }
 
-.landing-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 590px); }
-.landing-stat { display: flex; flex-direction: column-reverse; gap: 6px; padding-inline: clamp(10px, 2.6vw, 32px); }
-.landing-stat:first-child { padding-inline-start: 0; }
-.landing-stat + .landing-stat { border-inline-start: 1px solid rgb(182 215 252 / 26%); }
+.landing-hero-highlights { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); width: min(100%, 590px); }
+.landing-reviews-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 6px;
+  padding-inline-end: 8px;
+  color: #d6ebff;
+  font-size: clamp(.78rem, 1.4vw, .96rem);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: .22em;
+}
+.landing-reviews-link svg { width: 22px; height: 22px; }
+.landing-reviews-link:hover { color: #fff; }
+.landing-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.landing-stat { display: flex; flex-direction: column-reverse; gap: 6px; padding-inline: clamp(10px, 2.6vw, 32px); border-inline-start: 1px solid rgb(182 215 252 / 26%); }
 .landing-stat dt { color: #c5d8ee; font-size: .68rem; letter-spacing: .11em; line-height: 1.2; text-transform: uppercase; }
 .landing-stat dd { color: #d6ebff; font: 400 clamp(1.65rem, 3.2vw, 2.6rem)/1 var(--font-display); font-variant-numeric: tabular-nums; }
 .landing-scroll-link { display: inline-flex; align-items: center; gap: 9px; color: #c5d8ee; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
@@ -97,6 +114,7 @@
 .landing-property-rail h3 { font: 400 clamp(1.35rem, 2.15vw, 2rem)/1.1 var(--font-display); margin-block: 8px; }
 .landing-property-rail .site-property-card > div > p:nth-last-of-type(1) { color: var(--site-muted); }
 .landing-properties .site-fine-print { margin-top: 8px; }
+#customer-reviews { scroll-margin-top: calc(var(--site-header-height) + var(--site-header-offset) + 20px); }
 .landing-static-reviews { display: flex; gap: 16px; overflow-x: auto; padding: 10px 4px 22px; margin-top: 10px; scroll-snap-type: x proximity; }
 .landing-static-reviews > article { flex-shrink: 0; scroll-snap-align: start; }
 

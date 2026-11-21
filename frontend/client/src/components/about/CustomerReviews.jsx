@@ -249,6 +249,7 @@ export default function CustomerReviews() {
               </p>
               <h2
                 id="customer-reviews"
+                tabIndex={-1}
                 style={{
                   marginTop: 8,
                   fontSize: isMobile ? 'clamp(1.2rem, 6vw, 1.55rem)' : 'clamp(1.35rem, 2.2vw, 2.05rem)',

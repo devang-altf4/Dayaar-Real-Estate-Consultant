@@ -5,8 +5,7 @@ import { landingEase } from '../site/landingMotion';
 
 const titleLines = ['The Right Property.', 'The Right Possibilities.'];
 const statistics = [
-  { value: 6, label: 'Mumbai Markets', suffix: '' },
-  { value: 20, label: 'Curated Projects', suffix: '+' },
+  { value: 120, label: 'Curated Projects', suffix: '+' },
   { value: 500, label: 'Happy Families', suffix: '+' },
 ];
 
@@ -97,9 +96,15 @@ export default function HeroSection() {
         </div>
 
         <div className="landing-hero-bottom">
-          <dl className="landing-stats">
-            {statistics.map((stat) => <StatCounter key={stat.label} {...stat} reducedMotion={reducedMotion} />)}
-          </dl>
+          <div className="landing-hero-highlights">
+            <a href="#customer-reviews" className="landing-reviews-link">
+              <HiOutlineArrowDown aria-hidden />
+              <span>Customer Reviews</span>
+            </a>
+            <dl className="landing-stats">
+              {statistics.map((stat) => <StatCounter key={stat.label} {...stat} reducedMotion={reducedMotion} />)}
+            </dl>
+          </div>
           <a href="#services" className="landing-scroll-link" aria-label="Scroll to services">
             <span>Scroll</span><HiOutlineArrowDown aria-hidden />
           </a>
