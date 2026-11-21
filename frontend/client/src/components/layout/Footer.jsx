@@ -261,7 +261,6 @@ export default function Footer() {
 
   const contactItems = [
     { icon: HiOutlinePhone, val: contactPhone, href: contactPhoneHref },
-    { icon: HiOutlinePhone, val: '+91 91379 95833', href: 'tel:+919137995833' },
     { icon: HiOutlineEnvelope, val: 'Info@dayaarrealestate.com', href: 'mailto:Info@dayaarrealestate.com' },
     { icon: HiOutlineMapPin, val: 'Office No. 7, 1st Floor, Oswal Garden, Kanakia Road, near Park View Hotel, Mira Road East, Thane 401107', href: 'https://www.google.com/maps/search/?api=1&query=Dayaar%20Real%20Estate%20Oswal%20Garden%20Mira%20Road' },
   ];

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Lead = require('../models/Lead');
+const { appendLead } = require('../services/googleSheets');
 
 // POST /api/leads — submit a new lead
 router.post('/', async (req, res) => {
@@ -25,6 +26,8 @@ router.post('/', async (req, res) => {
       specificRequirement,
       interestedZone
     });
+    // Copy to the Google Sheet in the background; a Sheets outage must not lose or block the enquiry.
+    appendLead(lead).catch((error) => console.error('Google Sheet sync failed for lead', String(lead._id), error.message));
     res.status(201).json({
       success: true,
       message: 'Thank you! We will contact you shortly.',

@@ -12,7 +12,7 @@ const companyFacts = [
   'Budget options: Under Rs 50 Lakh, Rs 50 Lakh to Rs 1 Crore, Rs 1 to Rs 2 Crore, Rs 2 to Rs 5 Crore, Rs 5 to Rs 10 Crore, and Rs 10 Crore plus.',
   'BHK options: 1 BHK, 2 BHK, 3 BHK, 4 BHK, and 5+ BHK.',
   'Lead form promises: response within 24 hours, verified RERA projects only, and secure data handling.',
-  'Primary phone and WhatsApp: +91 91521 53500. Secondary phone: +91 91379 95833.',
+  'Phone and WhatsApp: +91 91521 53500.',
   'Email: Info@dayaarrealestate.com.',
   'Office address: Office no.7, 1st Floor, Oswal Garden, Kanakia Road, near Park View Hotel, Mira Road East, Thane 401107.',
   'Social channels shown on the website include WhatsApp, Instagram, YouTube, Facebook, Threads, and Say More/Google review link.',
