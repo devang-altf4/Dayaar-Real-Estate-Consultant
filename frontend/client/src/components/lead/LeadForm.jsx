@@ -1,11 +1,8 @@
 /**
- * LeadForm — Exact match to reference image
- * Black background, gold heading, clean dark inputs
- * Using inline CSS to avoid Tailwind v4 issues
- * COMPACT SPACING to match screenshot 1
+ * Property enquiry form and submission states.
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import {
   HiOutlineUser,
@@ -21,6 +18,7 @@ import {
   HiOutlineDocumentCheck,
 } from 'react-icons/hi2';
 import api from '../../utils/api';
+import { contactPhone } from '../../data/contact';
 
 const BUDGET_OPTIONS = [
   'Under ₹50 Lakh',
@@ -44,7 +42,6 @@ const styles = {
   section: {
     position: 'relative',
     overflow: 'hidden',
-    background: '#06070b',
     scrollMarginTop: 96,
   },
   glowContainer: {
@@ -69,7 +66,7 @@ const styles = {
     height: 288,
     width: 288,
     borderRadius: '50%',
-    background: 'rgba(29, 38, 57, 0.35)',
+    background: 'rgba(82, 147, 228, 0.12)',
     filter: 'blur(48px)',
   },
   container: {
@@ -101,21 +98,20 @@ const styles = {
     alignSelf: 'start',
   },
   heading: {
-    fontFamily: 'var(--font-heading)',
-    color: '#1E5EFF',
-    fontSize: 'clamp(2.2rem, 3.5vw, 3.2rem)',
+    fontFamily: 'var(--font-display)',
+    color: 'var(--site-ink)',
+    fontSize: 'clamp(2.75rem, 4.4vw, 4.1rem)',
     marginBottom: 16,
-    fontWeight: 500,
+    fontWeight: 400,
     lineHeight: 1,
     letterSpacing: '-0.01em',
-    fontStyle: 'italic',
   },
   description: {
     marginBottom: 32,
     maxWidth: 400,
     fontSize: 14,
     lineHeight: 1.6,
-    color: '#a8acb4',
+    color: 'var(--site-muted)',
   },
   featuresContainer: {
     display: 'flex',
@@ -135,9 +131,9 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    border: '1px solid #2a2d35',
-    background: '#11141a',
-    color: '#1E5EFF',
+    border: '1px solid var(--site-border)',
+    background: 'var(--site-tint)',
+    color: 'var(--site-accent)',
   },
   iconBoxIcon: {
     height: 16,
@@ -145,17 +141,22 @@ const styles = {
   },
   featureText: {
     fontSize: 14,
-    color: '#f0eee8',
+    color: 'var(--site-ink)',
   },
   rightPanel: {
-    paddingTop: 0,
+    minWidth: 0,
+    padding: 'clamp(16px, 3vw, 30px)',
+    borderRadius: 18,
+    border: '1px solid var(--site-border)',
+    background: 'var(--site-panel)',
+    boxShadow: 'var(--site-shadow)',
   },
   formTitle: {
     fontFamily: 'var(--font-heading)',
     fontSize: 'clamp(1.25rem, 1.4vw, 1.5rem)',
     marginBottom: 20,
     letterSpacing: '0.02em',
-    color: '#f3efe7',
+    color: 'var(--site-ink)',
     fontWeight: 600,
   },
   form: {
@@ -172,22 +173,23 @@ const styles = {
     fontWeight: 600,
     textTransform: 'uppercase',
     letterSpacing: '0.12em',
-    color: '#f1ede2',
+    color: 'var(--site-ink)',
   },
   labelIcon: {
     height: 12,
     width: 12,
-    color: '#a5a9b0',
+    color: 'var(--site-accent)',
   },
   input: {
     height: 46,
     width: '100%',
     borderRadius: 6,
-    border: '1px solid #2a2d35',
-    background: '#121520',
+    border: '1px solid var(--site-input-border)',
+    background: 'var(--site-canvas)',
+    colorScheme: 'dark',
     padding: '0 14px',
     fontSize: 14,
-    color: '#f2eee6',
+    color: 'var(--site-ink)',
     outline: 'none',
     transition: 'border-color 0.2s, box-shadow 0.2s',
     fontFamily: "var(--font-body)",
@@ -197,11 +199,12 @@ const styles = {
     width: '100%',
     resize: 'vertical',
     borderRadius: 6,
-    border: '1px solid #2a2d35',
-    background: '#121520',
+    border: '1px solid var(--site-input-border)',
+    background: 'var(--site-canvas)',
+    colorScheme: 'dark',
     padding: '12px 14px',
     fontSize: 14,
-    color: '#f2eee6',
+    color: 'var(--site-ink)',
     outline: 'none',
     transition: 'border-color 0.2s, box-shadow 0.2s',
     fontFamily: "var(--font-body)",
@@ -211,8 +214,9 @@ const styles = {
     height: 46,
     width: '100%',
     borderRadius: 6,
-    border: '1px solid #2a2d35',
-    background: '#121520',
+    border: '1px solid var(--site-input-border)',
+    background: 'var(--site-canvas)',
+    colorScheme: 'dark',
     padding: '0 14px',
     paddingRight: 36,
     fontSize: 14,
@@ -227,8 +231,8 @@ const styles = {
     backgroundSize: '18px',
   },
   selectOption: {
-    background: '#13151a',
-    color: '#f2eee6',
+    background: 'var(--site-panel)',
+    color: 'var(--site-ink)',
   },
   twoColGrid: {
     display: 'grid',
@@ -238,15 +242,15 @@ const styles = {
   error: {
     marginTop: 4,
     fontSize: 11,
-    color: '#f87171',
+    color: '#ffb4be',
   },
   serverError: {
     borderRadius: 6,
-    border: '1px solid rgba(153, 27, 27, 0.3)',
-    background: 'rgba(127, 29, 29, 0.2)',
+    border: '1px solid rgb(255 152 167 / 45%)',
+    background: '#342335',
     padding: 10,
     fontSize: 13,
-    color: '#f87171',
+    color: '#ffb4be',
   },
   submitButton: {
     marginTop: 8,
@@ -254,7 +258,7 @@ const styles = {
     width: '100%',
     borderRadius: 6,
     border: 'none',
-    background: '#1E5EFF',
+    background: 'var(--site-action)',
     fontSize: 13,
     fontWeight: 700,
     letterSpacing: '0.05em',
@@ -271,19 +275,19 @@ const styles = {
     margin: '0 auto 16px',
     height: 56,
     width: 56,
-    color: '#1E5EFF',
+    color: 'var(--site-accent)',
   },
   successTitle: {
     marginBottom: 10,
     fontSize: 26,
-    color: '#f4f1e9',
+    color: 'var(--site-ink)',
     fontFamily: 'var(--font-heading)',
   },
   successText: {
     margin: '0 auto',
     maxWidth: 360,
     fontSize: 14,
-    color: '#a8acb4',
+    color: 'var(--site-muted)',
   },
 };
 
@@ -304,7 +308,7 @@ function useMediaQuery(query) {
   return matches;
 }
 
-export default function LeadForm() {
+export default function LeadForm({ initialRequirement = '' }) {
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -312,7 +316,7 @@ export default function LeadForm() {
     profession: '',
     bhk: '',
     locationPreferred: '',
-    specificRequirement: '',
+    specificRequirement: initialRequirement,
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -343,13 +347,14 @@ export default function LeadForm() {
     setSubmitting(true);
     const phone = form.phone.replace(/\s+/g, '').replace(/^\+91/, '');
     try {
-      await api.post('/leads', {
+      const response = await api.post('/leads', {
         ...form,
         phone,
       });
+      if (!response.data?.success) throw new Error('Lead submission unavailable');
       setDone(true);
     } catch (err) {
-      setErrors({ server: err.response?.data?.errors?.join(', ') || 'Something went wrong.' });
+      setErrors({ server: err.response?.data?.errors?.join(', ') || 'We couldn’t send your enquiry. Please try again or call us on ' + contactPhone + '.' });
     } finally {
       setSubmitting(false);
     }
@@ -362,21 +367,21 @@ export default function LeadForm() {
 
   const getInputStyle = (fieldName) => ({
     ...styles.input,
-    borderColor: focusedField === fieldName ? '#646b78' : '#2a2d35',
-    boxShadow: focusedField === fieldName ? '0 0 0 2px rgba(100, 107, 120, 0.28)' : 'none',
+    borderColor: focusedField === fieldName ? 'var(--site-accent)' : 'var(--site-input-border)',
+    boxShadow: focusedField === fieldName ? '0 0 0 2px rgb(32 85 160 / 18%)' : 'none',
   });
 
   const getSelectStyle = (fieldName, hasValue) => ({
     ...styles.select,
-    color: hasValue ? '#f2eee6' : '#7d828c',
-    borderColor: focusedField === fieldName ? '#646b78' : '#2a2d35',
-    boxShadow: focusedField === fieldName ? '0 0 0 2px rgba(100, 107, 120, 0.28)' : 'none',
+    color: hasValue ? 'var(--site-ink)' : 'var(--site-muted)',
+    borderColor: focusedField === fieldName ? 'var(--site-accent)' : 'var(--site-input-border)',
+    boxShadow: focusedField === fieldName ? '0 0 0 2px rgb(32 85 160 / 18%)' : 'none',
   });
 
   const getTextareaStyle = (fieldName) => ({
     ...styles.textarea,
-    borderColor: focusedField === fieldName ? '#646b78' : '#2a2d35',
-    boxShadow: focusedField === fieldName ? '0 0 0 2px rgba(100, 107, 120, 0.28)' : 'none',
+    borderColor: focusedField === fieldName ? 'var(--site-accent)' : 'var(--site-input-border)',
+    boxShadow: focusedField === fieldName ? '0 0 0 2px rgb(32 85 160 / 18%)' : 'none',
   });
 
   const getContainerStyle = () => {
@@ -394,7 +399,7 @@ export default function LeadForm() {
 
       <div style={getContainerStyle()}>
         <div style={isMobile ? styles.gridMobile : styles.grid}>
-          <motion.div
+          <Motion.div
             style={styles.leftPanel}
             initial={{ opacity: 0, x: -24 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -402,11 +407,11 @@ export default function LeadForm() {
             transition={{ duration: 0.5 }}
           >
             <h1 style={styles.heading}>
-              Get in Touch
+              Property Enquiry
             </h1>
 
             <p style={styles.description}>
-              Share your preferences and our experts will curate personalized property recommendations from Mumbai&apos;s finest developments.
+              Looking for your ideal property? Tell us what you&apos;re looking for, and let Dayaar&apos;s experts connect you with carefully selected residential, commercial and investment opportunities tailored to your needs, preferences and budget.
             </p>
 
             <div style={styles.featuresContainer}>
@@ -431,9 +436,9 @@ export default function LeadForm() {
                 <span style={styles.featureText}>Your data is 100% secure</span>
               </div>
             </div>
-          </motion.div>
+          </Motion.div>
 
-          <motion.div
+          <Motion.div
             style={styles.rightPanel}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -442,7 +447,7 @@ export default function LeadForm() {
           >
             <AnimatePresence mode="wait">
               {done ? (
-                <motion.div
+                <Motion.div
                   key="success"
                   style={styles.successContainer}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -456,7 +461,7 @@ export default function LeadForm() {
                   <p style={styles.successText}>
                     Our experts will reach out within 24 hours with personalized recommendations.
                   </p>
-                </motion.div>
+                </Motion.div>
               ) : (
                 <form key="form" onSubmit={submit} style={styles.form}>
                   <h2 style={styles.formTitle}>
@@ -605,7 +610,7 @@ export default function LeadForm() {
                     </div>
                   )}
 
-                  <motion.button
+                  <Motion.button
                     type="submit"
                     disabled={submitting}
                     style={styles.submitButton}
@@ -613,11 +618,11 @@ export default function LeadForm() {
                     whileTap={{ transform: 'scale(0.98)' }}
                   >
                     {submitting ? 'SUBMITTING...' : 'GET EXPERT RECOMMENDATIONS'}
-                  </motion.button>
+                  </Motion.button>
                 </form>
               )}
             </AnimatePresence>
-          </motion.div>
+          </Motion.div>
         </div>
       </div>
     </section>

@@ -2,11 +2,12 @@
  * Footer — Matching screenshot 1 design with COMPACT spacing
  * Using inline CSS to avoid Tailwind v4 issues
  */
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { HiOutlinePhone, HiOutlineEnvelope, HiOutlineMapPin } from 'react-icons/hi2';
 import { FaWhatsapp, FaInstagram, FaYoutube } from 'react-icons/fa';
 import { FaFacebookF, FaThreads } from 'react-icons/fa6';
+import { contactPhone, contactPhoneHref, contactWhatsAppHref } from '../../data/contact';
 
 // Custom "Say More" icon (speech bubble)
 const SayMoreIcon = ({ style }) => (
@@ -19,8 +20,8 @@ const SayMoreIcon = ({ style }) => (
 // Inline styles - COMPACT spacing
 const styles = {
   footer: {
-    borderTop: '1px solid rgba(30, 94, 255, 0.15)',
-    background: '#0B0B0D',
+    borderTop: '1px solid #264967',
+    background: 'var(--site-navy)',
   },
   container: {
     margin: '0 auto',
@@ -101,14 +102,14 @@ const styles = {
     alignItems: 'center',
     gap: 8,
     borderRadius: 20,
-    background: '#25d366',
+    background: 'var(--site-tint)',
     padding: '7px 14px',
     fontSize: 13,
     fontWeight: 600,
-    color: 'white',
+    color: 'var(--site-ink)',
     textDecoration: 'none',
     cursor: 'pointer',
-    border: 'none',
+    border: '1px solid var(--site-border)',
     transition: 'transform 0.2s, box-shadow 0.2s',
   },
   whatsappIcon: {
@@ -125,7 +126,7 @@ const styles = {
   sectionHeaderLine: {
     height: 1,
     width: 20,
-    background: '#1E5EFF',
+    background: '#8abbf9',
   },
   sectionTitle: {
     fontSize: 11,
@@ -168,13 +169,13 @@ const styles = {
     justifyContent: 'center',
     borderRadius: '50%',
     border: '1px solid rgba(30, 94, 255, 0.2)',
-    background: '#0F2A44',
+    background: '#143b63',
     transition: 'border-color 0.2s',
   },
   contactIcon: {
     height: 14,
     width: 14,
-    color: '#1E5EFF',
+    color: '#a9ccff',
   },
   contactText: {
     wordBreak: 'break-word',
@@ -200,7 +201,7 @@ const styles = {
     justifyContent: 'center',
     borderRadius: 10,
     border: '1px solid rgba(30, 94, 255, 0.2)',
-    background: '#0F2A44',
+    background: '#143b63',
     color: 'rgba(255,255,255,0.6)',
     textDecoration: 'none',
     transition: 'border-color 0.2s, color 0.2s',
@@ -214,10 +215,10 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 6,
-    borderTop: '1px solid rgba(30, 94, 255, 0.1)',
+    borderTop: '1px solid #264967',
     paddingTop: 20,
     fontSize: 10,
-    color: 'rgba(255,255,255,0.4)',
+    color: '#a9c0da',
   },
   bottomBarMd: {
     flexDirection: 'row',
@@ -251,20 +252,22 @@ export default function Footer() {
   const [hoveredSocial, setHoveredSocial] = useState(null);
 
   const navLinks = [
-    { label: 'Explore Zones', href: '#zones-section' },
-    { label: 'Contact Us', href: '#lead-section' },
-    { label: 'Back to Top', href: '#hero' },
+    { label: 'Home', href: '/' },
+    { label: 'Our Services', href: '/services' },
+    { label: 'Property Enquiry', href: '/enquiry' },
+    { label: 'List Your Property', href: '/list-your-property' },
+    { label: 'FAQ', href: '/help' },
   ];
 
   const contactItems = [
-    { icon: HiOutlinePhone, val: '+91 84528 52324', href: 'tel:+918452852324' },
+    { icon: HiOutlinePhone, val: contactPhone, href: contactPhoneHref },
     { icon: HiOutlinePhone, val: '+91 91379 95833', href: 'tel:+919137995833' },
     { icon: HiOutlineEnvelope, val: 'Info@dayaarrealestate.com', href: 'mailto:Info@dayaarrealestate.com' },
-    { icon: HiOutlineMapPin, val: 'Office no.7, 1st Flr, Oswal Garden, Kanakia Rd, Nr. Park View Hotel,Mira Rd (E), Thane – 401107', href: '#' },
+    { icon: HiOutlineMapPin, val: 'Office No. 7, 1st Floor, Oswal Garden, Kanakia Road, near Park View Hotel, Mira Road East, Thane 401107', href: 'https://www.google.com/maps/search/?api=1&query=Dayaar%20Real%20Estate%20Oswal%20Garden%20Mira%20Road' },
   ];
 
   const socialItems = [
-    { icon: FaWhatsapp, href: 'https://wa.me/918452852324', label: 'WhatsApp' },
+    { icon: FaWhatsapp, href: contactWhatsAppHref, label: 'WhatsApp' },
     { icon: FaInstagram, href: 'https://www.instagram.com/dayaarrealestate/', label: 'Instagram' },
     { icon: FaYoutube, href: 'https://youtube.com/@dayaarrealestate?si=mImWA7vroHH1nQl-', label: 'YouTube' },
     { icon: FaFacebookF, href: 'https://www.facebook.com/share/1AbnJpepHy/', label: 'Facebook' },
@@ -286,7 +289,7 @@ export default function Footer() {
 
   return (
     <footer id="footer" style={styles.footer}>
-      <motion.div 
+      <Motion.div
         style={getContainerStyle()}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -295,7 +298,7 @@ export default function Footer() {
       >
         <div style={getGridStyle()}>
           {/* Brand Section */}
-          <motion.div
+          <Motion.div
             style={styles.brandSection}
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -318,21 +321,21 @@ export default function Footer() {
               Your trusted partner in finding premium properties across Mumbai&apos;s most sought-after neighborhoods — from Mira Road to South Bombay.
             </p>
 
-            <motion.a
-              href="https://wa.me/918452852324?text=Hi%2C%20I'm%20interested%20in%20Mumbai%20properties"
+            <Motion.a
+              href={contactWhatsAppHref + '?' + new URLSearchParams({ text: "Hi, I'm interested in Mumbai properties" })}
               target="_blank"
               rel="noopener noreferrer"
               style={styles.whatsappButton}
-              whileHover={{ y: -1, boxShadow: '0 8px 16px rgba(37,211,102,0.2)' }}
+              whileHover={{ y: -1, boxShadow: '0 8px 16px rgb(151 197 255 / 22%)' }}
               whileTap={{ scale: 0.97 }}
             >
               <FaWhatsapp style={styles.whatsappIcon} />
               Chat on WhatsApp
-            </motion.a>
-          </motion.div>
+            </Motion.a>
+          </Motion.div>
 
           {/* Navigate Section */}
-          <motion.div
+          <Motion.div
             style={styles.navSection}
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -345,7 +348,7 @@ export default function Footer() {
             </div>
             <div style={styles.navLinks}>
               {navLinks.map((link) => (
-                <motion.a
+                <Motion.a
                   key={link.label}
                   href={link.href}
                   style={{
@@ -358,13 +361,13 @@ export default function Footer() {
                   transition={{ duration: 0.2 }}
                 >
                   {link.label}
-                </motion.a>
+                </Motion.a>
               ))}
             </div>
-          </motion.div>
+          </Motion.div>
 
           {/* Contact Section */}
-          <motion.div
+          <Motion.div
             style={styles.contactSection}
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -377,7 +380,7 @@ export default function Footer() {
             </div>
             <div style={styles.contactItems}>
               {contactItems.map((c, i) => (
-                <motion.a
+                <Motion.a
                   key={i}
                   href={c.href}
                   style={styles.contactItem}
@@ -402,13 +405,13 @@ export default function Footer() {
                   >
                     {c.val}
                   </span>
-                </motion.a>
+                </Motion.a>
               ))}
             </div>
-          </motion.div>
+          </Motion.div>
 
           {/* Social Section */}
-          <motion.div
+          <Motion.div
             style={styles.socialSection}
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -421,7 +424,7 @@ export default function Footer() {
             </div>
             <div style={styles.socialIcons}>
               {socialItems.map((item) => (
-                <motion.a
+                <Motion.a
                   key={item.label}
                   href={item.href}
                   target="_blank"
@@ -430,7 +433,7 @@ export default function Footer() {
                   style={{
                     ...styles.socialIconBox,
                     borderColor: hoveredSocial === item.label ? 'rgba(30, 94, 255, 0.4)' : 'rgba(30, 94, 255, 0.2)',
-                    color: hoveredSocial === item.label ? '#1E5EFF' : 'rgba(255,255,255,0.6)',
+                    color: hoveredSocial === item.label ? '#c1dcff' : 'rgba(255,255,255,0.6)',
                   }}
                   onMouseEnter={() => setHoveredSocial(item.label)}
                   onMouseLeave={() => setHoveredSocial(null)}
@@ -438,24 +441,24 @@ export default function Footer() {
                   whileTap={{ scale: 0.96 }}
                 >
                   <item.icon style={styles.socialIcon} />
-                </motion.a>
+                </Motion.a>
               ))}
             </div>
-          </motion.div>
+          </Motion.div>
         </div>
 
         {/* Bottom Bar */}
-        <motion.div
+        <Motion.div
           style={isMd ? { ...styles.bottomBar, ...styles.bottomBarMd } : styles.bottomBar}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
         >
-          <p>© 2026 Dayaa Real Estate Consultant. All rights reserved. </p>
+          <p>© {new Date().getFullYear()} Dayaar Real Estate Consultant. All rights reserved.</p>
           <p>RERA registered consultant. Prices shown are indicative.</p>
-        </motion.div>
-      </motion.div>
+        </Motion.div>
+      </Motion.div>
     </footer>
   );
 }
