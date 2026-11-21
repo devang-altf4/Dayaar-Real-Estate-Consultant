@@ -67,7 +67,6 @@
   text-decoration: underline;
   text-underline-offset: .22em;
 }
-.landing-reviews-link svg { width: 22px; height: 22px; }
 .landing-reviews-link:hover { color: #fff; }
 .landing-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .landing-stat { display: flex; flex-direction: column-reverse; gap: 6px; padding-inline: clamp(10px, 2.6vw, 32px); border-inline-start: 1px solid rgb(182 215 252 / 26%); }

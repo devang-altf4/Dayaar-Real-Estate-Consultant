@@ -245,7 +245,7 @@ export default function CustomerReviews() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p style={{ color: 'var(--site-accent)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-                Customer Reviews
+                Client Stories
               </p>
               <h2
                 id="customer-reviews"
@@ -264,7 +264,7 @@ export default function CustomerReviews() {
             </p>
           </div>
           {reducedMotion ? (
-            <div className="landing-static-reviews" role="region" aria-label="Customer reviews" tabIndex={0}>
+            <div className="landing-static-reviews" role="region" aria-label="Client stories" tabIndex={0}>
               {CUSTOMER_REVIEWS.map((review, index) => <ReviewCard key={index} review={review} reducedMotion />)}
             </div>
           ) : <AnimatedReviewsLane />}
