@@ -127,7 +127,13 @@
   .landing-hero-details { margin-top: 19px; }
   .landing-hero-details .site-actions > a { padding: 10px 13px; font-size: .82rem; }
   .landing-stat dt { font-size: .58rem; letter-spacing: .045em; }
-  .landing-scroll-link > span { display: none; }
+  /* Keep the row clear of the floating chat button; the scroll arrow sat underneath it. */
+  .landing-hero-bottom { padding-inline-end: 68px; }
+  .landing-scroll-link { display: none; }
+  .landing-hero-highlights { grid-template-columns: minmax(0, .85fr) minmax(0, 2fr); width: 100%; }
+  .landing-reviews-link { font-size: .84rem; line-height: 1.25; padding-inline-end: 6px; }
+  .landing-stat { padding-inline: clamp(8px, 2.6vw, 12px); }
+  .landing-stat dd { font-size: clamp(1.25rem, 6.6vw, 1.65rem); }
   .landing-property-rail { grid-auto-columns: min(84%, 340px); }
   .landing-rail-actions button { width: 44px; height: 44px; }
 }
