@@ -1,6 +1,6 @@
 import {
   HiOutlineArrowLeft, HiOutlineArrowUpRight, HiOutlineBanknotes, HiOutlineBuildingOffice,
-  HiOutlineBuildingOffice2, HiOutlineHomeModern, HiOutlineKey, HiOutlinePaintBrush,
+  HiOutlineBuildingOffice2, HiOutlineHomeModern, HiOutlinePaintBrush,
   HiOutlinePaperAirplane, HiOutlineTag, HiOutlineWrenchScrewdriver,
 } from 'react-icons/hi2';
 import { services } from '../../data/services';
@@ -10,7 +10,6 @@ import { PageIntro } from './SitePages';
 const serviceIcons = {
   'buy-a-property': HiOutlineHomeModern,
   'sell-a-property': HiOutlineTag,
-  'residential-commercial-leasing': HiOutlineKey,
   'corporate-leasing': HiOutlineBuildingOffice2,
   'property-redevelopment': HiOutlineBuildingOffice,
   'home-loan-financing': HiOutlineBanknotes,
@@ -86,7 +85,7 @@ export function ServiceDetail({ service }) {
       <PageIntro title={service.title} description={service.summary} />
       <div className="site-card site-service-detail">
         <span className="site-icon"><Icon aria-hidden /></span>
-        <p>{service.detail}</p>
+        {service.detail && <p>{service.detail}</p>}
         <h2>How we can help</h2>
         <ul>{service.support.map((item) => <li key={item}>{item}</li>)}</ul>
       </div>

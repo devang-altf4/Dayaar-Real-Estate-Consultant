@@ -16,13 +16,6 @@ export const services = [
     action: ['List Your Property', '/list-your-property'],
   },
   {
-    slug: 'residential-commercial-leasing',
-    title: 'Residential & Commercial Leasing',
-    summary: 'Find rental homes, offices, shops and commercial spaces, or lease out your own property.',
-    detail: 'Whether you are looking for a place to rent or want to let a property, our team can help match the space to the location, budget and lease terms you need.',
-    support: ['Shortlist rental homes and commercial premises', 'Coordinate tenant enquiries and property visits', 'Help both parties work through lease terms and paperwork'],
-  },
-  {
     slug: 'corporate-leasing',
     title: 'Corporate Leasing',
     summary: 'Find offices, retail premises and employee accommodation that fit your business.',
@@ -31,10 +24,9 @@ export const services = [
   },
   {
     slug: 'property-redevelopment',
-    title: 'Property Redevelopment',
-    summary: 'Explore redevelopment options for existing buildings and housing societies in Mumbai.',
-    detail: 'Tell us about your building or housing society and what you hope to achieve through redevelopment. We can help you compare developer proposals and coordinate discussions about the next steps.',
-    support: ['Discuss the property and your redevelopment priorities', 'Compare developer proposals, scope and indicative timelines', 'Coordinate discussions between owners, societies and developers'],
+    title: 'Redevelopment Projects',
+    summary: 'We connect housing societies with reputed developers for redevelopment opportunities. With a strong network of 150+ developers across India, we help societies find the right development partner through professional coordination, project evaluation, proposal comparison and end-to-end tie-up assistance.',
+    support: ['Connect housing societies with our network of 150+ reputed developers across India', 'Project evaluation and developer proposal comparison', 'Professional coordination and end-to-end tie-up assistance'],
   },
   {
     slug: 'home-loan-financing',

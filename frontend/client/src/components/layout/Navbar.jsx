@@ -11,7 +11,7 @@ const links = [
   ['Contact Us', '#footer'],
   ['FAQ', '/help'],
   ['EMI Calculator', '/emi-calculator'],
-  ['STD Calculator', '/stamp-duty-calculator'],
+  ['SDR Calculator', '/stamp-duty-calculator'],
 ];
 
 export default function Navbar({ path }) {

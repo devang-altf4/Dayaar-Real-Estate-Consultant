@@ -2,12 +2,12 @@ const zoneData = require('../data/zoneData.json');
 
 const companyFacts = [
   'Dayaar Real Estate Consultant is a Mumbai-focused real estate consultancy.',
-  'Website navigation: Home, Our Services, Property Enquiry, List Your Property, Contact Us, FAQ, EMI Calculator, and STD Calculator (stamp duty and registration).',
+  'Website navigation: Home, Our Services, Property Enquiry, List Your Property, Contact Us, FAQ, EMI Calculator, and SDR Calculator (stamp duty and registration).',
   'The website has a budget-filtered shortlist of new apartments at /properties. Property owners can prepare a WhatsApp listing enquiry at /list-your-property.',
   'The EMI calculator at /emi-calculator estimates monthly payments and a repayment schedule. The stamp duty calculator at /stamp-duty-calculator estimates charges for standard purchases within Greater Mumbai.',
   'The in-house team handles flats, bungalows, offices, shops, plots and land and coordinates shortlisting, visits and paperwork.',
   'Current coverage spans Mira Road, Borivali, Kandivali, Malad, Andheri, Bandra, and wider Mumbai corridors.',
-  'Services include buying and resale, residential and commercial leasing, corporate leasing, property redevelopment, financing assistance, property management, NRI support, and interiors and renovations.',
+  'Services include buying and resale, corporate leasing, redevelopment projects (connecting housing societies with 150+ reputed developers across India for project evaluation, proposal comparison and end-to-end tie-up assistance), financing assistance, property management, NRI support, and interiors and renovations.',
   'Lead form fields: full name, phone number, budget range, profession, BHK, location preferred, and specific requirement.',
   'Budget options: Under Rs 50 Lakh, Rs 50 Lakh to Rs 1 Crore, Rs 1 to Rs 2 Crore, Rs 2 to Rs 5 Crore, Rs 5 to Rs 10 Crore, and Rs 10 Crore plus.',
   'BHK options: 1 BHK, 2 BHK, 3 BHK, 4 BHK, and 5+ BHK.',

@@ -97,12 +97,13 @@ export default function HeroSection() {
 
         <div className="landing-hero-bottom">
           <div className="landing-hero-highlights">
-            <a href="#customer-reviews" className="landing-reviews-link">
-              <span>Client Stories</span>
-            </a>
             <dl className="landing-stats">
               {statistics.map((stat) => <StatCounter key={stat.label} {...stat} reducedMotion={reducedMotion} />)}
             </dl>
+            <a href="#customer-reviews" className="landing-reviews-link">
+              <span>Customer Reviews — Client Stories</span>
+              <HiOutlineArrowDown aria-hidden />
+            </a>
           </div>
           <a href="#services" className="landing-scroll-link" aria-label="Scroll to services">
             <span>Scroll</span><HiOutlineArrowDown aria-hidden />

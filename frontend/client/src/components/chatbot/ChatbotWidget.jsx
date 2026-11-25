@@ -15,9 +15,11 @@ const starterPrompts = [
   'What does Dayaar help with?',
 ];
 
-const LAUNCHER_SIZE = 58;
-const EDGE_GAP = 20;
-const PANEL_GAP = 18;
+const LAUNCHER_SIZE_DESKTOP = 58;
+const LAUNCHER_SIZE_MOBILE = 52;
+const EDGE_GAP_DESKTOP = 20;
+const EDGE_GAP_MOBILE = 16;
+const PANEL_GAP = 14;
 const PANEL_MAX_WIDTH = 390;
 const PANEL_MAX_HEIGHT = 580;
 
@@ -33,45 +35,61 @@ function getViewportSize() {
   }
 
   return {
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: document.documentElement?.clientWidth || window.innerWidth,
+    height: window.visualViewport?.height || window.innerHeight,
   };
+}
+
+function getLayoutMetrics(viewport) {
+  const isCompact = viewport.width <= 640;
+  return {
+    launcherSize: isCompact ? LAUNCHER_SIZE_MOBILE : LAUNCHER_SIZE_DESKTOP,
+    edgeGap: isCompact ? EDGE_GAP_MOBILE : EDGE_GAP_DESKTOP,
+  };
+}
+
+function isUsableViewport(viewport) {
+  const { launcherSize, edgeGap } = getLayoutMetrics(viewport);
+  return viewport.width >= launcherSize + edgeGap * 2 && viewport.height >= launcherSize + edgeGap * 2;
 }
 
 function clampPosition(position, viewport = getViewportSize()) {
-  const maxX = Math.max(EDGE_GAP, viewport.width - LAUNCHER_SIZE - EDGE_GAP);
-  const maxY = Math.max(EDGE_GAP, viewport.height - LAUNCHER_SIZE - EDGE_GAP);
+  const { launcherSize, edgeGap } = getLayoutMetrics(viewport);
+  const maxX = Math.max(edgeGap, viewport.width - launcherSize - edgeGap);
+  const maxY = Math.max(edgeGap, viewport.height - launcherSize - edgeGap);
 
   return {
-    x: Math.min(Math.max(position.x, EDGE_GAP), maxX),
-    y: Math.min(Math.max(position.y, EDGE_GAP), maxY),
+    x: Math.min(Math.max(position.x, edgeGap), maxX),
+    y: Math.min(Math.max(position.y, edgeGap), maxY),
   };
 }
 
-function getDefaultPosition() {
-  const viewport = getViewportSize();
+function getDefaultPosition(viewport = getViewportSize()) {
+  const { launcherSize, edgeGap } = getLayoutMetrics(viewport);
 
   return {
-    x: Math.max(EDGE_GAP, viewport.width - LAUNCHER_SIZE - EDGE_GAP),
-    y: Math.max(EDGE_GAP, viewport.height - LAUNCHER_SIZE - EDGE_GAP),
+    x: Math.max(edgeGap, viewport.width - launcherSize - edgeGap),
+    y: Math.max(edgeGap, viewport.height - launcherSize - edgeGap),
   };
 }
 
 function getPanelPlacement(position, viewport) {
-  const width = Math.min(PANEL_MAX_WIDTH, viewport.width - EDGE_GAP * 2);
-  const height = Math.min(PANEL_MAX_HEIGHT, viewport.height - EDGE_GAP * 2);
-  const opensLeft = position.x + LAUNCHER_SIZE / 2 > viewport.width / 2;
-  const preferredLeft = opensLeft ? position.x + LAUNCHER_SIZE - width : position.x;
-  const hasRoomAbove = position.y - PANEL_GAP - height >= EDGE_GAP;
+  const { launcherSize, edgeGap } = getLayoutMetrics(viewport);
+  const width = Math.min(PANEL_MAX_WIDTH, viewport.width - edgeGap * 2);
+  const height = Math.min(PANEL_MAX_HEIGHT, viewport.height - launcherSize - PANEL_GAP - edgeGap * 2);
+  const safeHeight = Math.max(320, Math.min(PANEL_MAX_HEIGHT, height || viewport.height - edgeGap * 2));
+  const opensLeft = position.x + launcherSize / 2 > viewport.width / 2;
+  const preferredLeft = opensLeft ? position.x + launcherSize - width : position.x;
+  const hasRoomAbove = position.y - PANEL_GAP - safeHeight >= edgeGap;
   const preferredTop = hasRoomAbove
-    ? position.y - PANEL_GAP - height
-    : position.y + LAUNCHER_SIZE + PANEL_GAP;
+    ? position.y - PANEL_GAP - safeHeight
+    : position.y + launcherSize + PANEL_GAP;
 
   return {
     width,
-    height,
-    left: Math.min(Math.max(preferredLeft, EDGE_GAP), viewport.width - width - EDGE_GAP),
-    top: Math.min(Math.max(preferredTop, EDGE_GAP), viewport.height - height - EDGE_GAP),
+    height: safeHeight,
+    left: Math.min(Math.max(preferredLeft, edgeGap), viewport.width - width - edgeGap),
+    top: Math.min(Math.max(preferredTop, edgeGap), viewport.height - safeHeight - edgeGap),
   };
 }
 
@@ -85,8 +103,6 @@ const initialMessages = [
 const styles = {
   shell: {
     position: 'fixed',
-    width: LAUNCHER_SIZE,
-    height: LAUNCHER_SIZE,
     zIndex: 60,
     fontFamily: 'var(--font-body)',
   },
@@ -255,8 +271,8 @@ const styles = {
     boxShadow: '0 10px 28px rgba(30, 94, 255, 0.28)',
   },
   launcher: {
-    width: 58,
-    height: 58,
+    width: '100%',
+    height: '100%',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -309,8 +325,9 @@ export default function ChatbotWidget() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [viewport, setViewport] = useState(getViewportSize);
-  const [position, setPosition] = useState(getDefaultPosition);
+  const [customPosition, setCustomPosition] = useState(null);
   const [dragging, setDragging] = useState(false);
+  const shellRef = useRef(null);
   const viewportRef = useRef(null);
   const dragRef = useRef(null);
 
@@ -322,12 +339,17 @@ export default function ChatbotWidget() {
   useEffect(() => {
     const handleResize = () => {
       const nextViewport = getViewportSize();
+      if (!isUsableViewport(nextViewport)) return;
       setViewport(nextViewport);
-      setPosition((current) => clampPosition(current, nextViewport));
+      setCustomPosition((current) => (current ? clampPosition(current, nextViewport) : null));
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const beginDrag = (event, source) => {
@@ -336,13 +358,16 @@ export default function ChatbotWidget() {
 
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    const liveViewport = getViewportSize();
+    const rect = shellRef.current?.getBoundingClientRect();
+    const fallbackPos = customPosition ?? getDefaultPosition(liveViewport);
     dragRef.current = {
       pointerId: event.pointerId,
       source,
       startX: event.clientX,
       startY: event.clientY,
-      baseX: position.x,
-      baseY: position.y,
+      baseX: rect ? rect.left : fallbackPos.x,
+      baseY: rect ? rect.top : fallbackPos.y,
       moved: false,
     };
     setDragging(true);
@@ -358,10 +383,13 @@ export default function ChatbotWidget() {
       drag.moved = true;
     }
 
-    setPosition(clampPosition({
-      x: drag.baseX + deltaX,
-      y: drag.baseY + deltaY,
-    }, viewport));
+    if (drag.moved) {
+      const liveViewport = getViewportSize();
+      setCustomPosition(clampPosition({
+        x: drag.baseX + deltaX,
+        y: drag.baseY + deltaY,
+      }, isUsableViewport(liveViewport) ? liveViewport : viewport));
+    }
   };
 
   const finishDrag = (event) => {
@@ -421,14 +449,21 @@ export default function ChatbotWidget() {
   };
 
   const hasUserMessage = messages.some((message) => message.role === 'user');
-  const panelPlacement = getPanelPlacement(position, viewport);
+  const { launcherSize, edgeGap } = getLayoutMetrics(viewport);
+  const effectivePosition = customPosition ?? getDefaultPosition(viewport);
+  const panelPlacement = getPanelPlacement(effectivePosition, viewport);
+  const shellPositionStyle = customPosition
+    ? { left: customPosition.x, top: customPosition.y }
+    : { right: edgeGap, bottom: `calc(${edgeGap}px + env(safe-area-inset-bottom, 0px))` };
 
   return (
     <div
+      ref={shellRef}
       style={{
         ...styles.shell,
-        left: position.x,
-        top: position.y,
+        width: launcherSize,
+        height: launcherSize,
+        ...shellPositionStyle,
       }}
     >
       <AnimatePresence>

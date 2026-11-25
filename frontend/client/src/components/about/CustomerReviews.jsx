@@ -245,7 +245,7 @@ export default function CustomerReviews() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p style={{ color: 'var(--site-accent)', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-                Client Stories
+                Customer Reviews — Client Stories
               </p>
               <h2
                 id="customer-reviews"
